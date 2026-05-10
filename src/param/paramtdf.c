@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -346,12 +347,128 @@ int64_t sf_paramtdf_entry_get_value(const sf_paramtdf_entry_t *entry) {
  * Write path — implemented in T3.5; stub returns SF_ERR_INTERNAL.
  *===========================================================================*/
 
+static const char *type_to_name(sf_paramtdf_type_t type) {
+    switch (type) {
+    case SF_PARAMTDF_TYPE_S8:  return "s8";
+    case SF_PARAMTDF_TYPE_U8:  return "u8";
+    case SF_PARAMTDF_TYPE_S16: return "s16";
+    case SF_PARAMTDF_TYPE_U16: return "u16";
+    case SF_PARAMTDF_TYPE_S32: return "s32";
+    case SF_PARAMTDF_TYPE_U32: return "u32";
+    }
+    return NULL;
+}
+
+static sf_result_t format_value(sf_paramtdf_type_t type, int64_t value,
+                                char *buf, size_t buf_size, size_t *out_len) {
+    int n;
+    switch (type) {
+    case SF_PARAMTDF_TYPE_S8:
+    case SF_PARAMTDF_TYPE_S16:
+    case SF_PARAMTDF_TYPE_S32:
+        n = snprintf(buf, buf_size, "%lld", (long long)value);
+        break;
+    case SF_PARAMTDF_TYPE_U8:
+    case SF_PARAMTDF_TYPE_U16:
+    case SF_PARAMTDF_TYPE_U32:
+        n = snprintf(buf, buf_size, "%llu", (unsigned long long)value);
+        break;
+    default:
+        return SF_ERR_INVALID_ARG;
+    }
+
+    if (n < 0 || (size_t)n >= buf_size) return SF_ERR_INTERNAL;
+    *out_len = (size_t)n;
+    return SF_OK;
+}
+
 sf_result_t sf_paramtdf_write_to_text(const sf_paramtdf_t *tdf, char **out_text,
                                       size_t *out_size,
                                       const sf_allocator_t *alloc) {
-    (void)tdf;
-    (void)out_text;
-    (void)out_size;
-    (void)alloc;
-    return SF_ERR_INTERNAL;
+    SF_CHECK_ARG(tdf != NULL);
+    SF_CHECK_ARG(out_text != NULL);
+    SF_CHECK_ARG(out_size != NULL);
+
+    *out_text = NULL;
+    *out_size = 0;
+
+    const char *name = tdf->name ? tdf->name : "";
+    const char *type_name = type_to_name(tdf->type);
+    SF_CHECK_ARG(type_name != NULL);
+
+    char value_buf[32];
+    size_t total = 0;
+
+    size_t name_len = strlen(name);
+    size_t type_len = strlen(type_name);
+    if (name_len > SIZE_MAX - 4 || type_len > SIZE_MAX - 4) return SF_ERR_OOM;
+    total += name_len + 4; /* "name"\r\n */
+    total += type_len + 4; /* "type"\r\n */
+
+    for (size_t i = 0; i < tdf->entry_count; i++) {
+        const sf_paramtdf_entry_t *entry = &tdf->entries[i];
+        size_t value_len = 0;
+        sf_result_t r = format_value(tdf->type, entry->value, value_buf,
+                                      sizeof(value_buf), &value_len);
+        if (r != SF_OK) return r;
+
+        if (entry->name != NULL) {
+            size_t entry_name_len = strlen(entry->name);
+            if (entry_name_len > SIZE_MAX - total - 7 - value_len) return SF_ERR_OOM;
+            total += entry_name_len + value_len + 7;
+        } else {
+            if (value_len > SIZE_MAX - total - 5) return SF_ERR_OOM;
+            total += value_len + 5;
+        }
+    }
+
+    char *text = (char *)sf_xalloc(alloc, total + 1);
+    if (!text) return SF_ERR_OOM;
+
+    char *dst = text;
+    *dst++ = '"';
+    memcpy(dst, name, name_len);
+    dst += name_len;
+    *dst++ = '"';
+    *dst++ = '\r';
+    *dst++ = '\n';
+
+    *dst++ = '"';
+    memcpy(dst, type_name, type_len);
+    dst += type_len;
+    *dst++ = '"';
+    *dst++ = '\r';
+    *dst++ = '\n';
+
+    for (size_t i = 0; i < tdf->entry_count; i++) {
+        const sf_paramtdf_entry_t *entry = &tdf->entries[i];
+        size_t value_len = 0;
+        sf_result_t r = format_value(tdf->type, entry->value, value_buf,
+                                      sizeof(value_buf), &value_len);
+        if (r != SF_OK) {
+            sf_xfree(alloc, text);
+            return r;
+        }
+
+        if (entry->name != NULL) {
+            size_t entry_name_len = strlen(entry->name);
+            *dst++ = '"';
+            memcpy(dst, entry->name, entry_name_len);
+            dst += entry_name_len;
+            *dst++ = '"';
+        }
+
+        *dst++ = ',';
+        *dst++ = '"';
+        memcpy(dst, value_buf, value_len);
+        dst += value_len;
+        *dst++ = '"';
+        *dst++ = '\r';
+        *dst++ = '\n';
+    }
+
+    *dst = '\0';
+    *out_text = text;
+    *out_size = total;
+    return SF_OK;
 }
