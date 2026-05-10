@@ -4,25 +4,25 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 ## Phase 1 / BinaryReaderEx
 
-- [ ] [BinaryReaderEx] plural reads (read_i8s/u8s/i16s/u16s/i32s/u32s/i64s/u64s/f32s/f64s/bools/varints) (closes when Task 8 ships)
-- [ ] [BinaryReaderEx] Get* coverage (get_bool/i8/u8/u16/i16/f32/f64/varint) (closes when Task 8 ships)
-- [ ] [BinaryReaderEx] Get* plural variants (get_bools/i8s/u8s/u16s/i16s/f32s/f64s/varints) (closes when Task 8 ships)
-- [ ] [BinaryReaderEx] GetASCII / GetUTF16 / GetShiftJIS (with and without length) (closes when Task 8 ships)
-- [ ] [BinaryReaderEx] assert_* multi-option signature (closes when Task 8 ships)
-- [ ] [BinaryReaderEx] assert_i8 / sbyte / i16 / boolean / single / double / i64 / varint missing variants (closes when Task 8 ships)
-- [ ] [BinaryReaderEx] read_enum_8 / 16 / 32 / 64 (closes when Task 8 ships)
-- [ ] [BinaryReaderEx] is_flexible per-reader flag + global default setter (closes when Task 8 ships)
-- [ ] [BinaryReaderEx] sf_binary_reader_stream() accessor (closes when Task 8 ships)
-- [ ] [BinaryReaderEx] rename read_vec3_11_11_10 → read_11_11_10_vec3 (closes when Task 8 ships)
+- [x] [BinaryReaderEx] plural reads (read_i8s/u8s/i16s/u16s/i32s/u32s/i64s/u64s/f32s/f64s/bools/varints) (closed by Task 8)
+- [x] [BinaryReaderEx] Get* coverage (get_bool/i8/u8/u16/i16/f32/f64/varint) (closed by Task 8)
+- [x] [BinaryReaderEx] Get* plural variants (get_bools/i8s/u8s/u16s/i16s/f32s/f64s/varints) (closed by Task 8)
+- [x] [BinaryReaderEx] GetASCII / GetUTF16 / GetShiftJIS (with and without length) (closed by Task 8)
+- [x] [BinaryReaderEx] assert_* multi-option signature (closed by Task 8)
+- [x] [BinaryReaderEx] assert_i8 / sbyte / i16 / boolean / single / double / i64 / varint missing variants (closed by Task 8)
+- [x] [BinaryReaderEx] read_enum_8 / 16 / 32 / 64 (closed by Task 8)
+- [x] [BinaryReaderEx] is_flexible per-reader flag + global default setter (closed by Task 8)
+- [x] [BinaryReaderEx] sf_binary_reader_stream() accessor (closed by Task 8)
+- [x] [BinaryReaderEx] rename read_vec3_11_11_10 → read_11_11_10_vec3 (closed by Task 8)
 
 ## Phase 1 / BinaryWriterEx
 
-- [ ] [BinaryWriterEx] Reserve/Fill missing 7 types (bool / i8 / u8 / i16 / u16 / f32 / f64) (closes when Task 9 ships)
-- [ ] [BinaryWriterEx] write_*s plural writes (12 types) (closes when Task 9 ships)
-- [ ] [BinaryWriterEx] pad_FF shorthand (closes when Task 9 ships)
-- [ ] [BinaryWriterEx] rename pattern → write_pattern (closes when Task 9 ships)
-- [ ] [BinaryWriterEx] to_array() and finish_bytes() 3-mode finish (closes when Task 9 ships)
-- [ ] [BinaryWriterEx] sf_binary_writer_stream() accessor (closes when Task 9 ships)
+- [x] [BinaryWriterEx] Reserve/Fill missing 7 types (bool / i8 / u8 / i16 / u16 / f32 / f64) (closed by Task 9)
+- [x] [BinaryWriterEx] write_*s plural writes (12 types) (closed by Task 9)
+- [x] [BinaryWriterEx] pad_FF shorthand (closed by Task 9)
+- [x] [BinaryWriterEx] rename pattern → write_pattern (closed by Task 9)
+- [x] [BinaryWriterEx] to_array() and finish_bytes() 3-mode finish (closed by Task 9)
+- [x] [BinaryWriterEx] sf_binary_writer_stream() accessor (closed by Task 9)
 
 ## Phase 1 / PathHelper
 

@@ -10,12 +10,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Breaking changes
 
 - `sf_oodle_version()` return type changed from `int` to `sf_oodle_version_t` enum.
+- `sf_binary_writer_pattern()` was renamed to `sf_binary_writer_write_pattern()` to match
+  upstream `BinaryWriterEx.WritePattern`; no compatibility alias is provided.
+- `sf_binary_reader_read_vec3_11_11_10()` renamed to
+  `sf_binary_reader_read_11_11_10_vec3()` to mirror upstream
+  `Read11_11_10Vector3`.
+- `sf_binary_reader_assert_u8/u16/u32/i32/u64()` now use multi-option
+  `(size_t n_options, const T *options, T *out_value)` signatures; use the
+  new `_one()` helpers for the previous single-option convenience form.
 
 ### New APIs
 
 - `sf_oodle_version_t` enum (SF_OODLE_VERSION_UNKNOWN/6/8/9)
 - `sf_oodle_lz_compressor_t` and 7 other OodleLZ_* enums
 - `sf_oodle_lz_compress_options_t` struct
+- `sf_binary_writer_reserve_*` / `sf_binary_writer_fill_*` pairs for all 12 primitive
+  writer types, including bool/i8/u8/i16/u16/f32/f64.
+- BinaryReaderEx-aligned reader APIs: plural primitive reads, full primitive
+  `Get*`/plural `Get*` coverage, `GetASCII`/`GetShiftJIS`/`GetUTF16`,
+  multi-option asserts for every primitive/varint, enum validation reads,
+  per-reader flexible assertions plus default setter, and borrowed stream
+  accessor.
+- `sf_binary_writer_write_*s` plural primitive writes for bool/i8/u8/i16/u16/i32/u32/
+  i64/u64/f32/f64/varint arrays.
+- `sf_binary_writer_pad_ff()`, `sf_binary_writer_to_array()`,
+  `sf_binary_writer_finish_bytes()`, and `sf_binary_writer_stream()`.
 
 ### Notes
 
