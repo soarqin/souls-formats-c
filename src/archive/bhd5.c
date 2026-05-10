@@ -36,6 +36,8 @@ typedef struct sf_bhd5_file {
 
     bool has_sha_hash;
     uint8_t sha_hash[32];
+    size_t sha_range_count;
+    sf_bhd5_range_t *sha_ranges;  /* heap-owned, freed in bhd5_file_clear */
 
     bool has_aes_key;
     uint8_t aes_key[16];
@@ -61,6 +63,7 @@ struct sf_bhd5 {
 
 static void bhd5_file_clear(const sf_allocator_t *a, sf_bhd5_file_t *f) {
     if (!f) return;
+    sf_xfree(a, f->sha_ranges);
     sf_xfree(a, f->aes_ranges);
     memset(f, 0, sizeof(*f));
 }
@@ -234,13 +237,31 @@ out:
 }
 
 static sf_result_t read_sha_hash(sf_binary_reader_t *r, sf_bhd5_file_t *file,
-                                  int64_t sha_hash_offset) {
+                                  int64_t sha_hash_offset, const sf_allocator_t *a) {
     sf_result_t rr = sf_binary_reader_step_in(r, sha_hash_offset);
     if (rr != SF_OK) return rr;
     rr = sf_binary_reader_read_bytes(r, file->sha_hash, sizeof(file->sha_hash));
-    if (rr == SF_OK) file->has_sha_hash = true;
-    sf_result_t step = sf_binary_reader_step_out(r);
-    return rr != SF_OK ? rr : step;
+    if (rr != SF_OK) goto out;
+    int32_t range_count = 0;
+    rr = read_i32_nonnegative(r, &range_count);
+    if (rr != SF_OK) goto out;
+    if (range_count > 0) {
+        file->sha_ranges = (sf_bhd5_range_t *)sf_xalloc(a, (size_t)range_count * sizeof(*file->sha_ranges));
+        if (!file->sha_ranges) { rr = SF_ERR_OOM; goto out; }
+        for (int32_t i = 0; i < range_count; i++) {
+            rr = sf_binary_reader_read_i64(r, &file->sha_ranges[i].start_offset);
+            if (rr != SF_OK) goto out;
+            rr = sf_binary_reader_read_i64(r, &file->sha_ranges[i].end_offset);
+            if (rr != SF_OK) goto out;
+        }
+    }
+    file->sha_range_count = (size_t)range_count;
+    file->has_sha_hash = true;
+out:
+    {
+        sf_result_t step = sf_binary_reader_step_out(r);
+        return rr != SF_OK ? rr : step;
+    }
 }
 
 static sf_result_t read_file_header(sf_binary_reader_t *r, sf_bhd5_file_t *file,
@@ -278,7 +299,7 @@ static sf_result_t read_file_header(sf_binary_reader_t *r, sf_bhd5_file_t *file,
     file->unpadded_size = (uint32_t)unpadded;
 
     if (sha_hash_offset != 0) {
-        rr = read_sha_hash(r, file, sha_hash_offset);
+        rr = read_sha_hash(r, file, sha_hash_offset, a);
         if (rr != SF_OK) return rr;
     }
     if (aes_key_offset != 0) {
@@ -637,7 +658,7 @@ sf_result_t sf_bhd5_write(const sf_bhd5_t *b, const wchar_t *bhd_path) {
     for (size_t i = 0; i < b->file_count; i++) {
         if (b->files[i].has_sha_hash) {
             sha_offsets[i] = cursor;
-            cursor += 36;
+            cursor += 36 + (int64_t)b->files[i].sha_range_count * 16;
         }
         if (b->files[i].has_aes_key) {
             aes_offsets[i] = cursor;
@@ -695,8 +716,14 @@ sf_result_t sf_bhd5_write(const sf_bhd5_t *b, const wchar_t *bhd_path) {
         if (f->has_sha_hash) {
             rr = sf_binary_writer_write_bytes(w, f->sha_hash, sizeof(f->sha_hash));
             if (rr != SF_OK) goto out;
-            rr = sf_binary_writer_write_i32(w, 0);
+            rr = sf_binary_writer_write_i32(w, (int32_t)f->sha_range_count);
             if (rr != SF_OK) goto out;
+            for (size_t j = 0; j < f->sha_range_count; j++) {
+                rr = sf_binary_writer_write_i64(w, f->sha_ranges[j].start_offset);
+                if (rr != SF_OK) goto out;
+                rr = sf_binary_writer_write_i64(w, f->sha_ranges[j].end_offset);
+                if (rr != SF_OK) goto out;
+            }
         }
         if (f->has_aes_key) {
             rr = sf_binary_writer_write_bytes(w, f->aes_key, sizeof(f->aes_key));
