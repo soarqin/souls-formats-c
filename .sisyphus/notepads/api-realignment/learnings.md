@@ -130,3 +130,26 @@
   `x86_64-w64-mingw32-objdump -p libsouls_formats.dll | grep ...`.
 - Full ctest suite remains 17/17 PASS after the change; no golden-hash
   regressions observed.
+### TPF & ENFL Mapping (Phase 3)
+- TPF is a multi-file texture container that supports various platforms (PC, Xbox360, PS3, PS4, Switch, etc.).
+- TPF transports DDS data opaquely; the C implementation should focus on the container format and metadata, not DDS pixel decoding.
+- ENFL (EntryFileList) is a mysterious format used in BB and DS3 for asset loading based on map location.
+- ENFL uses Zlib compression for its internal data block.
+- Both formats are targeted for Phase 3 implementation.
+### Binder Family Mapping (2026-05-10)
+- Consolidated Binder common types (BinderFile, BinderFileHeader, BinderHashTable, IBinder, BinderReader) into a single mapping doc.
+- BND3/4 and BXF3/4 follow a consistent pattern with their respective readers.
+- BHD5 is a standalone format at the root level, with complex bucket/file header structures.
+- All mappings marked as '未实现' as per Phase 3 requirements.
+### EMEVD and ESD Mapping (2026-05-10)
+- EMEVD format varies significantly between games (DS1/2 vs BB vs DS3 vs Sekiro) based on bitness, endianness, and version flags.
+- ESD uses a 'LongFormat' flag to switch between 32-bit and 64-bit offsets/sizes.
+- Both formats rely heavily on bytecode (EMEVD instructions, ESD evaluators/arguments) which will require careful implementation in Phase 5.
+- EMEVD uses a 'Layer' system for ceremony-specific instructions, which involves a complex offset-based lookup in the file structure.
+
+### MTD and MATBIN Mapping (2026-05-10)
+- MTD is the legacy material format used in Sekiro and earlier games. It uses a block-based binary format with Shift-JIS strings.
+- MATBIN is the modern material format introduced in Elden Ring. It uses UTF-16 strings and a more flat structure compared to MTD's nested blocks.
+- Both formats share similar concepts: ShaderPath, Params, and Textures/Samplers.
+- MTD's `Texture` has an `Extended` flag for Sekiro-specific data (Path and UnkFloats).
+- MATBIN's `Param` and `Sampler` use 64-bit offsets for strings, reflecting the move to 64-bit engines.
