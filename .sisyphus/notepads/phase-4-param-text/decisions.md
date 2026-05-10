@@ -24,6 +24,8 @@
 - UnnamedRows/HeaderlessRows: return SF_ERR_UNSUPPORTED_VERSION (v1 scope)
 - sf_paramdef_get_index: extension API (Paramdex XML only, binary returns -1)
 - sf_paramdef_field_get_sort_id: extension API (Paramdex XML only, binary returns 0)
+- Paramdex e2e test target stays registered as `paramdef_xml_e2e` until the
+  build-system naming is normalized; use that target name for verification.
 
 ## Parallelization Strategy
 
