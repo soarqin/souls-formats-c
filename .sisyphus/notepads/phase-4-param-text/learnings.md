@@ -46,3 +46,42 @@ match the project convention established in Phase 0–3.
 `SpEffect.xml` is stable enough to probe by metadata (`ParamType`, `DataVersion`,
 `Unicode`, `BigEndian`, `FormatVersion`, `Index`) and by field lookup via
 `InternalName`; field order should not be assumed.
+
+### T4.4 — Full PARAM/PARAMDEF e2e pipeline specifics (2026-05-11)
+KEYSTONE test exercises: regulation.bin → `sf_regulation_decrypt_er` →
+BND4 → suffix-match entry → `sf_param_read_from_memory` → PARAM properties
+asserted → `sf_paramdef_read_xml_from_path` → `sf_param_apply_paramdef`.
+
+Worth knowing:
+- `sf_param_destroy(param)` / `sf_paramdef_destroy(def)` take NO allocator
+  parameter (the object remembers its allocator internally).
+- Cell typed getters (`sf_param_cell_get_s32` etc.) return values directly,
+  NOT via out-param `sf_result_t`. Use `sf_param_row_find_cell` to obtain
+  the cell first.
+- `sf_param_apply_paramdef` returns `SF_OK` when applied, `SF_ERR_NOT_FOUND`
+  when CAREFUL rejects (param_type / data_version / row_size mismatch), and
+  propagates I/O errors otherwise.
+- After CAREFUL rejection, cells remain unpopulated → `sf_param_row_find_cell`
+  returns NULL. Useful for negative-path assertions.
+
+### T4.4 — er_load_param path bug (2026-05-11)
+`tests/e2e/er_test_helper.c::er_load_param` originally hardcoded
+`L"/mnt/c/Games/ELDEN RING/Game/regulation.bin"`, which Win32 PE binaries
+cannot resolve (POSIX-style /mnt/c/... is a WSL Linux mountpoint, not a
+Windows path). Fixed in T4.4 to use `SF_E2E_ELDEN_RING_DIR L"/Game/..."`,
+matching the convention already used by `k_bhd_path` / `k_bdt_path`.
+
+### T4.4 — Paramdex vs regulation.bin version mismatch (2026-05-11)
+The bundled Paramdex `ER/Defs/SpEffect.xml` (DataVersion 4, row_size 1000)
+mismatches the current ER patch's regulation.bin (row_size ≈ 935). CAREFUL
+apply returns `SF_ERR_NOT_FOUND` due to row_size check. Tests must SKIP on
+this branch (not FAIL) — it is an environmental version gap, not a pipeline
+bug. The regulation→BND4→PARAM half is still validated end-to-end.
+
+### T4.4 — PE binary path semantics under WSL interop
+- `GetFileAttributesW(L"C:/Games/...")` works (Win32 canonical).
+- `GetFileAttributesW(L"\\\\wsl.localhost\\Ubuntu\\home\\...")` works.
+- `GetFileAttributesW(L"/mnt/c/Games/...")` FAILS (POSIX path, not Win32).
+- `access("/home/soar/...")` works from MinGW CRT (Linux paths translated
+  by WSL interop).
+- `access("/mnt/c/Games/...")` FAILS (MinGW CRT does not handle drvfs).

@@ -266,7 +266,7 @@ sf_result_t er_load_param(const char *param_name, void **out_bytes, size_t *out_
 
     void   *reg_bytes = NULL;
     size_t  reg_size  = 0;
-    sf_result_t r = er_read_file_bytes(L"/mnt/c/Games/ELDEN RING/Game/regulation.bin",
+    sf_result_t r = er_read_file_bytes(SF_E2E_ELDEN_RING_DIR L"/Game/regulation.bin",
                                        &reg_bytes, &reg_size, use_alloc);
     if (r != SF_OK) {
         sf_free(use_alloc, suffix);

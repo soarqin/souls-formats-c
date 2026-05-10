@@ -137,6 +137,13 @@ sf_add_test(fmg_write param/test_fmg_write.c "param")
 sf_add_test(souls_formats_test_synthetic_roundtrip param/test_synthetic_roundtrip.c "param")
 sf_add_test(paramdef_xml_e2e param/test_paramdef_xml_e2e.c "param")
 sf_add_test(param_apply_paramdef_e2e param/test_param_apply_paramdef_e2e.c "param")
+target_include_directories(param_apply_paramdef_e2e PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(param_apply_paramdef_e2e PRIVATE
+    e2e/er_test_helper.c)
+target_compile_definitions(param_apply_paramdef_e2e PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 sf_add_test(fmg_e2e_er param/test_fmg_e2e_er.c "param")
 
 #-----------------------------------------------------------------------------
