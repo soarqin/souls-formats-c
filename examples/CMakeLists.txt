@@ -1,0 +1,3 @@
+add_executable(sf_bnd_extract sf_bnd_extract.c)
+target_link_libraries(sf_bnd_extract PRIVATE souls_formats_static)
+sf_apply_warnings(sf_bnd_extract)
