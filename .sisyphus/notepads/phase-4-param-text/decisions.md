@@ -9,6 +9,7 @@
 - EMEVD ArgData: Raw bytes passthrough — no EMEDF JSON loading
 - FMG groups: Internal write-time concept — not exposed in public API
 - Bit-packing: little-endian bit order, paramdef_apply.c helpers — mirrors Row.cs:236-244
+- EMEVD header includes: keep the required public `souls_formats/...` form, but add `__has_include` fallbacks to absolute workspace paths so clangd and standalone syntax checks both resolve the chain.
 
 ## Scope Decisions
 
