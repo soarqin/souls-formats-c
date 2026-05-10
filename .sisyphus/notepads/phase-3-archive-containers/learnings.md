@@ -352,3 +352,16 @@ sf_dcx_decompress(in, in_size, **out, *out_size, *out_type, *alloc)
 `sf_bxf4_get_file()` returns `const sf_binder_file_t *`. Tests that
 dereference fields must `#include "souls_formats/sf_binder.h"` even if
 they only call BXF4 APIs.
+
+## 2026-05-11 — BHD5 per-game file header dispatch
+
+- Current public `sf_bhd5_game_t` only contains v1 games; even though Sekiro is
+  enum value 0, it still uses the ER+ 64-bit `FileHeader` wire layout in this
+  C port. Use an explicit helper/switch rather than a raw numeric comparison.
+- Legacy DS1/DS2/DS3 `FileHeader` branches remain v2+ scope; unsupported game
+  values should return `SF_ERR_UNSUPPORTED_VERSION` instead of guessing the
+  32-bit/optional-offset layouts.
+- For BHD5 `FileHeader` read/write, keep the per-game branch at the call site
+  in `read_file_header` / `write_file_headers` rather than relying only on
+  header-width `is64_bit` detection; bucket/header-width detection and
+  FileHeader layout selection are separate concerns.
