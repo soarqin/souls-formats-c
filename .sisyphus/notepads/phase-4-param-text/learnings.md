@@ -10,3 +10,4 @@
 2026-05-11: `sf_add_test()` can set `RUNTIME_OUTPUT_DIRECTORY` per label so phase-specific test binaries land under `build/tests/<label>/` and match verification path expectations.
 2026-05-11: PARAMDEF binary field layouts are easiest to preserve by treating v106..199 and v202+ string fields as varint offsets, while v201 still uses fixed 0x40 display-name storage despite being a >=200 format.
 2026-05-11: PARAMDEF v203 keeps four typed default/min/max/increment values after the v200 unknown string-offset triplet; earlier versions store those four values as f32 immediately after display format.
+2026-05-11: PARAM binary read should pre-read endian/Format2D/Format2E at 0x2C before parsing offset-width-dependent header and row tables; v1 intentionally rejects unnamed/headerless rows when DataStart leaves less space than row_count * row_header_size.
