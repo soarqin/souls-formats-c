@@ -124,7 +124,7 @@ target_compile_definitions(souls_formats_test_tpf_e2e_er PRIVATE
 # Phase 4 — PARAM/PARAMDEF
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_paramdef_bitstream param/test_paramdef_bitstream.c "param")
-sf_add_test(param_binary_read param/test_param_binary_read.c "param")
+sf_add_test(souls_formats_test_param_binary_read param/test_param_binary_read.c "param")
 sf_add_test(param_binary_write param/test_param_binary_write.c "param")
 sf_add_test(param_apply_paramdef param/test_param_apply_paramdef.c "param")
 sf_add_test(souls_formats_test_paramdef_binary_read param/test_paramdef_binary_read.c "param")
