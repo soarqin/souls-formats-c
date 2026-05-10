@@ -13,6 +13,15 @@
 - Tests: Unity (ThrowTheSwitch), `sf_add_test()` in tests/CMakeLists.txt
 - Upstream reference: `/home/soar/src/SoulsFormatsNEXT` (read-only, pinned commit `9f5848f5f45a7f5b2d4ff841ba05b63ab2e6be0a`)
 
+## T0.1 Wave 0 Findings (2026-05-10)
+
+- **SpEffectParam BND4 entry name**: `N:\GR\data\Param\param\GameParam\merged\DLC02\SpEffectParam.param`
+  - ER 1.16+ uses DLC02 merged path prefix — `er_load_param` must match by SUFFIX (e.g., "SpEffectParam.param"), not full path
+- **EMEVD/FMG probes**: Could not resolve — pre-existing BHD5 parse issue (SF_ERR_OUT_OF_RANGE) affects all Phase 3 e2e tests too
+  - EMEVD format: assume Sekiro alias (bigEndian=0, is64Bit=1, unk06=1, unk07=1, version=0xCD) until proven otherwise
+  - FMG msgbnd path: try `/msg/engus/item.msgbnd.dcx`, `/msg/engUS/item.msgbnd.dcx`, `/msg/en-US/item.msgbnd.dcx`
+- **regulation.bin**: Decrypted content starts with `44 43 58 00` ("DCX\0") — inner BND4 is DCX-wrapped; sf_bnd4_read_from_memory auto-unwraps
+
 ## Phase 4 Specific
 
 - FormatFlags1/2 MUST be `typedef uint8_t` + constants (NOT C enum) — C11 enum defaults to int (4 bytes)
@@ -44,3 +53,8 @@
   tests write outputs back into the repo at known locations
 - Each probe in a multi-probe test SHOULD gate on its own preconditions (regulation_available
   vs data0_available), so partial environments yield partial empirical data
+
+## T1.1 PARAM header notes (2026-05-11)
+
+- `sf_param.h` syntax-checks clean with `x86_64-w64-mingw32-gcc -fsyntax-only -Wall -Wextra -Wpedantic -Werror -std=c11 -I include`
+- Public API surface currently exposes 37 `SF_API` declarations in the header-only PARAM surface

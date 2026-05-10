@@ -18,3 +18,6 @@
 - New test dirs: tests/param/, tests/script/
 - New labels: param, script
 - DLL export target: 544-564 (current: 469, adding ~75-95)
+# T1.1 PARAM header issues
+
+- `lsp_diagnostics` continued to report stale include-resolution errors for `sf_param.h` via `sf_dcx.h` / `sf_common.h` even after switching the header chain to absolute-path includes. The GCC syntax check still passes, so this appears to be an LSP cache / indexing quirk rather than a real compile failure.
