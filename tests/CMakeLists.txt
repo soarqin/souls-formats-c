@@ -72,6 +72,18 @@ sf_add_test(souls_formats_test_enfl_synthetic archive/test_enfl_synthetic.c "arc
 sf_add_test(souls_formats_test_tpf_synthetic  archive/test_tpf_synthetic.c  "archive")
 
 #-----------------------------------------------------------------------------
+# Phase 3 — e2e tests (require ER copy + Oodle DLL; gracefully skip otherwise)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_er_helper_smoke e2e/test_er_helper_smoke.c "e2e")
+target_include_directories(souls_formats_test_er_helper_smoke PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_er_helper_smoke PRIVATE
+    e2e/er_test_helper.c)
+target_compile_definitions(souls_formats_test_er_helper_smoke PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+#-----------------------------------------------------------------------------
 # Pre-refactor SHA-256 baseline — pins deterministic byte outputs across
 # the api-realignment effort. See tests/golden/golden_hashes.h.
 #-----------------------------------------------------------------------------
