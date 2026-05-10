@@ -186,15 +186,15 @@ docs/api-mapping/POLICY.md             ← 新增: PARAMTDF Trim('"') 镜像, 8�
 
 每条都是 agent-executable 验证条件 (无人工干预):
 
-- [ ] `cmake --build build-mingw` 全绿,零 warning,`-Werror` 通过
-- [ ] `ctest --test-dir build-mingw -L param --output-on-failure` 全绿 (8 测试 PASS,0 FAIL)
-- [ ] `ctest --test-dir build-mingw -L script --output-on-failure` 全绿 (3 测试 PASS,0 FAIL)
-- [ ] `objdump -p libsouls_formats.dll | grep -c '^\s*\[\s*[0-9]\+\]\s*sf_'` 输出 ∈ [544, 564]
-- [ ] `examples/sf_param_dump.exe` 跑过 ER `regulation.bin` + `SpEffect.xml`,产生非空 TSV (≥100 行 + 表头)
-- [ ] Wave 0 probe evidence `.sisyphus/evidence/phase4-pre-flight.md` 存在并包含 EMEVD 头部 16 字节、SpEffectParam BND4 entry 名、ItemName.fmg item 1030000 文本
-- [ ] 所有 api-mapping `format-*.md` 中 Phase 4 涉及行 status 不为 "未实现"
-- [ ] `extensions.md` + `POLICY.md` 包含本阶段 6 处 divergence 文档
-- [ ] PLAN.md Phase 4 box ticked,记录测试通过数 + 时间戳
+- [x] `cmake --build build-mingw` 全绿,零 warning,`-Werror` 通过
+- [x] `ctest --test-dir build-mingw -L param --output-on-failure` 全绿 (8 测试 PASS,0 FAIL)
+- [x] `ctest --test-dir build-mingw -L script --output-on-failure` 全绿 (3 测试 PASS,0 FAIL)
+- [x] `objdump -p libsouls_formats.dll | grep -c '^\s*\[\s*[0-9]\+\]\s*sf_'` 输出 ∈ [544, 564]
+- [x] `examples/sf_param_dump.exe` 跑过 ER `regulation.bin` + `SpEffect.xml`,产生非空 TSV (≥100 行 + 表头)
+- [x] Wave 0 probe evidence `.sisyphus/evidence/phase4-pre-flight.md` 存在并包含 EMEVD 头部 16 字节、SpEffectParam BND4 entry 名、ItemName.fmg item 1030000 文本
+- [x] 所有 api-mapping `format-*.md` 中 Phase 4 涉及行 status 不为 "未实现"
+- [x] `extensions.md` + `POLICY.md` 包含本阶段 6 处 divergence 文档
+- [x] PLAN.md Phase 4 box ticked,记录测试通过数 + 时间戳
 
 ### Must Have
 
@@ -439,10 +439,10 @@ Max Concurrent: 7 (Wave 3)
   - ER Data0.bhd/bdt (Phase 3 已可读)
 
   **Acceptance Criteria**:
-  - [ ] `.sisyphus/evidence/phase4-pre-flight.md` 文件存在
-  - [ ] 文件包含字段: "EMEVD magic (hex):", "EMEVD flags (5 bytes):", "EMEVD format match: {Sekiro|Novel}", "SpEffectParam BND4 entry name:", "ItemName.fmg msgbnd path:", "ItemName.fmg entry size:"
-  - [ ] EMEVD flag 字节实测值与 `EMEVD.cs:114` Sekiro 变体 (bigEndian=0, is64Bit=1, unk06=1, unk07=1, version=0xCD) 比对结果记录 (匹配 → 后续 T1.5 用 Sekiro 别名;novel → 后续 T1.5 必须扩展 enum)
-  - [ ] 探针程序源代码可重复运行 (commit 至 `tests/script/test_emevd_format_probe.c` 或临时 `examples/probe_phase4.c`)
+  - [x] `.sisyphus/evidence/phase4-pre-flight.md` 文件存在
+  - [x] 文件包含字段: "EMEVD magic (hex):", "EMEVD flags (5 bytes):", "EMEVD format match: {Sekiro|Novel}", "SpEffectParam BND4 entry name:", "ItemName.fmg msgbnd path:", "ItemName.fmg entry size:"
+  - [x] EMEVD flag 字节实测值与 `EMEVD.cs:114` Sekiro 变体 (bigEndian=0, is64Bit=1, unk06=1, unk07=1, version=0xCD) 比对结果记录 (匹配 → 后续 T1.5 用 Sekiro 别名;novel → 后续 T1.5 必须扩展 enum)
+  - [x] 探针程序源代码可重复运行 (commit 至 `tests/script/test_emevd_format_probe.c` 或临时 `examples/probe_phase4.c`)
 
   **QA Scenarios**:
 
@@ -559,13 +559,13 @@ Max Concurrent: 7 (Wave 3)
   - `docs/api-mapping/format-param.md` — 35 行 row-level mapping (Wave 4.5 翻新此文件)
 
   **Acceptance Criteria**:
-  - [ ] `include/souls_formats/sf_param.h` 文件存在 + GPL header
-  - [ ] 编译为 C11 干净 (`gcc -fsyntax-only -Wall -Wextra -Werror -std=c11 -I include sf_param.h`) → 退出码 0
-  - [ ] 至少 4 个 `_Static_assert`: FormatFlags1 sizeof==1, FormatFlags2 sizeof==1, apply_mode 常量值稳定, cell_kind count==15
-  - [ ] FormatFlags1/2 是 `typedef uint8_t` + 常量集 (**不是** C enum)
-  - [ ] 全部公共符号有 `SF_API` 前缀,无 `static` 函数声明
-  - [ ] `grep -c '^SF_API' include/souls_formats/sf_param.h` ≥ 30
-  - [ ] tagged union 含 15 个 cell kinds (含 dummy8/u8 双模式拆分)
+  - [x] `include/souls_formats/sf_param.h` 文件存在 + GPL header
+  - [x] 编译为 C11 干净 (`gcc -fsyntax-only -Wall -Wextra -Werror -std=c11 -I include sf_param.h`) → 退出码 0
+  - [x] 至少 4 个 `_Static_assert`: FormatFlags1 sizeof==1, FormatFlags2 sizeof==1, apply_mode 常量值稳定, cell_kind count==15
+  - [x] FormatFlags1/2 是 `typedef uint8_t` + 常量集 (**不是** C enum)
+  - [x] 全部公共符号有 `SF_API` 前缀,无 `static` 函数声明
+  - [x] `grep -c '^SF_API' include/souls_formats/sf_param.h` ≥ 30
+  - [x] tagged union 含 15 个 cell kinds (含 dummy8/u8 双模式拆分)
 
   **QA Scenarios**:
 
@@ -657,12 +657,12 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/PARAM/ParamUtil.cs:239-355` — 3 个静态 helper
 
   **Acceptance Criteria**:
-  - [ ] `include/souls_formats/sf_paramdef.h` 文件存在 + GPL header
-  - [ ] 编译干净 (`-Wall -Wextra -Wpedantic -Werror`)
-  - [ ] 13 个 DefType enum 值 + `_Static_assert`
-  - [ ] 9 个 FormatVersion 常量 (0/101/102/103/104/106/201/202/203)
-  - [ ] tagged union 表达 v203 variable-typed default value
-  - [ ] `grep -c '^SF_API' include/souls_formats/sf_paramdef.h` ≥ 25
+  - [x] `include/souls_formats/sf_paramdef.h` 文件存在 + GPL header
+  - [x] 编译干净 (`-Wall -Wextra -Wpedantic -Werror`)
+  - [x] 13 个 DefType enum 值 + `_Static_assert`
+  - [x] 9 个 FormatVersion 常量 (0/101/102/103/104/106/201/202/203)
+  - [x] tagged union 表达 v203 variable-typed default value
+  - [x] `grep -c '^SF_API' include/souls_formats/sf_paramdef.h` ≥ 25
 
   **QA Scenarios**:
 
@@ -725,10 +725,10 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/PARAM/PARAMTDF.cs:1-110` — 完整文件
 
   **Acceptance Criteria**:
-  - [ ] `include/souls_formats/sf_paramtdf.h` 存在 + GPL header
-  - [ ] 编译干净
-  - [ ] enum 仅 6 个值 (不多不少,严格对齐 `Type` 限制)
-  - [ ] `grep -c '^SF_API' include/souls_formats/sf_paramtdf.h` ≥ 6
+  - [x] `include/souls_formats/sf_paramtdf.h` 存在 + GPL header
+  - [x] 编译干净
+  - [x] enum 仅 6 个值 (不多不少,严格对齐 `Type` 限制)
+  - [x] `grep -c '^SF_API' include/souls_formats/sf_paramtdf.h` ≥ 6
 
   **QA Scenarios**:
 
@@ -788,11 +788,11 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/FMG.cs:334-350` — Version enum
 
   **Acceptance Criteria**:
-  - [ ] `include/souls_formats/sf_fmg.h` 存在 + GPL header
-  - [ ] 编译干净
-  - [ ] 3 个 Version 值 (与上游枚举名等价)
-  - [ ] `grep -c '^SF_API' include/souls_formats/sf_fmg.h` ≥ 18
-  - [ ] 注释明确说明 deleted vs empty 语义
+  - [x] `include/souls_formats/sf_fmg.h` 存在 + GPL header
+  - [x] 编译干净
+  - [x] 3 个 Version 值 (与上游枚举名等价)
+  - [x] `grep -c '^SF_API' include/souls_formats/sf_fmg.h` ≥ 18
+  - [x] 注释明确说明 deleted vs empty 语义
 
   **QA Scenarios**:
 
@@ -868,11 +868,11 @@ Max Concurrent: 7 (Wave 3)
   - `.sisyphus/evidence/phase4-pre-flight.md` (从 T0.1 输出) — ER EMEVD flags 实测结果
 
   **Acceptance Criteria**:
-  - [ ] `include/souls_formats/sf_emevd.h` 存在 + GPL header
-  - [ ] 编译干净
-  - [ ] Format enum 含 5 上游值 + 3 扩展值 (ER/AC6/Nightreign);若 T0.1 报告 ER 为 Novel,必须新加底层 flag 表示
-  - [ ] 注释引用 T0.1 evidence
-  - [ ] `grep -c '^SF_API' include/souls_formats/sf_emevd.h` ≥ 28
+  - [x] `include/souls_formats/sf_emevd.h` 存在 + GPL header
+  - [x] 编译干净
+  - [x] Format enum 含 5 上游值 + 3 扩展值 (ER/AC6/Nightreign);若 T0.1 报告 ER 为 Novel,必须新加底层 flag 表示
+  - [x] 注释引用 T0.1 evidence
+  - [x] `grep -c '^SF_API' include/souls_formats/sf_emevd.h` ≥ 28
 
   **QA Scenarios**:
 
@@ -955,11 +955,11 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/PARAM/ParamUtil.cs:239-292` — IsBitType / GetBitLimit
 
   **Acceptance Criteria**:
-  - [ ] `src/param/paramdef_apply.c` 文件存在 (本任务仅添加 bitstream helpers,apply 逻辑由 T3.3 加)
-  - [ ] `tests/param/test_paramdef_bitstream.c` 5+ 测试 PASS
-  - [ ] 编译干净 (`-Werror`)
-  - [ ] `_Static_assert(sizeof(uint64_t) == 8)` 存在
-  - [ ] 注释引用 `Row.cs:236-244` (literal 镜像)
+  - [x] `src/param/paramdef_apply.c` 文件存在 (本任务仅添加 bitstream helpers,apply 逻辑由 T3.3 加)
+  - [x] `tests/param/test_paramdef_bitstream.c` 5+ 测试 PASS
+  - [x] 编译干净 (`-Werror`)
+  - [x] `_Static_assert(sizeof(uint64_t) == 8)` 存在
+  - [x] 注释引用 `Row.cs:236-244` (literal 镜像)
 
   **QA Scenarios**:
 
@@ -1023,13 +1023,13 @@ Max Concurrent: 7 (Wave 3)
   - `tests/CMakeLists.txt` — `sf_add_test()` macro 用法 (Phase 1-3 已注册 ~15 个 test binary)
 
   **Acceptance Criteria**:
-  - [ ] `CMakeLists.txt` 含 5 个新 header,11 个新 source
-  - [ ] `tests/CMakeLists.txt` 含 11 个新测试 binary,全部 LABEL ∈ {param, script}
-  - [ ] `examples/CMakeLists.txt` 含 sf_param_dump target
-  - [ ] `cmake -B build-mingw && cmake --build build-mingw` 全绿,零 warning
-  - [ ] `ls build-mingw/libsouls_formats.{a,dll,dll.a}` 都存在
-  - [ ] `ls build-mingw/tests/{param,script}/*.exe | wc -l` ≥ 11
-  - [ ] `ls build-mingw/examples/sf_param_dump.exe` 存在
+  - [x] `CMakeLists.txt` 含 5 个新 header,11 个新 source
+  - [x] `tests/CMakeLists.txt` 含 11 个新测试 binary,全部 LABEL ∈ {param, script}
+  - [x] `examples/CMakeLists.txt` 含 sf_param_dump target
+  - [x] `cmake -B build-mingw && cmake --build build-mingw` 全绿,零 warning
+  - [x] `ls build-mingw/libsouls_formats.{a,dll,dll.a}` 都存在
+  - [x] `ls build-mingw/tests/{param,script}/*.exe | wc -l` ≥ 11
+  - [x] `ls build-mingw/examples/sf_param_dump.exe` 存在
 
   **QA Scenarios**:
 
@@ -1128,11 +1128,11 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/PARAM/ParamUtil.cs:271-292` — GetValueSize per DefType
 
   **Acceptance Criteria**:
-  - [ ] `src/param/paramdef.c` 实现 read 路径 (write 路径在 T3.1)
-  - [ ] 编译干净 (`-Werror`)
-  - [ ] `tests/param/test_paramdef_binary_read.c` 9 版本合成 fixture 全 PASS
-  - [ ] 不实现 write API (本任务读-only)
-  - [ ] DLL 新增 ~10 sf_paramdef_* 符号
+  - [x] `src/param/paramdef.c` 实现 read 路径 (write 路径在 T3.1)
+  - [x] 编译干净 (`-Werror`)
+  - [x] `tests/param/test_paramdef_binary_read.c` 9 版本合成 fixture 全 PASS
+  - [x] 不实现 write API (本任务读-only)
+  - [x] DLL 新增 ~10 sf_paramdef_* 符号
 
   **QA Scenarios**:
 
@@ -1212,10 +1212,10 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/PARAM/PARAM/Row.cs:74-116` — Row 构造
 
   **Acceptance Criteria**:
-  - [ ] `src/param/param.c` 实现 read 路径 (write 在 T3.2,apply 在 T3.3)
-  - [ ] 编译干净
-  - [ ] `tests/param/test_param_binary_read.c` 多场景 PASS:0-row PARAM, 1-row, 3-row, ER-style 64-bit offset, UnicodeRowNames
-  - [ ] UnnamedRows / HeaderlessRows fixture → `SF_ERR_UNSUPPORTED_VERSION`
+  - [x] `src/param/param.c` 实现 read 路径 (write 在 T3.2,apply 在 T3.3)
+  - [x] 编译干净
+  - [x] `tests/param/test_param_binary_read.c` 多场景 PASS:0-row PARAM, 1-row, 3-row, ER-style 64-bit offset, UnicodeRowNames
+  - [x] UnnamedRows / HeaderlessRows fixture → `SF_ERR_UNSUPPORTED_VERSION`
 
   **QA Scenarios**:
 
@@ -1277,9 +1277,9 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/PARAM/PARAMTDF.cs:25-29` — 6 type 限制
 
   **Acceptance Criteria**:
-  - [ ] `src/param/paramtdf.c` 实现 read 路径
-  - [ ] `tests/param/test_paramtdf_read.c` 4+ 场景 PASS: 3-entry happy, empty name, type rejection (f32), malformed line
-  - [ ] 编译干净
+  - [x] `src/param/paramtdf.c` 实现 read 路径
+  - [x] `tests/param/test_paramtdf_read.c` 4+ 场景 PASS: 3-entry happy, empty name, type rejection (f32), malformed line
+  - [x] 编译干净
 
   **QA Scenarios**:
 
@@ -1348,9 +1348,9 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/FMG.cs:118-135` — group iteration + string offset lookup
 
   **Acceptance Criteria**:
-  - [ ] `src/text/fmg.c` 实现 read
-  - [ ] `tests/param/test_fmg_read.c` 6+ 场景 PASS: v0/v1/v2 各一个,MD5 prefix 含/不含,empty entry (offset=0),null entry vs empty string
-  - [ ] 编译干净
+  - [x] `src/text/fmg.c` 实现 read
+  - [x] `tests/param/test_fmg_read.c` 6+ 场景 PASS: v0/v1/v2 各一个,MD5 prefix 含/不含,empty entry (offset=0),null entry vs empty string
+  - [x] 编译干净
 
   **QA Scenarios**:
 
@@ -1421,10 +1421,10 @@ Max Concurrent: 7 (Wave 3)
   - `.sisyphus/evidence/phase4-pre-flight.md` — ER flag 实测 (T1.5 已纳入 enum)
 
   **Acceptance Criteria**:
-  - [ ] `src/script/emevd*.c` 5 文件实现 read 路径
-  - [ ] `tests/script/test_emevd_read.c` 5+ 场景 PASS: 5 game variants × 1 fixture each (DS1/DS1BE/BB/DS3/Sekiro),plus ER alias
-  - [ ] 编译干净
-  - [ ] 不实现 write (T3.7)
+  - [x] `src/script/emevd*.c` 5 文件实现 read 路径
+  - [x] `tests/script/test_emevd_read.c` 5+ 场景 PASS: 5 game variants × 1 fixture each (DS1/DS1BE/BB/DS3/Sekiro),plus ER alias
+  - [x] 编译干净
+  - [x] 不实现 write (T3.7)
 
   **QA Scenarios**:
 
@@ -1493,10 +1493,10 @@ Max Concurrent: 7 (Wave 3)
   - `src/archive/bnd4.c` — Reserve/Fill 模式
 
   **Acceptance Criteria**:
-  - [ ] `src/param/paramdef.c` 含 write 函数
-  - [ ] `tests/param/test_paramdef_binary_write.c` 5+ 场景 PASS: 5 versions × round-trip 字节级一致
-  - [ ] VersionAware 写出 → `SF_ERR_INVALID_ARG`
-  - [ ] v0/v101/v102/v103 写出 → `SF_ERR_UNSUPPORTED_VERSION`
+  - [x] `src/param/paramdef.c` 含 write 函数
+  - [x] `tests/param/test_paramdef_binary_write.c` 5+ 场景 PASS: 5 versions × round-trip 字节级一致
+  - [x] VersionAware 写出 → `SF_ERR_INVALID_ARG`
+  - [x] v0/v101/v102/v103 写出 → `SF_ERR_UNSUPPORTED_VERSION`
 
   **QA Scenarios**:
 
@@ -1554,9 +1554,9 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/PARAM/PARAM/Row.cs:283-455` — Row 写出三阶段
 
   **Acceptance Criteria**:
-  - [ ] `src/param/param.c` 含 write
-  - [ ] `tests/param/test_param_binary_write.c` 4+ 场景 PASS: 0-row, 1-row, 3-row, ER-style 64-bit offset,全部 round-trip 字节级一致
-  - [ ] 与 T3.3 协调点 (cell→bytes helper) 共享接口干净
+  - [x] `src/param/param.c` 含 write
+  - [x] `tests/param/test_param_binary_write.c` 4+ 场景 PASS: 0-row, 1-row, 3-row, ER-style 64-bit offset,全部 round-trip 字节级一致
+  - [x] 与 T3.3 协调点 (cell→bytes helper) 共享接口干净
 
   **QA Scenarios**:
 
@@ -1625,8 +1625,8 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/PARAM/PARAM/Cell.cs:1-100` — Cell value type 推导
 
   **Acceptance Criteria**:
-  - [ ] `src/param/paramdef_apply.c` 含 3 mode + populate_cells + cell_to_bytes
-  - [ ] `tests/param/test_param_apply_paramdef.c` 8+ 场景 PASS:
+  - [x] `src/param/paramdef_apply.c` 含 3 mode + populate_cells + cell_to_bytes
+  - [x] `tests/param/test_param_apply_paramdef.c` 8+ 场景 PASS:
     - 3 mode happy paths (matching def)
     - SOMEWHAT_CAREFUL accepts empty ParamType
     - CAREFUL rejects mismatched DataVersion
@@ -1635,7 +1635,7 @@ Max Concurrent: 7 (Wave 3)
     - u8 array (ArrayLength=4)
     - dummy8 bit mode + array mode
     - Orphan bits detection
-  - [ ] 13 typed getters 全部实现并测试 (一类型至少一测试)
+  - [x] 13 typed getters 全部实现并测试 (一类型至少一测试)
 
   **QA Scenarios**:
 
@@ -1741,10 +1741,10 @@ Max Concurrent: 7 (Wave 3)
   - 真实 sample: `/home/soar/dev/paramdex/ER/Defs/SpEffect.xml` (FormatVersion=203, ParamType="SP_EFFECT_PARAM_ST", Index=86, DataVersion=4, Unicode=True)
 
   **Acceptance Criteria**:
-  - [ ] `src/param/paramdef_xml_read.c` 实现 read
-  - [ ] `tests/param/test_paramdef_xml_read.c` 4+ 场景 PASS: 合成 3-field XML, 缺失 ParamType, 缺失 Field, malformed XML
-  - [ ] 编译干净
-  - [ ] 不实现 write API
+  - [x] `src/param/paramdef_xml_read.c` 实现 read
+  - [x] `tests/param/test_paramdef_xml_read.c` 4+ 场景 PASS: 合成 3-field XML, 缺失 ParamType, 缺失 Field, malformed XML
+  - [x] 编译干净
+  - [x] 不实现 write API
 
   **QA Scenarios**:
 
@@ -1801,9 +1801,9 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/PARAM/PARAMTDF.cs:97-109` — Write
 
   **Acceptance Criteria**:
-  - [ ] `src/param/paramtdf.c` 含 write
-  - [ ] `tests/param/test_paramtdf_write.c` 3+ 场景 PASS: 3-entry, empty name entry, all 6 types
-  - [ ] round-trip with T2.3: parse → write → parse → 字段一致
+  - [x] `src/param/paramtdf.c` 含 write
+  - [x] `tests/param/test_paramtdf_write.c` 3+ 场景 PASS: 3-entry, empty name entry, all 6 types
+  - [x] round-trip with T2.3: parse → write → parse → 字段一致
 
   **QA Scenarios**:
 
@@ -1862,9 +1862,9 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/FMG.cs:220-276` — WriteStrings + WriteStringsReuseOffsets
 
   **Acceptance Criteria**:
-  - [ ] `src/text/fmg.c` 含 write
-  - [ ] `tests/param/test_fmg_write.c` 5+ 场景 PASS: v0/v1/v2 round-trip, MD5 prefix round-trip, ReuseOffsets dedup
-  - [ ] 字节级一致 (相对 fixture)
+  - [x] `src/text/fmg.c` 含 write
+  - [x] `tests/param/test_fmg_write.c` 5+ 场景 PASS: v0/v1/v2 round-trip, MD5 prefix round-trip, ReuseOffsets dedup
+  - [x] 字节级一致 (相对 fixture)
 
   **QA Scenarios**:
 
@@ -1922,9 +1922,9 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/EMEVD/Parameter.cs:60-67` — Parameter.Write
 
   **Acceptance Criteria**:
-  - [ ] `src/script/emevd*.c` 含 write
-  - [ ] `tests/script/test_emevd_write.c` 5+ 场景 PASS: 5 game variants × round-trip 字节级一致
-  - [ ] Layer + Parameter + LinkedFile 子结构 round-trip
+  - [x] `src/script/emevd*.c` 含 write
+  - [x] `tests/script/test_emevd_write.c` 5+ 场景 PASS: 5 game variants × round-trip 字节级一致
+  - [x] Layer + Parameter + LinkedFile 子结构 round-trip
 
   **QA Scenarios**:
 
@@ -1984,10 +1984,10 @@ Max Concurrent: 7 (Wave 3)
   - `tests/e2e/er_test_helper.h` (Phase 3) — `er_extract_from_data0` API 模式
 
   **Acceptance Criteria**:
-  - [ ] `tests/e2e/er_test_helper.h` 含新声明
-  - [ ] `tests/e2e/er_test_helper.c` 含实现
-  - [ ] 编译干净
-  - [ ] 单元 sanity test (在 T4.4 中调用,确认能取到 SpEffectParam)
+  - [x] `tests/e2e/er_test_helper.h` 含新声明
+  - [x] `tests/e2e/er_test_helper.c` 含实现
+  - [x] 编译干净
+  - [x] 单元 sanity test (在 T4.4 中调用,确认能取到 SpEffectParam)
 
   **QA Scenarios**:
 
@@ -2043,10 +2043,10 @@ Max Concurrent: 7 (Wave 3)
   - `tests/archive/test_bnd4_synthetic.c` — Phase 3 round-trip 模式 (memcmp 字节级)
 
   **Acceptance Criteria**:
-  - [ ] `tests/param/test_synthetic_roundtrip.c` 4 类合成 fixture (param/paramdef/paramtdf/fmg) 全 PASS
-  - [ ] `tests/script/test_emevd_synthetic.c` 2 fixtures (basic + layer) 全 PASS
-  - [ ] 全部 `memcmp(input, output, size) == 0` 字节级一致
-  - [ ] `ctest -L 'param|script' -R synthetic` 退出 0
+  - [x] `tests/param/test_synthetic_roundtrip.c` 4 类合成 fixture (param/paramdef/paramtdf/fmg) 全 PASS
+  - [x] `tests/script/test_emevd_synthetic.c` 2 fixtures (basic + layer) 全 PASS
+  - [x] 全部 `memcmp(input, output, size) == 0` 字节级一致
+  - [x] `ctest -L 'param|script' -R synthetic` 退出 0
 
   **QA Scenarios**:
 
@@ -2104,9 +2104,9 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/dev/paramdex/ER/Defs/SpEffect.xml` (Wave 0 已验证 ParamType/Index/DataVersion 等)
 
   **Acceptance Criteria**:
-  - [ ] `tests/param/test_paramdef_xml_e2e.c` 测试 PASS (或 SKIP 当文件缺失)
-  - [ ] 5+ 断言验证已知字段
-  - [ ] 编译干净
+  - [x] `tests/param/test_paramdef_xml_e2e.c` 测试 PASS (或 SKIP 当文件缺失)
+  - [x] 5+ 断言验证已知字段
+  - [x] 编译干净
 
   **QA Scenarios**:
 
@@ -2166,10 +2166,10 @@ Max Concurrent: 7 (Wave 3)
   - `/home/soar/dev/paramdex/ER/Defs/SpEffect.xml`
 
   **Acceptance Criteria**:
-  - [ ] `tests/param/test_param_apply_paramdef_e2e.c` PASS
-  - [ ] 全链路验证 6 步骤
-  - [ ] 5+ typed getters 调用并断言
-  - [ ] SKIP 优雅 (前置数据缺失)
+  - [x] `tests/param/test_param_apply_paramdef_e2e.c` PASS
+  - [x] 全链路验证 6 步骤
+  - [x] 5+ typed getters 调用并断言
+  - [x] SKIP 优雅 (前置数据缺失)
 
   **QA Scenarios**:
 
@@ -2230,9 +2230,9 @@ Max Concurrent: 7 (Wave 3)
   - `.sisyphus/evidence/phase4-pre-flight.md` — 实测 msgbnd 路径与 ItemName.fmg size
 
   **Acceptance Criteria**:
-  - [ ] `tests/param/test_fmg_e2e_er.c` PASS 或 SKIP
-  - [ ] entry_count > 100
-  - [ ] 至少 3 个 item id 文本非空
+  - [x] `tests/param/test_fmg_e2e_er.c` PASS 或 SKIP
+  - [x] entry_count > 100
+  - [x] 至少 3 个 item id 文本非空
 
   **QA Scenarios**:
 
@@ -2285,10 +2285,10 @@ Max Concurrent: 7 (Wave 3)
   - `.sisyphus/evidence/phase4-pre-flight.md` (T0.1 evidence)
 
   **Acceptance Criteria**:
-  - [ ] `tests/script/test_emevd_e2e_er.c` PASS 或 SKIP
-  - [ ] format == 与 T0.1 报告一致
-  - [ ] event_count > 0
-  - [ ] Evidence 文件 `task-T4.6-emevd-flag-confirmed.log` 存在并对比 T0.1
+  - [x] `tests/script/test_emevd_e2e_er.c` PASS 或 SKIP
+  - [x] format == 与 T0.1 报告一致
+  - [x] event_count > 0
+  - [x] Evidence 文件 `task-T4.6-emevd-flag-confirmed.log` 存在并对比 T0.1
 
   **QA Scenarios**:
 
@@ -2343,9 +2343,9 @@ Max Concurrent: 7 (Wave 3)
   - `examples/sf_bnd_extract.c` — Phase 3 example 风格 (命令行参数解析 + 错误处理 + 退出码)
 
   **Acceptance Criteria**:
-  - [ ] `examples/sf_param_dump.c` 编译为 `build-mingw/examples/sf_param_dump.exe`
-  - [ ] 跑 `sf_param_dump.exe regulation.bin SpEffect.xml SpEffectParam | head -1` 输出表头
-  - [ ] 跑全量 dump 输出行数 ≥ 100 (含表头)
+  - [x] `examples/sf_param_dump.c` 编译为 `build-mingw/examples/sf_param_dump.exe`
+  - [x] 跑 `sf_param_dump.exe regulation.bin SpEffect.xml SpEffectParam | head -1` 输出表头
+  - [x] 跑全量 dump 输出行数 ≥ 100 (含表头)
 
   **QA Scenarios**:
 
@@ -2417,10 +2417,10 @@ Max Concurrent: 7 (Wave 3)
   - `docs/api-mapping/POLICY.md` (Phase 1-3 adaptations)
 
   **Acceptance Criteria**:
-  - [ ] `grep -c "未实现" docs/api-mapping/format-{param,paramdef,paramtdf,fmg,emevd}.md` = 0 (零残留)
-  - [ ] `extensions.md` 含 5 个新行 (Phase 4 markers)
-  - [ ] `POLICY.md` 含新 "Phase 4 adaptations" 节
-  - [ ] `format-emevd.md` 引用 `.sisyphus/evidence/phase4-pre-flight.md`
+  - [x] `grep -c "未实现" docs/api-mapping/format-{param,paramdef,paramtdf,fmg,emevd}.md` = 0 (零残留)
+  - [x] `extensions.md` 含 5 个新行 (Phase 4 markers)
+  - [x] `POLICY.md` 含新 "Phase 4 adaptations" 节
+  - [x] `format-emevd.md` 引用 `.sisyphus/evidence/phase4-pre-flight.md`
 
   **QA Scenarios**:
 
@@ -2552,14 +2552,14 @@ grep -E "^- (er_load_param|sf_emevd_format_probe|sf_param_apply_mode_t|PARAMTDF 
 
 ### Final Checklist
 
-- [ ] 所有 "Must Have" 已实现 (F1 audit pass)
-- [ ] 所有 "Must NOT Have" 不存在于源码 (F1 audit pass)
-- [ ] `cmake --build` 全绿,零 warning (F2 audit pass)
-- [ ] `ctest -L 'param|script'` 全绿 (F2 + F3 audit pass)
-- [ ] 32 atomic tasks 全部 commit,每个含 references + QA scenarios (F4 audit pass)
-- [ ] `_Static_assert` 出现在所有新 enum 旁 (F4 audit pass)
-- [ ] 6 处 divergence 文档化于 `extensions.md` / `POLICY.md` (F4 audit pass)
-- [ ] DLL 导出 ∈ [544, 564] (F1 audit pass)
-- [ ] PLAN.md Phase 4 § ticked + 测试通过数 + 时间戳 (Wave 4.5 完成时)
-- [ ] `docs/roadmap/README.md` Phase 4 status 改为 "✅ done — N/N PASS (date)"
-- [ ] User 对 F1-F4 results 给出 explicit okay
+- [x] 所有 "Must Have" 已实现 (F1 audit pass)
+- [x] 所有 "Must NOT Have" 不存在于源码 (F1 audit pass)
+- [x] `cmake --build` 全绿,零 warning (F2 audit pass)
+- [x] `ctest -L 'param|script'` 全绿 (F2 + F3 audit pass)
+- [x] 32 atomic tasks 全部 commit,每个含 references + QA scenarios (F4 audit pass)
+- [x] `_Static_assert` 出现在所有新 enum 旁 (F4 audit pass)
+- [x] 6 处 divergence 文档化于 `extensions.md` / `POLICY.md` (F4 audit pass)
+- [x] DLL 导出 ∈ [544, 564] (F1 audit pass)
+- [x] PLAN.md Phase 4 § ticked + 测试通过数 + 时间戳 (Wave 4.5 完成时)
+- [x] `docs/roadmap/README.md` Phase 4 status 改为 "✅ done — N/N PASS (date)"
+- [x] User 对 F1-F4 results 给出 explicit okay
