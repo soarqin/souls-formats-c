@@ -168,6 +168,28 @@ ABI and downstream binding generators.
 Refer to [`PLAN.md` §5](.sisyphus/plans/PLAN.md) for the canonical
 description; this file is just a quick reminder.
 
+### 5.x STRICT UPSTREAM REFERENCE / API MIRRORS UPSTREAM
+
+Two mandatory rules that apply to **every** code change in this repo:
+
+1. **STRICT UPSTREAM REFERENCE**: Every code implementation must strictly
+   reference upstream code at the pinned commit (see
+   [`docs/api-mapping/UPSTREAM.md`](docs/api-mapping/UPSTREAM.md)).
+   Guessing at semantics, signatures, or wire formats is FORBIDDEN.
+   When in doubt, read the `.cs` file.
+
+2. **API MIRRORS UPSTREAM**: Public C API design must mirror upstream as
+   closely as possible. Minor C-style adjustments (out-param error returns,
+   pointer-based ownership, snake_case) are explicitly allowed. Functional
+   differences are FORBIDDEN. Every divergence must be either (a) a
+   documented C-style adaptation in
+   [`docs/api-mapping/POLICY.md`](docs/api-mapping/POLICY.md), or (b) a
+   tracked extension in
+   [`docs/api-mapping/extensions.md`](docs/api-mapping/extensions.md).
+
+See also: [`docs/api-mapping/README.md`](docs/api-mapping/README.md) for
+the full upstream→ours mapping table index.
+
 ---
 
 ## 6. Workflow for the next phase
@@ -199,8 +221,10 @@ description; this file is just a quick reminder.
   never embedded.
 * **Do not** suppress type errors with `-Wno-...` per-file. Fix at the
   source. The whole project is `-Werror`.
-* **Do not** change the public API of an existing function in v0.x without
-  bumping the patch version and updating every test that uses it.
+* **v0.x ABI breaks ARE permitted** but require, in the same commit (or
+  contiguous PR): (a) every removed or renamed symbol recorded in
+  `CHANGELOG.md`, (b) every test that referenced the symbol updated, (c)
+  version bump 0.x.y → 0.(x+1).0 (minor, not patch).
 * **Do not** start a new format module before its dependencies are
   green. Phase 3 cannot begin before Phase 2 lands; Phase 4-6 e2e tests
   cannot run before Phase 3's `er_extract_from_data0` helper exists.

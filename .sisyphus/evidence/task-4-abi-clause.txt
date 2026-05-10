@@ -1,0 +1,4 @@
+patch version count: 0
+0.(x+1).0 count: 1
+224:* **v0.x ABI breaks ARE permitted** but require, in the same commit (or
+227:  version bump 0.x.y → 0.(x+1).0 (minor, not patch).
