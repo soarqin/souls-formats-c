@@ -25,6 +25,7 @@ sf_add_test(souls_formats_test_filename_hash core/test_filename_hash.c "core")
 sf_add_test(souls_formats_test_encoding      core/test_encoding.c      "core")
 sf_add_test(souls_formats_test_binary_reader core/test_binary_reader.c "core")
 sf_add_test(souls_formats_test_binary_writer core/test_binary_writer.c "core")
+sf_add_test(souls_formats_test_path          core/test_path.c          "core")
 
 #-----------------------------------------------------------------------------
 # Phase 2 — compression + crypto

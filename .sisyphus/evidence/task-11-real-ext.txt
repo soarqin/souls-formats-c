@@ -1,0 +1,37 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 6
+    Start 6: souls_formats_test_path
+
+6: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_path.exe
+6: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+6: Test timeout computed to be: 60
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:109:test_get_real_extension_dcx:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:110:test_get_real_extension_plain:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:111:test_get_real_extension_no_ext:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:112:test_get_real_extension_path:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:113:test_get_real_file_name_dcx:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:114:test_get_real_file_name_plain:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:115:test_get_real_file_name_path:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:116:test_backup_creates_bak:PASS
+6: 
+6: -----------------------
+6: 8 Tests 0 Failures 0 Ignored 
+6: OK
+1/1 Test #6: souls_formats_test_path ..........   Passed    0.12 sec
+
+The following tests passed:
+	souls_formats_test_path
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+core    =   0.12 sec*proc (1 test)
+
+Total Test time (real) =   0.13 sec

@@ -50,6 +50,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_io.h
     include/souls_formats/sf_encoding.h
     include/souls_formats/sf_hash.h
+    include/souls_formats/sf_path.h
     include/souls_formats/sf_dcx.h
     include/souls_formats/sf_oodle.h
 )
@@ -58,6 +59,7 @@ set(SF_SOURCES
     src/core/error.c
     src/core/encoding_win32.c
     src/core/filename_hash.c
+    src/core/path.c
     src/core/stream.c
     src/core/binary_reader.c
     src/core/binary_writer.c
