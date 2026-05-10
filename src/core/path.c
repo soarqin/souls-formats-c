@@ -106,9 +106,10 @@ sf_result_t sf_path_get_real_extension(const char *utf8_path, char **out_ext,
 
     const char *ext = last_dot ? last_dot : "";
 
-    const char *ext_end = ext + strlen(ext); /* points to NUL of original string */
-
-    const char *ext_end = base + strlen(base); /* points past NUL */
+    /* ext_end marks the end of the extension slice.
+     * When there is no dot, ext points at the empty literal "" and ext_end
+     * must also point there so that (ext_end - ext) == 0. */
+    const char *ext_end = last_dot ? (base + strlen(base)) : ext;
     if (strcmp(ext, ".dcx") == 0) {
         /* Strip .dcx: find the previous '.' in the name before .dcx */
         size_t name_len = (size_t)(last_dot - base);
