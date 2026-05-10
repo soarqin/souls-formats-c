@@ -161,6 +161,15 @@ sf_add_test(souls_formats_test_emevd_read script/test_emevd_read.c "script")
 sf_add_test(souls_formats_test_emevd_write script/test_emevd_write.c "script")
 sf_add_test(souls_formats_test_emevd_synthetic script/test_emevd_synthetic.c "script")
 sf_add_test(emevd_e2e_er script/test_emevd_e2e_er.c "script")
+target_include_directories(emevd_e2e_er PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(emevd_e2e_er PRIVATE
+    e2e/er_test_helper.c)
+target_compile_definitions(emevd_e2e_er PRIVATE
+    SF_E2E_REPO_DIR=L"${CMAKE_SOURCE_DIR}"
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+add_custom_target(souls_formats_test_emevd_e2e_er DEPENDS emevd_e2e_er)
 
 #-----------------------------------------------------------------------------
 # Phase 4 — pre-flight empirical probe (T0.1)

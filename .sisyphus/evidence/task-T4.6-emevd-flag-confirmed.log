@@ -1,0 +1,4 @@
+EMEVD e2e SKIPPED
+Reason: ER data unavailable (status=3)
+Test will report PASS via Unity TEST_IGNORE (no failure injected).
+Consistent with T0.1 evidence: N/A (no real data parsed in this run)
