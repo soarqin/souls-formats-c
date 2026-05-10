@@ -1,0 +1,37 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 21
+    Start 21: souls_formats_test_bnd4_synthetic
+
+21: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_bnd4_synthetic.exe
+21: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+21: Test timeout computed to be: 60
+21: /home/soar/src/souls-formats-c/tests/archive/test_bnd4_synthetic.c:265:test_bnd4_names1_pcsave:PASS
+21: /home/soar/src/souls-formats-c/tests/archive/test_bnd4_synthetic.c:266:test_bnd4_names2_sekiro:PASS
+21: /home/soar/src/souls-formats-c/tests/archive/test_bnd4_synthetic.c:267:test_bnd4_ds3_default:PASS
+21: /home/soar/src/souls-formats-c/tests/archive/test_bnd4_synthetic.c:268:test_bnd4_shiftjis_names:PASS
+21: /home/soar/src/souls-formats-c/tests/archive/test_bnd4_synthetic.c:269:test_bnd4_unicode_names:PASS
+21: /home/soar/src/souls-formats-c/tests/archive/test_bnd4_synthetic.c:270:test_bnd4_extended_variants:PASS
+21: /home/soar/src/souls-formats-c/tests/archive/test_bnd4_synthetic.c:271:test_bnd4_unk04_unk05:PASS
+21: /home/soar/src/souls-formats-c/tests/archive/test_bnd4_synthetic.c:272:test_bnd4_reader_pattern:PASS
+21: 
+21: -----------------------
+21: 8 Tests 0 Failures 0 Ignored 
+21: OK
+1/1 Test #21: souls_formats_test_bnd4_synthetic ...   Passed    0.30 sec
+
+The following tests passed:
+	souls_formats_test_bnd4_synthetic
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+archive    =   0.30 sec*proc (1 test)
+
+Total Test time (real) =   0.31 sec
