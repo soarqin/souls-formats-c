@@ -99,3 +99,5 @@ keep the trailing line ending after the last entry, and quote the
 name/type/value fields with no escape processing.
 2026-05-11: PARAMDEF binary write should mirror upstream padding quirks: v104/v201 only pad field-string length when non-16-aligned; other writable versions pad absolute writer position to 0x10, with v202+ adding a full 0x10 block if already aligned.
 2026-05-11: PARAMDEF v201 is a >=200 format but still uses fixed ParamType/display/internal field strings; only v106..199 and v202+ use varint string offsets for those fields.
+2026-05-11: PARAM write needs raw row-data preservation during binary read until ApplyParamdef exists; use the header StringsOffset (not the first actual name string offset) as the row-data terminator or repeated write/read/write grows by absorbing the writer's null-string sentinel.
+2026-05-11: PARAM writer reservation names can mirror Row.cs (`RowOffset%zu`, `NameOffset%zu`) with stack buffers; remember old/non-int rows reserve/fill the 16-bit data offset and explicitly emit the following 16-bit zero padding to keep the 12-byte row header shape.
