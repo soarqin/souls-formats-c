@@ -27,6 +27,7 @@
 #include "souls_formats/sf_binder.h"
 #include "souls_formats/sf_bnd3.h"
 #include "souls_formats/sf_bnd4.h"
+#include "souls_formats/sf_bxf3.h"
 
 /* Format headers will be added here as each Phase lands.
  * Phase 1: io, math, encoding, hash  (DONE)

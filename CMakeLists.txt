@@ -58,6 +58,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_binder.h
     include/souls_formats/sf_bnd3.h
     include/souls_formats/sf_bnd4.h
+    include/souls_formats/sf_bxf3.h
 )
 
 set(SF_SOURCES
@@ -89,6 +90,7 @@ set(SF_SOURCES
     src/archive/sf_binder.c
     src/archive/bnd3.c
     src/archive/bnd4.c
+    src/archive/bxf3.c
     src/internal/dds_header.c
 )
 
