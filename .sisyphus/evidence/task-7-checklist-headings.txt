@@ -1,0 +1,10 @@
+## Phase 1 / BinaryReaderEx
+## Phase 1 / BinaryWriterEx
+## Phase 1 / PathHelper
+## Phase 1 / HashHelper
+## Phase 1 / SFUtil
+## Phase 1 / Math
+## Phase 2 / DCX
+## Phase 2 / Oodle
+## Phase 2 / RegulationDecryptor
+## Phase 2 / SL2Decryptor
