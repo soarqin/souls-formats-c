@@ -24,7 +24,7 @@ test 6
 6: -----------------------
 6: 8 Tests 0 Failures 0 Ignored 
 6: OK
-1/1 Test #6: souls_formats_test_path ..........   Passed    0.11 sec
+1/1 Test #6: souls_formats_test_path ..........   Passed    0.10 sec
 
 The following tests passed:
 	souls_formats_test_path
@@ -32,6 +32,6 @@ The following tests passed:
 100% tests passed, 0 tests failed out of 1
 
 Label Time Summary:
-core    =   0.11 sec*proc (1 test)
+core    =   0.10 sec*proc (1 test)
 
-Total Test time (real) =   0.11 sec
+Total Test time (real) =   0.10 sec
