@@ -1,0 +1,4 @@
+=== Status match ===
+  green. Phase 3 cannot begin before Phase 2 lands; Phase 4-6 e2e tests
+  cannot run before Phase 3's `er_extract_from_data0` helper exists.
+ctest count: 13
