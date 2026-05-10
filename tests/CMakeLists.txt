@@ -120,6 +120,23 @@ target_compile_definitions(souls_formats_test_tpf_e2e_er PRIVATE
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 #-----------------------------------------------------------------------------
+# Phase 4 — pre-flight empirical probe (T0.1)
+# Reads real ER data and writes findings to
+# .sisyphus/evidence/phase4-pre-flight.md. No format parsing here.
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_emevd_format_probe script/test_emevd_format_probe.c "script")
+target_include_directories(souls_formats_test_emevd_format_probe PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_emevd_format_probe PRIVATE
+    e2e/er_test_helper.c)
+# Escape backslashes for both CMake and the C preprocessor so the macro
+# value reaches the compiler as L"...\\Ubuntu\\..." verbatim.
+target_compile_definitions(souls_formats_test_emevd_format_probe PRIVATE
+    SF_E2E_REPO_DIR=L"${CMAKE_SOURCE_DIR}"
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+#-----------------------------------------------------------------------------
 # Pre-refactor SHA-256 baseline — pins deterministic byte outputs across
 # the api-realignment effort. See tests/golden/golden_hashes.h.
 #-----------------------------------------------------------------------------
