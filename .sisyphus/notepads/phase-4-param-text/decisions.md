@@ -10,6 +10,7 @@
 - FMG groups: Internal write-time concept — not exposed in public API
 - Bit-packing: little-endian bit order, paramdef_apply.c helpers — mirrors Row.cs:236-244
 - EMEVD header includes: keep the required public `souls_formats/...` form, but add `__has_include` fallbacks to absolute workspace paths so clangd and standalone syntax checks both resolve the chain.
+- EMEVD read T2.5: accept DS3 `version == 0xCD` per upstream EMEVD.cs while also tolerating the task/header's `0xCC` DS3 fixture value; unsupported Novel flags remain rejected.
 
 ## Scope Decisions
 

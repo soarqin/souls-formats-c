@@ -78,3 +78,18 @@ exactly so non-conforming files surface as SF_ERR_BAD_MAGIC.
 parameter for symmetry with `sf_paramtdf_destroy` but ignores it —
 the FMG remembers the allocator it was created with. This dual ownership
 convention is documented in the impl comment.
+
+## T2.5 EMEVD reader (2026-05-11)
+
+**Reader shape**: mirror upstream `Read()` literally: flags first, then set
+`big_endian`/`varint_long`, then read the version and 16 varint header fields
+in upstream order. The C reader keeps offsets internal and only materializes
+events, referenced instruction layers, linked-file offsets, arg-data slices,
+and string data.
+
+**Magic gotcha**: `sf_binary_reader_assert_ascii(br, "EVD\0")` is wrong
+because the helper uses `strlen()` and would read only `EVD`. Read 4 raw bytes
+and compare against `{ 'E', 'V', 'D', 0 }` instead.
+
+**Ownership pattern**: `sf_emevd_destroy(emevd, alloc)` ignores the allocator
+parameter and frees with `emevd->alloc`, matching PARAMTDF/FMG destroy behavior.
