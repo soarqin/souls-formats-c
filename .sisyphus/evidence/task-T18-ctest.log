@@ -1,0 +1,33 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 31
+    Start 31: souls_formats_test_tpf_e2e_er
+
+31: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_tpf_e2e_er.exe
+31: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+31: Test timeout computed to be: 60
+31: /home/soar/src/souls-formats-c/tests/e2e/test_tpf_e2e_er.c:48:test_find_tpf_entry:IGNORE: ER copy or Oodle DLL not available
+31: /home/soar/src/souls-formats-c/tests/e2e/test_tpf_e2e_er.c:84:test_tpf_has_textures:IGNORE: ER copy or Oodle DLL not available
+31: /home/soar/src/souls-formats-c/tests/e2e/test_tpf_e2e_er.c:130:test_first_texture_has_bytes:IGNORE: ER copy or Oodle DLL not available
+31: /home/soar/src/souls-formats-c/tests/e2e/test_tpf_e2e_er.c:184:test_first_texture_is_dds:IGNORE: ER copy or Oodle DLL not available
+31: 
+31: -----------------------
+31: 4 Tests 0 Failures 4 Ignored 
+31: OK
+1/1 Test #31: souls_formats_test_tpf_e2e_er ....   Passed    0.45 sec
+
+The following tests passed:
+	souls_formats_test_tpf_e2e_er
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+e2e    =   0.45 sec*proc (1 test)
+
+Total Test time (real) =   0.45 sec

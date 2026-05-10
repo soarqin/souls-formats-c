@@ -1,0 +1,78 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+      Start  1: souls_formats_test_smoke
+ 1/32 Test  #1: souls_formats_test_smoke ................   Passed    0.10 sec
+      Start  2: souls_formats_test_filename_hash
+ 2/32 Test  #2: souls_formats_test_filename_hash ........   Passed    0.10 sec
+      Start  3: souls_formats_test_encoding
+ 3/32 Test  #3: souls_formats_test_encoding .............   Passed    0.09 sec
+      Start  4: souls_formats_test_binary_reader
+ 4/32 Test  #4: souls_formats_test_binary_reader ........   Passed    0.12 sec
+      Start  5: souls_formats_test_binary_writer
+ 5/32 Test  #5: souls_formats_test_binary_writer ........   Passed    0.12 sec
+      Start  6: souls_formats_test_path
+ 6/32 Test  #6: souls_formats_test_path .................   Passed    0.09 sec
+      Start  7: souls_formats_test_sf_util
+ 7/32 Test  #7: souls_formats_test_sf_util ..............   Passed    0.25 sec
+      Start  8: souls_formats_test_dds_header
+ 8/32 Test  #8: souls_formats_test_dds_header ...........   Passed    0.08 sec
+      Start  9: souls_formats_test_dcx_dflt
+ 9/32 Test  #9: souls_formats_test_dcx_dflt .............   Passed    0.89 sec
+      Start 10: souls_formats_test_dcx_edge
+10/32 Test #10: souls_formats_test_dcx_edge .............   Passed    0.24 sec
+      Start 11: souls_formats_test_dcx_zstd
+11/32 Test #11: souls_formats_test_dcx_zstd .............   Passed    0.51 sec
+      Start 12: souls_formats_test_dcx_krak
+12/32 Test #12: souls_formats_test_dcx_krak .............   Passed    0.44 sec
+      Start 13: souls_formats_test_dcx_sniff
+13/32 Test #13: souls_formats_test_dcx_sniff ............   Passed    0.25 sec
+      Start 14: souls_formats_test_aes_kat
+14/32 Test #14: souls_formats_test_aes_kat ..............   Passed    0.08 sec
+      Start 15: souls_formats_test_md5_kat
+15/32 Test #15: souls_formats_test_md5_kat ..............   Passed    0.08 sec
+      Start 16: souls_formats_test_regulation_decrypt
+16/32 Test #16: souls_formats_test_regulation_decrypt ...   Passed    0.36 sec
+      Start 17: souls_formats_test_sl2_kat
+17/32 Test #17: souls_formats_test_sl2_kat ..............   Passed    0.08 sec
+      Start 18: souls_formats_test_rsa
+18/32 Test #18: souls_formats_test_rsa ..................   Passed    0.09 sec
+      Start 19: souls_formats_test_binder_common
+19/32 Test #19: souls_formats_test_binder_common ........   Passed    0.26 sec
+      Start 20: souls_formats_test_bhd5_synthetic
+20/32 Test #20: souls_formats_test_bhd5_synthetic .......   Passed    0.10 sec
+      Start 21: souls_formats_test_bnd3_synthetic
+21/32 Test #21: souls_formats_test_bnd3_synthetic .......   Passed    0.27 sec
+      Start 22: souls_formats_test_bnd4_synthetic
+22/32 Test #22: souls_formats_test_bnd4_synthetic .......   Passed    0.29 sec
+      Start 23: souls_formats_test_bxf3_synthetic
+23/32 Test #23: souls_formats_test_bxf3_synthetic .......   Passed    0.28 sec
+      Start 24: souls_formats_test_bxf4_synthetic
+24/32 Test #24: souls_formats_test_bxf4_synthetic .......   Passed    0.26 sec
+      Start 25: souls_formats_test_enfl_synthetic
+25/32 Test #25: souls_formats_test_enfl_synthetic .......   Passed    0.16 sec
+      Start 26: souls_formats_test_tpf_synthetic
+26/32 Test #26: souls_formats_test_tpf_synthetic ........   Passed    0.26 sec
+      Start 27: souls_formats_test_er_helper_smoke
+27/32 Test #27: souls_formats_test_er_helper_smoke ......   Passed    0.46 sec
+      Start 28: souls_formats_test_bhd5_e2e_er
+28/32 Test #28: souls_formats_test_bhd5_e2e_er ..........   Passed    0.44 sec
+      Start 29: souls_formats_test_bnd4_e2e_er
+29/32 Test #29: souls_formats_test_bnd4_e2e_er ..........   Passed    0.44 sec
+      Start 30: souls_formats_test_bxf4_e2e_er
+30/32 Test #30: souls_formats_test_bxf4_e2e_er ..........   Passed    0.44 sec
+      Start 31: souls_formats_test_tpf_e2e_er
+31/32 Test #31: souls_formats_test_tpf_e2e_er ...........   Passed    0.44 sec
+      Start 32: souls_formats_test_golden
+32/32 Test #32: souls_formats_test_golden ...............   Passed    0.24 sec
+
+100% tests passed, 0 tests failed out of 32
+
+Label Time Summary:
+archive        =   1.88 sec*proc (8 tests)
+compression    =   2.33 sec*proc (5 tests)
+core           =   0.84 sec*proc (7 tests)
+crypto         =   0.69 sec*proc (5 tests)
+e2e            =   2.22 sec*proc (5 tests)
+golden         =   0.24 sec*proc (1 test)
+smoke          =   0.10 sec*proc (1 test)
+
+Total Test time (real) =   8.31 sec

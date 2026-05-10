@@ -1,0 +1,32 @@
+[1/32] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/tpf.c.obj
+[2/32] Building C object CMakeFiles/souls_formats_static.dir/src/archive/tpf.c.obj
+[3/32] Linking C static library libsouls_formats.a
+[4/32] Linking C executable tests/souls_formats_test_dds_header.exe
+[5/32] Linking C executable tests/souls_formats_test_aes_kat.exe
+[6/32] Linking C executable tests/souls_formats_test_binary_reader.exe
+[7/32] Linking C executable tests/souls_formats_test_smoke.exe
+[8/32] Linking C executable tests/souls_formats_test_filename_hash.exe
+[9/32] Linking C executable tests/souls_formats_test_md5_kat.exe
+[10/32] Linking C executable tests/souls_formats_test_sl2_kat.exe
+[11/32] Linking C shared library libsouls_formats.dll
+[12/32] Linking C executable tests/souls_formats_test_encoding.exe
+[13/32] Linking C executable tests/souls_formats_test_path.exe
+[14/32] Linking C executable tests/souls_formats_test_binary_writer.exe
+[15/32] Linking C executable tests/souls_formats_test_dcx_edge.exe
+[16/32] Linking C executable tests/souls_formats_test_dcx_sniff.exe
+[17/32] Linking C executable tests/souls_formats_test_sf_util.exe
+[18/32] Linking C executable tests/souls_formats_test_dcx_krak.exe
+[19/32] Linking C executable tests/souls_formats_test_dcx_zstd.exe
+[20/32] Linking C executable tests/souls_formats_test_regulation_decrypt.exe
+[21/32] Linking C executable tests/souls_formats_test_dcx_dflt.exe
+[22/32] Linking C executable tests/souls_formats_test_rsa.exe
+[23/32] Linking C executable tests/souls_formats_test_bhd5_synthetic.exe
+[24/32] Linking C executable tests/souls_formats_test_enfl_synthetic.exe
+[25/32] Linking C executable examples/sf_bnd_extract.exe
+[26/32] Linking C executable tests/souls_formats_test_binder_common.exe
+[27/32] Linking C executable tests/souls_formats_test_bnd3_synthetic.exe
+[28/32] Linking C executable tests/souls_formats_test_tpf_synthetic.exe
+[29/32] Linking C executable tests/souls_formats_test_bnd4_synthetic.exe
+[30/32] Linking C executable tests/souls_formats_test_bxf4_synthetic.exe
+[31/32] Linking C executable tests/souls_formats_test_bxf3_synthetic.exe
+[32/32] Linking C executable tests/souls_formats_test_golden.exe

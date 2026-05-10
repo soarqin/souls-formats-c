@@ -1,0 +1,32 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 27
+    Start 27: souls_formats_test_er_helper_smoke
+
+27: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_er_helper_smoke.exe
+27: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+27: Test timeout computed to be: 60
+27: /home/soar/src/souls-formats-c/tests/e2e/test_er_helper_smoke.c:14:test_er_helper_init_or_skip:IGNORE: ER copy or BHD5 not available in this environment
+27: /home/soar/src/souls-formats-c/tests/e2e/test_er_helper_smoke.c:39:test_er_helper_is_idempotent:PASS
+27: /home/soar/src/souls-formats-c/tests/e2e/test_er_helper_smoke.c:40:test_er_helper_shutdown_is_idempotent:PASS
+27: 
+27: -----------------------
+27: 3 Tests 0 Failures 1 Ignored 
+27: OK
+1/1 Test #27: souls_formats_test_er_helper_smoke ...   Passed    0.46 sec
+
+The following tests passed:
+	souls_formats_test_er_helper_smoke
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+e2e    =   0.46 sec*proc (1 test)
+
+Total Test time (real) =   0.49 sec

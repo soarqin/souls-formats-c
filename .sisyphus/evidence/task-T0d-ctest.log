@@ -1,0 +1,36 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 18
+    Start 18: souls_formats_test_rsa
+
+18: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_rsa.exe
+18: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+18: Test timeout computed to be: 60
+18: /home/soar/src/souls-formats-c/tests/crypto/test_rsa.c:209:test_rsa_decrypt_pkcs1_pem:PASS
+18: /home/soar/src/souls-formats-c/tests/crypto/test_rsa.c:210:test_rsa_decrypt_x509_pem:PASS
+18: /home/soar/src/souls-formats-c/tests/crypto/test_rsa.c:211:test_rsa_decrypt_invalid_args:PASS
+18: /home/soar/src/souls-formats-c/tests/crypto/test_rsa.c:212:test_rsa_wrong_input_size:PASS
+18: /home/soar/src/souls-formats-c/tests/crypto/test_rsa.c:213:test_bhd5_keys_accessor:PASS
+18: /home/soar/src/souls-formats-c/tests/crypto/test_rsa.c:214:test_bhd5_keys_parse_round_trip:PASS
+18: /home/soar/src/souls-formats-c/tests/crypto/test_rsa.c:215:test_rsa_real_eldenring_data0:PASS
+18: 
+18: -----------------------
+18: 7 Tests 0 Failures 0 Ignored 
+18: OK
+1/1 Test #18: souls_formats_test_rsa ...........   Passed    0.09 sec
+
+The following tests passed:
+	souls_formats_test_rsa
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+crypto    =   0.09 sec*proc (1 test)
+
+Total Test time (real) =   0.10 sec

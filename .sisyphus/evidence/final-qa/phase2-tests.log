@@ -1,0 +1,29 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+      Start  9: souls_formats_test_dcx_dflt
+ 1/10 Test  #9: souls_formats_test_dcx_dflt .............   Passed    0.91 sec
+      Start 10: souls_formats_test_dcx_edge
+ 2/10 Test #10: souls_formats_test_dcx_edge .............   Passed    0.23 sec
+      Start 11: souls_formats_test_dcx_zstd
+ 3/10 Test #11: souls_formats_test_dcx_zstd .............   Passed    0.55 sec
+      Start 12: souls_formats_test_dcx_krak
+ 4/10 Test #12: souls_formats_test_dcx_krak .............   Passed    0.49 sec
+      Start 13: souls_formats_test_dcx_sniff
+ 5/10 Test #13: souls_formats_test_dcx_sniff ............   Passed    0.26 sec
+      Start 14: souls_formats_test_aes_kat
+ 6/10 Test #14: souls_formats_test_aes_kat ..............   Passed    0.09 sec
+      Start 15: souls_formats_test_md5_kat
+ 7/10 Test #15: souls_formats_test_md5_kat ..............   Passed    0.08 sec
+      Start 16: souls_formats_test_regulation_decrypt
+ 8/10 Test #16: souls_formats_test_regulation_decrypt ...   Passed    0.39 sec
+      Start 17: souls_formats_test_sl2_kat
+ 9/10 Test #17: souls_formats_test_sl2_kat ..............   Passed    0.09 sec
+      Start 18: souls_formats_test_rsa
+10/10 Test #18: souls_formats_test_rsa ..................   Passed    0.10 sec
+
+100% tests passed, 0 tests failed out of 10
+
+Label Time Summary:
+compression    =   2.44 sec*proc (5 tests)
+crypto         =   0.74 sec*proc (5 tests)
+
+Total Test time (real) =   3.19 sec

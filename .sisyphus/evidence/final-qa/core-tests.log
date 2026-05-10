@@ -1,0 +1,22 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+    Start 2: souls_formats_test_filename_hash
+1/7 Test #2: souls_formats_test_filename_hash ...   Passed    0.09 sec
+    Start 3: souls_formats_test_encoding
+2/7 Test #3: souls_formats_test_encoding ........   Passed    0.08 sec
+    Start 4: souls_formats_test_binary_reader
+3/7 Test #4: souls_formats_test_binary_reader ...   Passed    0.12 sec
+    Start 5: souls_formats_test_binary_writer
+4/7 Test #5: souls_formats_test_binary_writer ...   Passed    0.12 sec
+    Start 6: souls_formats_test_path
+5/7 Test #6: souls_formats_test_path ............   Passed    0.09 sec
+    Start 7: souls_formats_test_sf_util
+6/7 Test #7: souls_formats_test_sf_util .........   Passed    0.25 sec
+    Start 8: souls_formats_test_dds_header
+7/7 Test #8: souls_formats_test_dds_header ......   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 7
+
+Label Time Summary:
+core    =   0.83 sec*proc (7 tests)
+
+Total Test time (real) =   0.83 sec

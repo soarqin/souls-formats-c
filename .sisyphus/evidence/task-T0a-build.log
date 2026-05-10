@@ -1,0 +1,9 @@
+[1/9] Building C object CMakeFiles/souls_formats_static.dir/src/core/error.c.obj
+[2/9] Building C object CMakeFiles/souls_formats_static.dir/src/core/sf_util.c.obj
+[3/9] Building C object CMakeFiles/souls_formats_static.dir/src/compression/dcx.c.obj
+[4/9] Building C object tests/CMakeFiles/souls_formats_test_binary_reader.dir/core/test_binary_reader.c.obj
+[5/9] Building C object CMakeFiles/souls_formats_static.dir/src/core/binary_writer.c.obj
+[6/9] Building C object CMakeFiles/souls_formats_static.dir/src/core/binary_reader.c.obj
+[7/9] Building C object CMakeFiles/souls_formats_static.dir/src/core/stream.c.obj
+[8/9] Linking C static library libsouls_formats.a
+[9/9] Linking C executable tests/souls_formats_test_binary_reader.exe

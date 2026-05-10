@@ -1,0 +1,3 @@
+uint64_t sf_path_hash_64(const char *utf8_path) {
+	[ 254] sf_path_hash
+	[ 255] sf_path_hash_64

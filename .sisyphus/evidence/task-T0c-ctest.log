@@ -1,0 +1,38 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 2
+    Start 2: souls_formats_test_filename_hash
+
+2: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_filename_hash.exe
+2: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+2: Test timeout computed to be: 60
+2: /home/soar/src/souls-formats-c/tests/core/test_filename_hash.c:181:test_golden_values:PASS
+2: /home/soar/src/souls-formats-c/tests/core/test_filename_hash.c:182:test_null_input:PASS
+2: /home/soar/src/souls-formats-c/tests/core/test_filename_hash.c:183:test_case_folding_only_ascii:PASS
+2: /home/soar/src/souls-formats-c/tests/core/test_filename_hash.c:184:test_slash_normalization:PASS
+2: /home/soar/src/souls-formats-c/tests/core/test_filename_hash.c:185:test_leading_slash_inserted:PASS
+2: /home/soar/src/souls-formats-c/tests/core/test_filename_hash.c:186:test_is_prime:PASS
+2: /home/soar/src/souls-formats-c/tests/core/test_filename_hash.c:187:test_sf_path_hash_64_equivalence:PASS
+2: /home/soar/src/souls-formats-c/tests/core/test_filename_hash.c:188:test_sf_path_hash_64_normalization_parity:PASS
+2: /home/soar/src/souls-formats-c/tests/core/test_filename_hash.c:176:test_sf_path_hash_64_real_bhd5_ground_truth:IGNORE: requires Phase 3 BHD5 + er_helper
+2: 
+2: -----------------------
+2: 9 Tests 0 Failures 1 Ignored 
+2: OK
+1/1 Test #2: souls_formats_test_filename_hash ...   Passed    0.11 sec
+
+The following tests passed:
+	souls_formats_test_filename_hash
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+core    =   0.11 sec*proc (1 test)
+
+Total Test time (real) =   0.11 sec

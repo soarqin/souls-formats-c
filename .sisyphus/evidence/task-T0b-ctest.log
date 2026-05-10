@@ -1,0 +1,35 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 13
+    Start 13: souls_formats_test_aes_kat
+
+13: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_aes_kat.exe
+13: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+13: Test timeout computed to be: 60
+13: /home/soar/src/souls-formats-c/tests/crypto/test_aes_kat.c:91:test_aes128_ecb_block:PASS
+13: /home/soar/src/souls-formats-c/tests/crypto/test_aes_kat.c:92:test_aes128_ecb_buffer_decrypt:PASS
+13: /home/soar/src/souls-formats-c/tests/crypto/test_aes_kat.c:93:test_aes128_ecb_buffer_multiblock:PASS
+13: /home/soar/src/souls-formats-c/tests/crypto/test_aes_kat.c:94:test_aes128_ecb_buffer_bounds:PASS
+13: /home/soar/src/souls-formats-c/tests/crypto/test_aes_kat.c:95:test_aes128_cbc_vectors:PASS
+13: /home/soar/src/souls-formats-c/tests/crypto/test_aes_kat.c:96:test_aes256_cbc_vectors:PASS
+13: 
+13: -----------------------
+13: 6 Tests 0 Failures 0 Ignored 
+13: OK
+1/1 Test #13: souls_formats_test_aes_kat .......   Passed    0.11 sec
+
+The following tests passed:
+	souls_formats_test_aes_kat
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+crypto    =   0.11 sec*proc (1 test)
+
+Total Test time (real) =   0.13 sec

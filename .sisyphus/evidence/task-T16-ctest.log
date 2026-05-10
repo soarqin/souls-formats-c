@@ -1,0 +1,34 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 29
+    Start 29: souls_formats_test_bnd4_e2e_er
+
+29: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_bnd4_e2e_er.exe
+29: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+29: Test timeout computed to be: 60
+29: /home/soar/src/souls-formats-c/tests/e2e/test_bnd4_e2e_er.c:40:test_extract_yields_bnd4:IGNORE: ER copy or Oodle DLL not available
+29: /home/soar/src/souls-formats-c/tests/e2e/test_bnd4_e2e_er.c:67:test_parse_and_summarize:IGNORE: ER copy or Oodle DLL not available
+29: /home/soar/src/souls-formats-c/tests/e2e/test_bnd4_e2e_er.c:95:test_find_flver_entry:IGNORE: ER copy or Oodle DLL not available
+29: /home/soar/src/souls-formats-c/tests/e2e/test_bnd4_e2e_er.c:139:test_entries_not_inner_dcx:IGNORE: ER copy or Oodle DLL not available
+29: /home/soar/src/souls-formats-c/tests/e2e/test_bnd4_e2e_er.c:171:test_eager_vs_reader_consistency:IGNORE: ER copy or Oodle DLL not available
+29: 
+29: -----------------------
+29: 5 Tests 0 Failures 5 Ignored 
+29: OK
+1/1 Test #29: souls_formats_test_bnd4_e2e_er ...   Passed    0.44 sec
+
+The following tests passed:
+	souls_formats_test_bnd4_e2e_er
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+e2e    =   0.44 sec*proc (1 test)
+
+Total Test time (real) =   0.45 sec

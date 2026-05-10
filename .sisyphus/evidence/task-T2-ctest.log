@@ -1,0 +1,36 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 19
+    Start 19: souls_formats_test_binder_common
+
+19: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_binder_common.exe
+19: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+19: Test timeout computed to be: 60
+19: /home/soar/src/souls-formats-c/tests/archive/test_binder_common.c:227:test_binder_format_roundtrip_256_be:PASS
+19: /home/soar/src/souls-formats-c/tests/archive/test_binder_common.c:228:test_binder_format_roundtrip_real_formats_le:PASS
+19: /home/soar/src/souls-formats-c/tests/archive/test_binder_common.c:229:test_binder_file_flags_roundtrip_256_be:PASS
+19: /home/soar/src/souls-formats-c/tests/archive/test_binder_common.c:230:test_binder_file_flags_roundtrip_256_le:PASS
+19: /home/soar/src/souls-formats-c/tests/archive/test_binder_common.c:231:test_hash_table_prime_selection:PASS
+19: /home/soar/src/souls-formats-c/tests/archive/test_binder_common.c:232:test_bnd4_file_header_size:PASS
+19: /home/soar/src/souls-formats-c/tests/archive/test_binder_common.c:233:test_file_header_destroy_null_safe:PASS
+19: 
+19: -----------------------
+19: 7 Tests 0 Failures 0 Ignored 
+19: OK
+1/1 Test #19: souls_formats_test_binder_common ...   Passed    0.31 sec
+
+The following tests passed:
+	souls_formats_test_binder_common
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+archive    =   0.31 sec*proc (1 test)
+
+Total Test time (real) =   0.33 sec

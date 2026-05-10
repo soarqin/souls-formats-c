@@ -1,0 +1,35 @@
+[1/4] Building C object CMakeFiles/souls_formats_static.dir/src/core/filename_hash.c.obj
+[2/4] Building C object tests/CMakeFiles/souls_formats_test_filename_hash.dir/core/test_filename_hash.c.obj
+[3/4] Linking C static library libsouls_formats.a
+[4/4] Linking C executable tests/souls_formats_test_filename_hash.exe
+[1/31] Building C object CMakeFiles/souls_formats_shared.dir/src/core/filename_hash.c.obj
+[2/31] Building C object tests/CMakeFiles/souls_formats_test_dcx_edge.dir/compression/test_dcx_edge.c.obj
+[3/31] Building C object tests/CMakeFiles/souls_formats_test_dcx_zstd.dir/compression/test_dcx_zstd.c.obj
+[4/31] Building C object tests/CMakeFiles/souls_formats_test_dcx_dflt.dir/compression/test_dcx_dflt.c.obj
+[5/31] Building C object tests/CMakeFiles/souls_formats_test_dcx_sniff.dir/compression/test_dcx_sniff.c.obj
+[6/31] Building C object tests/CMakeFiles/souls_formats_test_sf_util.dir/core/test_sf_util.c.obj
+[7/31] Building C object tests/CMakeFiles/souls_formats_test_dcx_krak.dir/compression/test_dcx_krak.c.obj
+[8/31] Building C object tests/CMakeFiles/souls_formats_test_sl2_kat.dir/crypto/test_sl2_kat.c.obj
+[9/31] Building C object tests/CMakeFiles/souls_formats_test_encoding.dir/core/test_encoding.c.obj
+[10/31] Building C object tests/CMakeFiles/souls_formats_test_binary_writer.dir/core/test_binary_writer.c.obj
+[11/31] Linking C executable tests/souls_formats_test_aes_kat.exe
+[12/31] Linking C executable tests/souls_formats_test_binary_reader.exe
+[13/31] Linking C executable tests/souls_formats_test_md5_kat.exe
+[14/31] Linking C executable tests/souls_formats_test_encoding.exe
+[15/31] Linking C executable tests/souls_formats_test_sl2_kat.exe
+[16/31] Linking C executable tests/souls_formats_test_dcx_zstd.exe
+[17/31] Linking C executable tests/souls_formats_test_dcx_edge.exe
+[18/31] Linking C shared library libsouls_formats.dll
+[19/31] Linking C executable tests/souls_formats_test_dcx_krak.exe
+[20/31] Linking C executable tests/souls_formats_test_dcx_sniff.exe
+[21/31] Linking C executable tests/souls_formats_test_dcx_dflt.exe
+[22/31] Linking C executable tests/souls_formats_test_sf_util.exe
+[23/31] Linking C executable tests/souls_formats_test_binary_writer.exe
+[24/31] Building C object tests/CMakeFiles/souls_formats_test_smoke.dir/unity_runner.c.obj
+[25/31] Building C object tests/CMakeFiles/souls_formats_test_golden.dir/golden/capture_golden.c.obj
+[26/31] Building C object tests/CMakeFiles/souls_formats_test_path.dir/core/test_path.c.obj
+[27/31] Building C object tests/CMakeFiles/souls_formats_test_regulation_decrypt.dir/crypto/test_regulation_decrypt.c.obj
+[28/31] Linking C executable tests/souls_formats_test_smoke.exe
+[29/31] Linking C executable tests/souls_formats_test_path.exe
+[30/31] Linking C executable tests/souls_formats_test_golden.exe
+[31/31] Linking C executable tests/souls_formats_test_regulation_decrypt.exe

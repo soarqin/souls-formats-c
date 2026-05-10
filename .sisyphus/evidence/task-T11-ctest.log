@@ -1,0 +1,33 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 26
+    Start 26: souls_formats_test_tpf_synthetic
+
+26: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_tpf_synthetic.exe
+26: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+26: Test timeout computed to be: 60
+26: /home/soar/src/souls-formats-c/tests/archive/test_tpf_synthetic.c:239:test_tpf_pc_2tex:PASS
+26: /home/soar/src/souls-formats-c/tests/archive/test_tpf_synthetic.c:240:test_tpf_ps4_unsupported:PASS
+26: /home/soar/src/souls-formats-c/tests/archive/test_tpf_synthetic.c:241:test_tpf_dcp_edge_roundtrip:PASS
+26: /home/soar/src/souls-formats-c/tests/archive/test_tpf_synthetic.c:242:test_tpf_empty:PASS
+26: 
+26: -----------------------
+26: 4 Tests 0 Failures 0 Ignored 
+26: OK
+1/1 Test #26: souls_formats_test_tpf_synthetic ...   Passed    0.26 sec
+
+The following tests passed:
+	souls_formats_test_tpf_synthetic
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+archive    =   0.26 sec*proc (1 test)
+
+Total Test time (real) =   0.26 sec

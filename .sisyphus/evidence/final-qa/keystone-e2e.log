@@ -1,0 +1,36 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 28
+    Start 28: souls_formats_test_bhd5_e2e_er
+
+28: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_bhd5_e2e_er.exe
+28: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+28: Test timeout computed to be: 60
+28: /home/soar/src/souls-formats-c/tests/e2e/test_bhd5_e2e_er.c:49:test_open_and_summarize:IGNORE: ER copy or Oodle DLL not available
+28: /home/soar/src/souls-formats-c/tests/e2e/test_bhd5_e2e_er.c:71:test_bhd5_magic_after_rsa:IGNORE: ER copy or Oodle DLL not available
+28: /home/soar/src/souls-formats-c/tests/e2e/test_bhd5_e2e_er.c:107:test_path_hash_lookup:IGNORE: ER copy or Oodle DLL not available
+28: /home/soar/src/souls-formats-c/tests/e2e/test_bhd5_e2e_er.c:133:test_dcx_type_detection:IGNORE: ER copy or Oodle DLL not available
+28: /home/soar/src/souls-formats-c/tests/e2e/test_bhd5_e2e_er.c:162:test_oodle_decompress_bnd4_magic:IGNORE: ER copy or Oodle DLL not available
+28: /home/soar/src/souls-formats-c/tests/e2e/test_bhd5_e2e_er.c:207:test_er_extract_from_data0_succeeds:IGNORE: ER copy or Oodle DLL not available
+28: /home/soar/src/souls-formats-c/tests/e2e/test_bhd5_e2e_er.c:229:test_er_extract_from_data0_bnd4_magic:IGNORE: ER copy or Oodle DLL not available
+28: 
+28: -----------------------
+28: 7 Tests 0 Failures 7 Ignored 
+28: OK
+1/1 Test #28: souls_formats_test_bhd5_e2e_er ...   Passed    0.44 sec
+
+The following tests passed:
+	souls_formats_test_bhd5_e2e_er
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+e2e    =   0.44 sec*proc (1 test)
+
+Total Test time (real) =   0.44 sec

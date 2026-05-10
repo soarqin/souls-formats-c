@@ -1,0 +1,9 @@
+# task-T0d-objdump.log
+# Command: x86_64-w64-mingw32-objdump -p build-mingw/libsouls_formats.dll | grep -iE '(rsa|RSA)'
+# Date: 2026-05-10T13:44:07Z
+# Expected: empty grep result (RSA symbols are internal, must NOT be exported via DLL)
+# Actual: empty (PASS)
+# DLL total sf_* exports: 280
+# (sf_bhd5_game_t is a type, not a function - no symbol expected)
+---
+(no matches — internal symbols not exported, as designed)

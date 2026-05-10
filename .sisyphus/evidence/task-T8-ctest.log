@@ -1,0 +1,32 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 23
+    Start 23: souls_formats_test_bxf3_synthetic
+
+23: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_bxf3_synthetic.exe
+23: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+23: Test timeout computed to be: 60
+23: /home/soar/src/souls-formats-c/tests/archive/test_bxf3_synthetic.c:210:test_bxf3_roundtrip_basic:PASS
+23: /home/soar/src/souls-formats-c/tests/archive/test_bxf3_synthetic.c:211:test_bxf3_big_endian:PASS
+23: /home/soar/src/souls-formats-c/tests/archive/test_bxf3_synthetic.c:212:test_bxf3_reader_pattern:PASS
+23: 
+23: -----------------------
+23: 3 Tests 0 Failures 0 Ignored 
+23: OK
+1/1 Test #23: souls_formats_test_bxf3_synthetic ...   Passed    0.29 sec
+
+The following tests passed:
+	souls_formats_test_bxf3_synthetic
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+archive    =   0.29 sec*proc (1 test)
+
+Total Test time (real) =   0.31 sec

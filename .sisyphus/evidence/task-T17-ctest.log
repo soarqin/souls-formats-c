@@ -1,0 +1,32 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 30
+    Start 30: souls_formats_test_bxf4_e2e_er
+
+30: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_bxf4_e2e_er.exe
+30: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+30: Test timeout computed to be: 60
+30: /home/soar/src/souls-formats-c/tests/e2e/test_bxf4_e2e_er.c:216:test_candidate_list_terminated:PASS
+30: /home/soar/src/souls-formats-c/tests/e2e/test_bxf4_e2e_er.c:65:test_bxf4_candidate_scan:IGNORE: ER copy or Oodle DLL not available
+30: /home/soar/src/souls-formats-c/tests/e2e/test_bxf4_e2e_er.c:141:test_bxf4_entry_has_data:IGNORE: ER copy or Oodle DLL not available
+30: 
+30: -----------------------
+30: 3 Tests 0 Failures 2 Ignored 
+30: OK
+1/1 Test #30: souls_formats_test_bxf4_e2e_er ...   Passed    0.44 sec
+
+The following tests passed:
+	souls_formats_test_bxf4_e2e_er
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+e2e    =   0.44 sec*proc (1 test)
+
+Total Test time (real) =   0.44 sec

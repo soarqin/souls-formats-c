@@ -1,0 +1,60 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 4
+    Start 4: souls_formats_test_binary_reader
+
+4: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_binary_reader.exe
+4: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+4: Test timeout computed to be: 60
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:713:test_read_primitives_le:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:714:test_read_primitives_be:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:715:test_endian_flip:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:716:test_varint_short_then_long:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:717:test_step_nested:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:718:test_pad_skip:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:719:test_get_value:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:720:test_reader_state_extensions:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:721:test_read_plural_primitives:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:722:test_read_plural_float_and_varint:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:723:test_get_single_primitives:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:724:test_get_plural_primitives:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:725:test_assert:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:726:test_assert_multi_options_all_types:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:727:test_flexible_skips_assert_mismatch:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:728:test_enum_reads_and_gets:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:729:test_assert_pattern:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:730:test_assert_ascii:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:731:test_read_ascii_terminated:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:732:test_read_shift_jis_terminated:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:733:test_read_utf16_terminated_le:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:734:test_read_utf16_terminated_be:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:735:test_read_fix_str:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:736:test_get_strings:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:737:test_shift_jis_round_trip_identity:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:738:test_vec_and_quat:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:739:test_argb_and_friends:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:740:test_11_11_10_zero:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:741:test_truncation:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:742:test_bool_invalid:PASS
+4: /home/soar/src/souls-formats-c/tests/core/test_binary_reader.c:743:test_sf_reverse_bits_u8_known_values:PASS
+4: 
+4: -----------------------
+4: 31 Tests 0 Failures 0 Ignored 
+4: OK
+1/1 Test #4: souls_formats_test_binary_reader ...   Passed    0.14 sec
+
+The following tests passed:
+	souls_formats_test_binary_reader
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+core    =   0.14 sec*proc (1 test)
+
+Total Test time (real) =   0.17 sec

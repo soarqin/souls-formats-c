@@ -1,0 +1,25 @@
+[1/4] Building C object tests/CMakeFiles/souls_formats_test_binder_common.dir/archive/test_binder_common.c.obj
+[2/4] Building C object CMakeFiles/souls_formats_static.dir/src/archive/binder_common.c.obj
+[3/4] Linking C static library libsouls_formats.a
+[4/4] Linking C executable tests/souls_formats_test_binder_common.exe
+[1/21] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/binder_common.c.obj
+[2/21] Linking C executable tests/souls_formats_test_sl2_kat.exe
+[3/21] Linking C executable tests/souls_formats_test_path.exe
+[4/21] Linking C executable tests/souls_formats_test_aes_kat.exe
+[5/21] Linking C executable tests/souls_formats_test_binary_writer.exe
+[6/21] Linking C executable tests/souls_formats_test_smoke.exe
+[7/21] Linking C executable tests/souls_formats_test_dds_header.exe
+[8/21] Linking C executable tests/souls_formats_test_encoding.exe
+[9/21] Linking C executable tests/souls_formats_test_filename_hash.exe
+[10/21] Linking C executable tests/souls_formats_test_md5_kat.exe
+[11/21] Linking C executable tests/souls_formats_test_binary_reader.exe
+[12/21] Linking C executable tests/souls_formats_test_dcx_sniff.exe
+[13/21] Linking C executable tests/souls_formats_test_dcx_zstd.exe
+[14/21] Linking C executable tests/souls_formats_test_dcx_edge.exe
+[15/21] Linking C executable tests/souls_formats_test_sf_util.exe
+[16/21] Linking C executable tests/souls_formats_test_regulation_decrypt.exe
+[17/21] Linking C executable tests/souls_formats_test_dcx_dflt.exe
+[18/21] Linking C executable tests/souls_formats_test_dcx_krak.exe
+[19/21] Linking C executable tests/souls_formats_test_rsa.exe
+[20/21] Linking C shared library libsouls_formats.dll
+[21/21] Linking C executable tests/souls_formats_test_golden.exe

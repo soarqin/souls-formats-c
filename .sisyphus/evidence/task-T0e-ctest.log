@@ -1,0 +1,32 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 8
+    Start 8: souls_formats_test_dds_header
+
+8: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_dds_header.exe
+8: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+8: Test timeout computed to be: 60
+8: /home/soar/src/souls-formats-c/tests/core/test_dds_header.c:85:test_dds_parse_8x8_bc1:PASS
+8: /home/soar/src/souls-formats-c/tests/core/test_dds_header.c:86:test_dds_parse_dx10_format:PASS
+8: /home/soar/src/souls-formats-c/tests/core/test_dds_header.c:87:test_dds_parse_bad_magic:PASS
+8: 
+8: -----------------------
+8: 3 Tests 0 Failures 0 Ignored 
+8: OK
+1/1 Test #8: souls_formats_test_dds_header ....   Passed    0.10 sec
+
+The following tests passed:
+	souls_formats_test_dds_header
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+core    =   0.10 sec*proc (1 test)
+
+Total Test time (real) =   0.10 sec

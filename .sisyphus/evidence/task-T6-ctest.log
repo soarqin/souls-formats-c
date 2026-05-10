@@ -1,0 +1,34 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 20
+    Start 20: souls_formats_test_bnd3_synthetic
+
+20: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_bnd3_synthetic.exe
+20: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+20: Test timeout computed to be: 60
+20: /home/soar/src/souls-formats-c/tests/archive/test_bnd3_synthetic.c:254:test_bnd3_roundtrip_basic:PASS
+20: /home/soar/src/souls-formats-c/tests/archive/test_bnd3_synthetic.c:255:test_bnd3_write_file_headers_end_false:PASS
+20: /home/soar/src/souls-formats-c/tests/archive/test_bnd3_synthetic.c:256:test_bnd3_unk18_variant:PASS
+20: /home/soar/src/souls-formats-c/tests/archive/test_bnd3_synthetic.c:257:test_bnd3_big_endian:PASS
+20: /home/soar/src/souls-formats-c/tests/archive/test_bnd3_synthetic.c:258:test_bnd3_reader_pattern:PASS
+20: 
+20: -----------------------
+20: 5 Tests 0 Failures 0 Ignored 
+20: OK
+1/1 Test #20: souls_formats_test_bnd3_synthetic ...   Passed    0.29 sec
+
+The following tests passed:
+	souls_formats_test_bnd3_synthetic
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+archive    =   0.29 sec*proc (1 test)
+
+Total Test time (real) =   0.33 sec

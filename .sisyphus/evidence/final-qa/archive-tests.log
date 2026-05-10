@@ -1,0 +1,24 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+    Start 19: souls_formats_test_binder_common
+1/8 Test #19: souls_formats_test_binder_common ....   Passed    0.27 sec
+    Start 20: souls_formats_test_bhd5_synthetic
+2/8 Test #20: souls_formats_test_bhd5_synthetic ...   Passed    0.11 sec
+    Start 21: souls_formats_test_bnd3_synthetic
+3/8 Test #21: souls_formats_test_bnd3_synthetic ...   Passed    0.30 sec
+    Start 22: souls_formats_test_bnd4_synthetic
+4/8 Test #22: souls_formats_test_bnd4_synthetic ...   Passed    0.33 sec
+    Start 23: souls_formats_test_bxf3_synthetic
+5/8 Test #23: souls_formats_test_bxf3_synthetic ...   Passed    0.30 sec
+    Start 24: souls_formats_test_bxf4_synthetic
+6/8 Test #24: souls_formats_test_bxf4_synthetic ...   Passed    0.28 sec
+    Start 25: souls_formats_test_enfl_synthetic
+7/8 Test #25: souls_formats_test_enfl_synthetic ...   Passed    0.17 sec
+    Start 26: souls_formats_test_tpf_synthetic
+8/8 Test #26: souls_formats_test_tpf_synthetic ....   Passed    0.29 sec
+
+100% tests passed, 0 tests failed out of 8
+
+Label Time Summary:
+archive    =   2.05 sec*proc (8 tests)
+
+Total Test time (real) =   2.06 sec

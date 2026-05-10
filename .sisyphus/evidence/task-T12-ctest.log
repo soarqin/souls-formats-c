@@ -1,0 +1,31 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 24
+    Start 24: souls_formats_test_enfl_synthetic
+
+24: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_enfl_synthetic.exe
+24: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+24: Test timeout computed to be: 60
+24: /home/soar/src/souls-formats-c/tests/archive/test_enfl_synthetic.c:111:test_enfl_zlib_payload:PASS
+24: /home/soar/src/souls-formats-c/tests/archive/test_enfl_synthetic.c:112:test_enfl_empty:PASS
+24: 
+24: -----------------------
+24: 2 Tests 0 Failures 0 Ignored 
+24: OK
+1/1 Test #24: souls_formats_test_enfl_synthetic ...   Passed    0.17 sec
+
+The following tests passed:
+	souls_formats_test_enfl_synthetic
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+archive    =   0.17 sec*proc (1 test)
+
+Total Test time (real) =   0.20 sec
