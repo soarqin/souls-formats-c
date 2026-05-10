@@ -42,6 +42,8 @@ sf_add_test(souls_formats_test_aes_kat crypto/test_aes_kat.c "crypto")
 sf_add_test(souls_formats_test_md5_kat crypto/test_md5_kat.c "crypto")
 sf_add_test(souls_formats_test_regulation_decrypt crypto/test_regulation_decrypt.c "crypto")
 sf_add_test(souls_formats_test_sl2_kat crypto/test_sl2_kat.c "crypto")
+sf_add_test(souls_formats_test_rsa crypto/test_rsa.c "crypto")
+target_link_libraries(souls_formats_test_rsa PRIVATE crypt32)
 
 add_custom_target(souls_formats_test_compression
     DEPENDS

@@ -23,6 +23,7 @@
 #include "souls_formats/sf_oodle.h"
 #include "souls_formats/sf_regulation.h"
 #include "souls_formats/sf_sl2.h"
+#include "souls_formats/sf_bhd5.h"
 
 /* Format headers will be added here as each Phase lands.
  * Phase 1: io, math, encoding, hash  (DONE)

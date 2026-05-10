@@ -54,6 +54,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_dcx.h
     include/souls_formats/sf_oodle.h
     include/souls_formats/sf_regulation.h
+    include/souls_formats/sf_bhd5.h
 )
 
 set(SF_SOURCES
@@ -77,7 +78,9 @@ set(SF_SOURCES
     src/crypto/md5_cng.c
     src/crypto/regulation.c
     src/crypto/regulation_keys.c
+    src/crypto/rsa_cng.c
     src/crypto/sl2.c
+    src/archive/bhd5_keys.c
     src/internal/dds_header.c
 )
 
@@ -101,9 +104,10 @@ function(_sf_configure_library target)
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/src/compression
             ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/archive
     )
     target_compile_features(${target} PUBLIC c_std_11)
-    target_link_libraries(${target} PRIVATE bcrypt zlib ${SF_ZSTD_TARGET})
+    target_link_libraries(${target} PRIVATE bcrypt crypt32 zlib ${SF_ZSTD_TARGET})
     sf_apply_warnings(${target})
     sf_apply_sanitizers(${target})
 endfunction()
