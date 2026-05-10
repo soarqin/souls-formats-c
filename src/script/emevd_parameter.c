@@ -35,3 +35,14 @@ int32_t sf_emevd_parameter_get_byte_count(const sf_emevd_parameter_t *parameter)
 int32_t sf_emevd_parameter_get_unk_id(const sf_emevd_parameter_t *parameter) {
     return parameter ? parameter->unk_id : 0;
 }
+
+sf_result_t sfi_emevd_parameter_write(sf_binary_writer_t *bw,
+                                      const sf_emevd_parameter_t *parameter) {
+    SF_CHECK_ARG(bw != NULL && parameter != NULL);
+    sf_result_t r = sf_binary_writer_write_varint(bw, parameter->instruction_index);
+    if (r != SF_OK) return r;
+    r = sf_binary_writer_write_varint(bw, parameter->target_start_byte); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_varint(bw, parameter->source_start_byte); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_i32(bw, parameter->byte_count); if (r != SF_OK) return r;
+    return sf_binary_writer_write_i32(bw, parameter->unk_id);
+}

@@ -72,6 +72,8 @@ static inline bool sf_emevd_format_is_ds3_or_later(sf_emevd_format_t format) {
 }
 
 sf_result_t sfi_emevd_i64_to_size(int64_t value, size_t *out);
+sf_result_t sfi_emevd_write(sf_binary_writer_t *bw, const sf_emevd_t *emevd,
+                            const sf_allocator_t *alloc);
 void sfi_emevd_event_free(sf_emevd_event_t *event, const sf_allocator_t *alloc);
 sf_result_t sfi_emevd_event_read(sf_binary_reader_t *br, sf_emevd_format_t format,
                                  const sf_emevd_offsets_t *offsets,
@@ -82,5 +84,38 @@ sf_result_t sfi_emevd_instruction_read(sf_binary_reader_t *br, sf_emevd_format_t
                                        const sf_allocator_t *alloc);
 sf_result_t sfi_emevd_layer_read(sf_binary_reader_t *br, sf_emevd_layer_t *out);
 sf_result_t sfi_emevd_parameter_read(sf_binary_reader_t *br, sf_emevd_parameter_t *out);
+
+sf_result_t sfi_emevd_event_write(sf_binary_writer_t *bw, sf_emevd_format_t format,
+                                  const sf_emevd_event_t *event, size_t event_index);
+sf_result_t sfi_emevd_event_write_instructions(sf_binary_writer_t *bw,
+                                               sf_emevd_format_t format,
+                                               const sf_emevd_offsets_t *offsets,
+                                               const sf_emevd_event_t *event,
+                                               size_t event_index);
+sf_result_t sfi_emevd_event_write_parameters(sf_binary_writer_t *bw,
+                                             sf_emevd_format_t format,
+                                             const sf_emevd_offsets_t *offsets,
+                                             const sf_emevd_event_t *event,
+                                             size_t event_index);
+sf_result_t sfi_emevd_instruction_write(sf_binary_writer_t *bw, sf_emevd_format_t format,
+                                        const sf_emevd_instruction_t *instr,
+                                        size_t event_index, size_t instr_index);
+sf_result_t sfi_emevd_instruction_write_args(sf_binary_writer_t *bw,
+                                             sf_emevd_format_t format,
+                                             const sf_emevd_offsets_t *offsets,
+                                             const sf_emevd_instruction_t *instr,
+                                             size_t event_index, size_t instr_index);
+sf_result_t sfi_emevd_instruction_fill_layer_offset(sf_binary_writer_t *bw,
+                                                    sf_emevd_format_t format,
+                                                    const sf_emevd_instruction_t *instr,
+                                                    const uint32_t *layers,
+                                                    const int64_t *layer_offsets,
+                                                    size_t layer_count,
+                                                    size_t event_index,
+                                                    size_t instr_index);
+sf_result_t sfi_emevd_layer_write(sf_binary_writer_t *bw, sf_emevd_format_t format,
+                                  const sf_emevd_layer_t *layer);
+sf_result_t sfi_emevd_parameter_write(sf_binary_writer_t *bw,
+                                      const sf_emevd_parameter_t *parameter);
 
 #endif /* SF_SCRIPT_EMEVD_INTERNAL_H */

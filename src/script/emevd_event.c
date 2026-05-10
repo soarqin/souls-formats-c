@@ -2,6 +2,8 @@
 
 #include "script/emevd_internal.h"
 
+#include <limits.h>
+#include <stdio.h>
 #include <string.h>
 
 void sfi_emevd_event_free(sf_emevd_event_t *event, const sf_allocator_t *alloc) {
@@ -124,7 +126,92 @@ size_t sf_emevd_event_get_parameter_count(const sf_emevd_event_t *event) {
 }
 
 const sf_emevd_parameter_t *sf_emevd_event_get_parameter(const sf_emevd_event_t *event,
-                                                        size_t index) {
+                                                         size_t index) {
     if (!event || index >= event->parameter_count) return NULL;
     return &event->parameters[index];
+}
+
+static sf_result_t emevd_event_name(char *name, size_t name_size, const char *suffix,
+                                    size_t event_index) {
+    int n = snprintf(name, name_size, "Event%zu%s", event_index, suffix);
+    if (n < 0 || (size_t)n >= name_size) return SF_ERR_OUT_OF_RANGE;
+    return SF_OK;
+}
+
+sf_result_t sfi_emevd_event_write(sf_binary_writer_t *bw, sf_emevd_format_t format,
+                                  const sf_emevd_event_t *event, size_t event_index) {
+    SF_CHECK_ARG(bw != NULL && event != NULL);
+    char name[64];
+
+    sf_result_t r = sf_binary_writer_write_varint(bw, event->id); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_varint(bw, (int64_t)event->instruction_count);
+    if (r != SF_OK) return r;
+    r = emevd_event_name(name, sizeof(name), "InstrsOffset", event_index);
+    if (r != SF_OK) return r;
+    r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_varint(bw, (int64_t)event->parameter_count);
+    if (r != SF_OK) return r;
+
+    r = emevd_event_name(name, sizeof(name), "ParamsOffset", event_index);
+    if (r != SF_OK) return r;
+    if (format < SF_EMEVD_FORMAT_BLOODBORNE) {
+        r = sf_binary_writer_reserve_i32(bw, name);
+    } else if (format < SF_EMEVD_FORMAT_DARK_SOULS_3) {
+        r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i32(bw, 0);
+    } else {
+        r = sf_binary_writer_reserve_i64(bw, name);
+    }
+    if (r != SF_OK) return r;
+
+    r = sf_binary_writer_write_u32(bw, (uint32_t)event->rest_behavior); if (r != SF_OK) return r;
+    return sf_binary_writer_write_i32(bw, 0);
+}
+
+sf_result_t sfi_emevd_event_write_instructions(sf_binary_writer_t *bw,
+                                               sf_emevd_format_t format,
+                                               const sf_emevd_offsets_t *offsets,
+                                               const sf_emevd_event_t *event,
+                                               size_t event_index) {
+    SF_CHECK_ARG(bw != NULL && offsets != NULL && event != NULL);
+    char name[64];
+    sf_result_t r = emevd_event_name(name, sizeof(name), "InstrsOffset", event_index);
+    if (r != SF_OK) return r;
+    int64_t offset = event->instruction_count > 0
+        ? sf_binary_writer_position(bw) - offsets->instructions
+        : -1;
+    r = sf_binary_writer_fill_varint(bw, name, offset); if (r != SF_OK) return r;
+
+    for (size_t i = 0; i < event->instruction_count; i++) {
+        r = sfi_emevd_instruction_write(bw, format, &event->instructions[i], event_index, i);
+        if (r != SF_OK) return r;
+    }
+    return SF_OK;
+}
+
+sf_result_t sfi_emevd_event_write_parameters(sf_binary_writer_t *bw,
+                                             sf_emevd_format_t format,
+                                             const sf_emevd_offsets_t *offsets,
+                                             const sf_emevd_event_t *event,
+                                             size_t event_index) {
+    SF_CHECK_ARG(bw != NULL && offsets != NULL && event != NULL);
+    char name[64];
+    sf_result_t r = emevd_event_name(name, sizeof(name), "ParamsOffset", event_index);
+    if (r != SF_OK) return r;
+    int64_t offset = event->parameter_count > 0
+        ? sf_binary_writer_position(bw) - offsets->parameters
+        : -1;
+    if (format < SF_EMEVD_FORMAT_DARK_SOULS_3) {
+        if (offset < INT32_MIN || offset > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+        r = sf_binary_writer_fill_i32(bw, name, (int32_t)offset);
+    } else {
+        r = sf_binary_writer_fill_i64(bw, name, offset);
+    }
+    if (r != SF_OK) return r;
+
+    for (size_t i = 0; i < event->parameter_count; i++) {
+        r = sfi_emevd_parameter_write(bw, &event->parameters[i]);
+        if (r != SF_OK) return r;
+    }
+    return SF_OK;
 }

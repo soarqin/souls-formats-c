@@ -2,6 +2,8 @@
 
 #include "script/emevd_internal.h"
 
+#include <limits.h>
+#include <stdio.h>
 #include <string.h>
 
 sf_result_t sfi_emevd_instruction_read(sf_binary_reader_t *br, sf_emevd_format_t format,
@@ -80,4 +82,107 @@ sf_result_t sf_emevd_instruction_get_arg_data(const sf_emevd_instruction_t *inst
 const sf_emevd_layer_t *sf_emevd_instruction_get_layer(const sf_emevd_instruction_t *instr) {
     if (!instr || !instr->has_layer) return NULL;
     return &instr->layer;
+}
+
+static sf_result_t emevd_instr_name(char *name, size_t name_size, const char *suffix,
+                                    size_t event_index, size_t instr_index) {
+    int n = snprintf(name, name_size, "Event%zuInstr%zu%s", event_index, instr_index, suffix);
+    if (n < 0 || (size_t)n >= name_size) return SF_ERR_OUT_OF_RANGE;
+    return SF_OK;
+}
+
+sf_result_t sfi_emevd_instruction_write(sf_binary_writer_t *bw, sf_emevd_format_t format,
+                                        const sf_emevd_instruction_t *instr,
+                                        size_t event_index, size_t instr_index) {
+    SF_CHECK_ARG(bw != NULL && instr != NULL);
+    char name[80];
+
+    sf_result_t r = sf_binary_writer_write_i32(bw, instr->bank); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_i32(bw, instr->id); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_varint(bw, (int64_t)instr->arg_data_size);
+    if (r != SF_OK) return r;
+
+    r = emevd_instr_name(name, sizeof(name), "ArgsOffset", event_index, instr_index);
+    if (r != SF_OK) return r;
+    if (format < SF_EMEVD_FORMAT_BLOODBORNE) {
+        r = sf_binary_writer_reserve_i32(bw, name);
+    } else if (format < SF_EMEVD_FORMAT_SEKIRO) {
+        r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i32(bw, 0);
+    } else {
+        r = sf_binary_writer_reserve_i64(bw, name);
+    }
+    if (r != SF_OK) return r;
+
+    r = emevd_instr_name(name, sizeof(name), "LayerOffset", event_index, instr_index);
+    if (r != SF_OK) return r;
+    if (format < SF_EMEVD_FORMAT_DARK_SOULS_3) {
+        r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i32(bw, 0);
+    } else {
+        r = sf_binary_writer_reserve_i64(bw, name);
+    }
+    return r;
+}
+
+sf_result_t sfi_emevd_instruction_write_args(sf_binary_writer_t *bw,
+                                             sf_emevd_format_t format,
+                                             const sf_emevd_offsets_t *offsets,
+                                             const sf_emevd_instruction_t *instr,
+                                             size_t event_index, size_t instr_index) {
+    SF_CHECK_ARG(bw != NULL && offsets != NULL && instr != NULL);
+    char name[80];
+    sf_result_t r = emevd_instr_name(name, sizeof(name), "ArgsOffset", event_index,
+                                    instr_index);
+    if (r != SF_OK) return r;
+    int64_t offset = instr->arg_data_size > 0
+        ? sf_binary_writer_position(bw) - offsets->arguments
+        : -1;
+    if (format < SF_EMEVD_FORMAT_SEKIRO) {
+        if (offset < INT32_MIN || offset > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+        r = sf_binary_writer_fill_i32(bw, name, (int32_t)offset);
+    } else {
+        r = sf_binary_writer_fill_i64(bw, name, offset);
+    }
+    if (r != SF_OK) return r;
+    if (instr->arg_data_size > 0) {
+        if (!instr->arg_data) return SF_ERR_INVALID_ARG;
+        r = sf_binary_writer_write_bytes(bw, instr->arg_data, instr->arg_data_size);
+        if (r != SF_OK) return r;
+    }
+    return sf_binary_writer_pad(bw, 4);
+}
+
+sf_result_t sfi_emevd_instruction_fill_layer_offset(sf_binary_writer_t *bw,
+                                                    sf_emevd_format_t format,
+                                                    const sf_emevd_instruction_t *instr,
+                                                    const uint32_t *layers,
+                                                    const int64_t *layer_offsets,
+                                                    size_t layer_count,
+                                                    size_t event_index,
+                                                    size_t instr_index) {
+    SF_CHECK_ARG(bw != NULL && instr != NULL);
+    char name[80];
+    sf_result_t r = emevd_instr_name(name, sizeof(name), "LayerOffset", event_index,
+                                    instr_index);
+    if (r != SF_OK) return r;
+
+    int64_t offset = -1;
+    if (instr->has_layer) {
+        bool found = false;
+        for (size_t i = 0; i < layer_count; i++) {
+            if (layers[i] == instr->layer.mask) {
+                offset = layer_offsets[i];
+                found = true;
+                break;
+            }
+        }
+        if (!found) return SF_ERR_INTERNAL;
+    }
+
+    if (format < SF_EMEVD_FORMAT_DARK_SOULS_3) {
+        if (offset < INT32_MIN || offset > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+        return sf_binary_writer_fill_i32(bw, name, (int32_t)offset);
+    }
+    return sf_binary_writer_fill_i64(bw, name, offset);
 }

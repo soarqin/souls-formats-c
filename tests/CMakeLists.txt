@@ -143,7 +143,7 @@ sf_add_test(fmg_e2e_er param/test_fmg_e2e_er.c "param")
 # Phase 4 — Script
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_emevd_read script/test_emevd_read.c "script")
-sf_add_test(emevd_write script/test_emevd_write.c "script")
+sf_add_test(souls_formats_test_emevd_write script/test_emevd_write.c "script")
 sf_add_test(emevd_synthetic script/test_emevd_synthetic.c "script")
 sf_add_test(emevd_e2e_er script/test_emevd_e2e_er.c "script")
 
