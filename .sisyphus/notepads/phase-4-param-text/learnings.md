@@ -45,3 +45,36 @@ calling `strtoul` to preserve upstream rejection semantics.
 parameter and uses the allocator stored on the object (`tdf->alloc`).
 The parameter is accepted for symmetric API but the body is `(void)alloc;`.
 This matches the API spec but should be considered when reviewing.
+
+## T2.4 FMG reader (2026-05-11)
+
+**Width gating**: `wide = (version == DARK_SOULS_3)` triples up:
+1. set `sf_binary_reader_set_varint_long(br, wide)` — affects ReadVarint width (4 vs 8)
+2. additional `assert_i32_one(br, 0xFF)` sentinel after string_count when wide
+3. group entries are 16 bytes (offsetIndex + firstID + lastID + 0 padding)
+   when wide, 12 bytes when narrow
+4. string-offset table has 8-byte entries when wide, 4-byte when narrow
+
+**MD5 prefix detection rule**: peek byte at absolute offset 0; if non-zero,
+16-byte prefix is present and we just `skip(16)` — DO NOT verify the hash.
+This mirrors an upstream limitation: an MD5 hash that happens to start with
+0x00 will be misdetected as no-prefix. Documented and preserved as-is.
+
+**MD5 + offsets**: when `Md5=true`, both `stringOffsetsOffset` (read once
+at header) and per-entry `stringOffset` (read in inner loop) are stored as
+no-prefix-relative; we add 16 to convert to absolute buffer position.
+Crucially, the +16 only applies when the value is `> 0` — adding 16 to a
+deleted entry's `0` would incorrectly read garbage at offset 16.
+
+**Tombstone semantics**: `text_utf8 == NULL` means deleted entry (offset
+was 0 in file); `text_utf8 == ""` is a valid empty string. The `Entry`
+struct stores both states distinguishably.
+
+**Aux byte invariant** (FMG.cs:85): byte 9 must be 0xFF for DemonsSouls
+(version==0), 0x00 for all others. Don't "fix" the 0xFF — assert it
+exactly so non-conforming files surface as SF_ERR_BAD_MAGIC.
+
+**API mapping note**: `sf_fmg_destroy(fmg, alloc)` accepts an allocator
+parameter for symmetry with `sf_paramtdf_destroy` but ignores it —
+the FMG remembers the allocator it was created with. This dual ownership
+convention is documented in the impl comment.
