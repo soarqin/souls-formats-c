@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
  *
- * souls-formats-c — FMG string container reader.
+ * souls-formats-c — FMG string container reader + writer.
  *
  * Mirrors pinned upstream (commit 9f5848f5f45a7f5b2d4ff841ba05b63ab2e6be0a):
  *   SoulsFormats/Formats/FMG.cs:68-139  (Read)
+ *   SoulsFormats/Formats/FMG.cs:144-276 (Write + WriteStrings*)
  *
  * The FMG layout has three width-sensitive regions: header, group table,
  * and string-offset table. The "wide" mode (DarkSouls3 / Bloodborne / DS3 /
@@ -12,17 +13,18 @@
  *
  * Optional 16-byte MD5 prefix (Gundam Unicorn) is detected by peeking byte
  * 0: if non-zero, prefix is present and is skipped (NOT verified, mirroring
- * upstream limitation).
- *
- * Write path lives in T3.6 and currently returns SF_ERR_UNSUPPORTED_VERSION.
+ * upstream limitation). The writer DOES compute and prepend the hash when
+ * has_md5=true; verification on read is still intentionally absent.
  */
 
 #include "souls_formats/sf_fmg.h"
 
+#include "crypto/md5_cng.h"
 #include "internal/sf_internal.h"
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -345,30 +347,308 @@ void sf_fmg_destroy(sf_fmg_t *fmg, const sf_allocator_t *alloc) {
 }
 
 /*===========================================================================
- * Write path stubs — implemented in T3.6
+ * Write path — mirrors FMG.cs:144-276
+ *
+ * Strategy: serialize the body to a memory ostream first. If has_md5 is
+ * true, prepend a freshly-computed MD5 hash of the body to produce the
+ * final buffer (offsets in the body itself remain MD5-unaware, mirroring
+ * FMG.cs:209-217 — the +16 shift is recovered on read at FMG.cs:97-98).
+ *
+ * Sorting: the C# upstream sorts Entries in-place during Write. To honour
+ * `const sf_fmg_t *` we take a shallow copy (id + text pointer) into a
+ * scratch buffer and sort that instead; the original entry array is never
+ * mutated. The text bytes themselves are still owned by the FMG.
  *===========================================================================*/
+
+typedef struct sf_fmg_sort_view {
+    int32_t     id;
+    const char *text_utf8;
+} sf_fmg_sort_view_t;
+
+typedef struct sf_fmg_dedup_slot {
+    const char *text;
+    int64_t     offset;
+} sf_fmg_dedup_slot_t;
+
+static int compare_sort_view_by_id(const void *a, const void *b) {
+    const sf_fmg_sort_view_t *va = (const sf_fmg_sort_view_t *)a;
+    const sf_fmg_sort_view_t *vb = (const sf_fmg_sort_view_t *)b;
+    if (va->id < vb->id) return -1;
+    if (va->id > vb->id) return 1;
+    return 0;
+}
+
+static int format_offset_name(char *buf, size_t cap, size_t i) {
+    int n = snprintf(buf, cap, "StringOffset%zu", i);
+    if (n < 0 || (size_t)n >= cap) return -1;
+    return 0;
+}
+
+static sf_result_t write_one_string(sf_binary_writer_t *bw, bool unicode,
+                                    const char *text_utf8) {
+    return unicode
+        ? sf_binary_writer_write_utf16(bw, text_utf8, true)
+        : sf_binary_writer_write_shift_jis(bw, text_utf8, true);
+}
+
+static sf_result_t write_strings_simple(sf_binary_writer_t *bw,
+                                        const sf_fmg_sort_view_t *view,
+                                        size_t count, bool unicode) {
+    char name[32];
+    for (size_t i = 0; i < count; i++) {
+        if (format_offset_name(name, sizeof(name), i) != 0) return SF_ERR_INTERNAL;
+
+        const char *text = view[i].text_utf8;
+        if (text) {
+            int64_t pos = sf_binary_writer_position(bw);
+            sf_result_t r = sf_binary_writer_fill_varint(bw, name, pos);
+            if (r != SF_OK) return r;
+            r = write_one_string(bw, unicode, text);
+            if (r != SF_OK) return r;
+        } else {
+            sf_result_t r = sf_binary_writer_fill_varint(bw, name, 0);
+            if (r != SF_OK) return r;
+        }
+    }
+    return SF_OK;
+}
+
+static sf_result_t write_strings_reuse_offsets(sf_binary_writer_t *bw,
+                                               const sf_fmg_sort_view_t *view,
+                                               size_t count, bool unicode,
+                                               const sf_allocator_t *alloc) {
+    sf_fmg_dedup_slot_t *table = NULL;
+    size_t table_size = 0;
+    sf_result_t r = SF_OK;
+    char name[32];
+
+    if (count > 0) {
+        table = (sf_fmg_dedup_slot_t *)sf_xalloc(alloc, count * sizeof(*table));
+        if (!table) return SF_ERR_OOM;
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        if (format_offset_name(name, sizeof(name), i) != 0) {
+            r = SF_ERR_INTERNAL; goto out;
+        }
+        const char *text = view[i].text_utf8;
+        if (!text) {
+            r = sf_binary_writer_fill_varint(bw, name, 0);
+            if (r != SF_OK) goto out;
+            continue;
+        }
+
+        int64_t found = -1;
+        for (size_t k = 0; k < table_size; k++) {
+            if (strcmp(table[k].text, text) == 0) {
+                found = table[k].offset;
+                break;
+            }
+        }
+
+        if (found < 0) {
+            int64_t offset = sf_binary_writer_position(bw);
+            table[table_size].text = text;
+            table[table_size].offset = offset;
+            table_size++;
+            r = sf_binary_writer_fill_varint(bw, name, offset);
+            if (r != SF_OK) goto out;
+            r = write_one_string(bw, unicode, text);
+            if (r != SF_OK) goto out;
+        } else {
+            r = sf_binary_writer_fill_varint(bw, name, found);
+            if (r != SF_OK) goto out;
+        }
+    }
+
+out:
+    sf_xfree(alloc, table);
+    return r;
+}
+
+static sf_result_t fmg_write_body(sf_binary_writer_t *bw, const sf_fmg_t *fmg,
+                                  const sf_allocator_t *alloc) {
+    const bool wide = (fmg->version == SF_FMG_VERSION_DARK_SOULS_3);
+    sf_binary_writer_set_big_endian(bw, fmg->big_endian);
+    sf_binary_writer_set_varint_long(bw, wide);
+
+    sf_result_t r;
+
+    r = sf_binary_writer_write_u8(bw, 0);                       if (r != SF_OK) return r;
+    r = sf_binary_writer_write_bool(bw, fmg->big_endian);       if (r != SF_OK) return r;
+    r = sf_binary_writer_write_u8(bw, (uint8_t)fmg->version);   if (r != SF_OK) return r;
+    r = sf_binary_writer_write_u8(bw, 0);                       if (r != SF_OK) return r;
+
+    r = sf_binary_writer_reserve_i32(bw, "FileSize");           if (r != SF_OK) return r;
+    r = sf_binary_writer_write_bool(bw, fmg->unicode);          if (r != SF_OK) return r;
+    r = sf_binary_writer_write_u8(bw,
+        (uint8_t)(fmg->version == SF_FMG_VERSION_DEMONS_SOULS ? 0xFFu : 0x00u));
+    if (r != SF_OK) return r;
+    r = sf_binary_writer_write_u8(bw, 0);                       if (r != SF_OK) return r;
+    r = sf_binary_writer_write_u8(bw, 0);                       if (r != SF_OK) return r;
+
+    if (fmg->entry_count > (size_t)INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+    r = sf_binary_writer_reserve_i32(bw, "GroupCount");         if (r != SF_OK) return r;
+    r = sf_binary_writer_write_i32(bw, (int32_t)fmg->entry_count);
+    if (r != SF_OK) return r;
+
+    if (wide) {
+        r = sf_binary_writer_write_i32(bw, (int32_t)0xFF);
+        if (r != SF_OK) return r;
+    }
+
+    r = sf_binary_writer_reserve_varint(bw, "StringOffsets");   if (r != SF_OK) return r;
+    r = sf_binary_writer_write_varint(bw, 0);                   if (r != SF_OK) return r;
+
+    sf_fmg_sort_view_t *view = NULL;
+    if (fmg->entry_count > 0) {
+        view = (sf_fmg_sort_view_t *)sf_xalloc(alloc,
+            fmg->entry_count * sizeof(*view));
+        if (!view) return SF_ERR_OOM;
+        for (size_t i = 0; i < fmg->entry_count; i++) {
+            view[i].id = fmg->entries[i].id;
+            view[i].text_utf8 = fmg->entries[i].text_utf8;
+        }
+        qsort(view, fmg->entry_count, sizeof(*view), compare_sort_view_by_id);
+    }
+
+    int32_t group_count = 0;
+    {
+        size_t i = 0;
+        while (i < fmg->entry_count) {
+            r = sf_binary_writer_write_i32(bw, (int32_t)i);
+            if (r != SF_OK) goto fail;
+            r = sf_binary_writer_write_i32(bw, view[i].id);
+            if (r != SF_OK) goto fail;
+
+            while (i < fmg->entry_count - 1 &&
+                   view[i + 1].id == view[i].id + 1) {
+                i++;
+            }
+            r = sf_binary_writer_write_i32(bw, view[i].id);
+            if (r != SF_OK) goto fail;
+
+            if (wide) {
+                r = sf_binary_writer_write_i32(bw, 0);
+                if (r != SF_OK) goto fail;
+            }
+            group_count++;
+            i++;
+        }
+    }
+
+    r = sf_binary_writer_fill_i32(bw, "GroupCount", group_count);
+    if (r != SF_OK) goto fail;
+    r = sf_binary_writer_fill_varint(bw, "StringOffsets",
+                                     sf_binary_writer_position(bw));
+    if (r != SF_OK) goto fail;
+
+    {
+        char name[32];
+        for (size_t k = 0; k < fmg->entry_count; k++) {
+            if (format_offset_name(name, sizeof(name), k) != 0) {
+                r = SF_ERR_INTERNAL; goto fail;
+            }
+            r = sf_binary_writer_reserve_varint(bw, name);
+            if (r != SF_OK) goto fail;
+        }
+    }
+
+    r = fmg->reuse_offsets
+        ? write_strings_reuse_offsets(bw, view, fmg->entry_count,
+                                      fmg->unicode, alloc)
+        : write_strings_simple(bw, view, fmg->entry_count, fmg->unicode);
+    if (r != SF_OK) goto fail;
+
+    r = sf_binary_writer_fill_i32(bw, "FileSize",
+                                  (int32_t)sf_binary_writer_position(bw));
+fail:
+    sf_xfree(alloc, view);
+    return r;
+}
+
+static sf_result_t fmg_serialize(const sf_fmg_t *fmg, uint8_t **out_data,
+                                 size_t *out_size, const sf_allocator_t *alloc) {
+    sf_ostream_t *os = NULL;
+    sf_result_t r = sf_ostream_open_memory(&os, alloc);
+    if (r != SF_OK) return r;
+
+    sf_binary_writer_t *bw = NULL;
+    r = sf_binary_writer_create(&bw, os, fmg->big_endian, alloc);
+    if (r != SF_OK) { sf_ostream_close(os); return r; }
+
+    r = fmg_write_body(bw, fmg, alloc);
+
+    uint8_t *body = NULL;
+    size_t   body_size = 0;
+    if (r == SF_OK) {
+        r = sf_binary_writer_finish_bytes(bw, &body, &body_size);
+    } else {
+        sf_binary_writer_destroy(bw);
+    }
+    sf_ostream_close(os);
+    if (r != SF_OK) return r;
+
+    if (!fmg->has_md5) {
+        *out_data = body;
+        *out_size = body_size;
+        return SF_OK;
+    }
+
+    uint8_t hash[16];
+    r = sfi_md5_hash(body, body_size, hash);
+    if (r != SF_OK) { sf_xfree(alloc, body); return r; }
+
+    if (body_size > SIZE_MAX - 16u) {
+        sf_xfree(alloc, body);
+        return SF_ERR_OUT_OF_RANGE;
+    }
+    size_t total = body_size + 16u;
+    uint8_t *out = (uint8_t *)sf_xalloc(alloc, total);
+    if (!out) { sf_xfree(alloc, body); return SF_ERR_OOM; }
+    memcpy(out, hash, 16);
+    memcpy(out + 16, body, body_size);
+    sf_xfree(alloc, body);
+    *out_data = out;
+    *out_size = total;
+    return SF_OK;
+}
 
 sf_result_t sf_fmg_write_to_memory(const sf_fmg_t *fmg, uint8_t **out_data,
                                    size_t *out_size, const sf_allocator_t *alloc) {
-    (void)fmg; (void)alloc;
-    SF_CHECK_ARG(out_data != NULL && out_size != NULL);
+    SF_CHECK_ARG(fmg != NULL && out_data != NULL && out_size != NULL);
     *out_data = NULL;
     *out_size = 0;
-    return SF_ERR_UNSUPPORTED_VERSION;
+    return fmg_serialize(fmg, out_data, out_size, sf_alloc_or_default(alloc));
 }
 
 sf_result_t sf_fmg_write_to_stream(const sf_fmg_t *fmg, sf_ostream_t *stream,
                                    const sf_allocator_t *alloc) {
-    (void)fmg; (void)alloc;
-    SF_CHECK_ARG(stream != NULL);
-    return SF_ERR_UNSUPPORTED_VERSION;
+    SF_CHECK_ARG(fmg != NULL && stream != NULL);
+    alloc = sf_alloc_or_default(alloc);
+
+    uint8_t *buf = NULL;
+    size_t   size = 0;
+    sf_result_t r = fmg_serialize(fmg, &buf, &size, alloc);
+    if (r != SF_OK) return r;
+    if (size > 0) {
+        r = sf_ostream_write(stream, buf, size);
+    }
+    sf_xfree(alloc, buf);
+    return r;
 }
 
 sf_result_t sf_fmg_write_to_path(const sf_fmg_t *fmg, const char *utf8_path,
                                  const sf_allocator_t *alloc) {
-    (void)fmg; (void)alloc;
-    SF_CHECK_ARG(utf8_path != NULL);
-    return SF_ERR_UNSUPPORTED_VERSION;
+    SF_CHECK_ARG(fmg != NULL && utf8_path != NULL);
+    alloc = sf_alloc_or_default(alloc);
+
+    sf_ostream_t *os = NULL;
+    sf_result_t r = sf_ostream_open_file(&os, utf8_path, alloc);
+    if (r != SF_OK) return r;
+    r = sf_fmg_write_to_stream(fmg, os, alloc);
+    sf_ostream_close(os);
+    return r;
 }
 
 /*===========================================================================
