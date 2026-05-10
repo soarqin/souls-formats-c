@@ -63,3 +63,8 @@ The following symbols are used in mapping tables to indicate the implementation 
 63: * RSA-bhd-decryption is integrated in our crypto layer; upstream BHD5 punts to caller. We support 4 v1 games via embedded PEM public keys.
 64: * TPF Headerizer scope cap: PC platform only in v1; non-PC platforms return `SF_ERR_UNSUPPORTED_VERSION` (mirrors upstream NotImplementedException semantics).
 65: * Round-trip semantic: synthetic fixtures byte-equal; real ER e2e content-equal (FromSoft hash table layouts are non-deterministic vs our writer).
+
+### Phase 4 Adaptations
+* **PARAMTDF Trim('"') mirror**: PARAMTDF parser uses naive `Trim('"')` matching upstream `PARAMTDF.cs:62-92`. No escape sequences, no BOM, no comments.
+* **8→3 Apply fold**: `sf_param_apply_mode_t` folds 8 upstream `ApplyParamdef*` variants into 3 core modes. `RegulationVersioned*` variants deferred to v1.1.
+* **Bit-packing literal mirror**: `paramdef_apply.c` bitstream helpers mirror `Row.cs:236-244` `(64 - bitSize - bitOffset)` shift pattern verbatim. No "beautification".
