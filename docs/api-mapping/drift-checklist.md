@@ -52,10 +52,10 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 ## Phase 2 / Oodle
 
-- [ ] [Oodle] sf_oodle_lz_compressor_t not public (closes when Task 15 ships)
-- [ ] [Oodle] sf_oodle_lz_compression_level_t not public (closes when Task 15 ships)
-- [ ] [Oodle] all other OodleLZ_* enums not public (closes when Task 15 ships)
-- [ ] [Oodle] sf_oodle_version() returns int instead of enum (closes when Task 15 ships)
+- [x] [Oodle] sf_oodle_lz_compressor_t not public (closed by Task 18)
+- [x] [Oodle] sf_oodle_lz_compression_level_t not public (closed by Task 18)
+- [x] [Oodle] all other OodleLZ_* enums not public (closed by Task 18)
+- [x] [Oodle] sf_oodle_version() returns int instead of enum (closed by Task 18)
 
 ## Phase 2 / RegulationDecryptor
 

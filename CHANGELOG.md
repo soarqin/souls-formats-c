@@ -9,11 +9,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Breaking changes
 
-*(Populated by Tasks 8-20 as each module is refactored.)*
+- `sf_oodle_version()` return type changed from `int` to `sf_oodle_version_t` enum.
 
 ### New APIs
 
-*(Populated by Tasks 8-20 as each module is refactored.)*
+- `sf_oodle_version_t` enum (SF_OODLE_VERSION_UNKNOWN/6/8/9)
+- `sf_oodle_lz_compressor_t` and 7 other OodleLZ_* enums
+- `sf_oodle_lz_compress_options_t` struct
 
 ### Notes
 
