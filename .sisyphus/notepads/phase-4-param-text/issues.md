@@ -1,7 +1,1 @@
-2026-05-11: `lsp_diagnostics` on standalone headers reports false positives for project-relative includes (`souls_formats/...`) because the current language-server context is not resolving the include root, even though `x86_64-w64-mingw32-gcc -fsyntax-only -I include` passes.
-2026-05-11: clangd/lsp diagnostics can flag header-local `#include "souls_formats/..."` paths as missing when checking a standalone new header; conditional `__has_include` fallbacks reduce the noise, but include-chain diagnostics may still depend on workspace config.
-2026-05-11: Replacing project-relative public-header includes with local includes fixed the clangd false positives for the FMG header chain.
-2026-05-11: `lsp_diagnostics` has no server configured for `tests/CMakeLists.txt`; validate CMake changes through configure/build instead.
-2026-05-11: Existing `sf_paramdef.h` declares `sf_paramdef_write_to_stream(..., const sf_allocator_t *alloc)`, so T3.1 implementation preserves the existing public signature despite the task summary omitting the allocator parameter.
-2026-05-11: In MinGW/LLP64 builds, `(int64_t)SIZE_MAX` can become `-1`; use unsigned comparison (`(uint64_t)size64 > (uint64_t)SIZE_MAX`) when guarding int64-to-size_t row-data sizes.
-2026-05-11: `sf_common.h` still has no `SF_ERR_MISMATCH` or `SF_ERR_BAD_DATA`; T3.3 maps “paramdef not applied” to `SF_ERR_NOT_FOUND` and invalid/orphaned bit data to `SF_ERR_BAD_MAGIC`.
+2026-05-11: `lsp_diagnostics` reported a false-positive builtin include error from `ia32intrin.h` via `windows.h`; build still passed cleanly.

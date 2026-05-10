@@ -18,6 +18,15 @@ sf_result_t er_helper_init(void);
 sf_result_t er_extract_from_data0(const char *bhd5_path_utf8,
                                   void **out, size_t *out_size);
 
+/* Load a regulation param BND entry by suffix match. Caller owns *out_bytes. */
+sf_result_t er_load_param(const char *param_name, void **out_bytes,
+                          size_t *out_size, const sf_allocator_t *alloc);
+
+/* Load a msgbnd entry by substring match. Caller owns *out_bytes. */
+sf_result_t er_load_msgbnd_entry(const char *msgbnd_path, const char *entry_name,
+                                 void **out_bytes, size_t *out_size,
+                                 const sf_allocator_t *alloc);
+
 /* Tear down. atexit-registered. */
 void er_helper_shutdown(void);
 
