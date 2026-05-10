@@ -1,1 +1,3 @@
 2026-05-11: `lsp_diagnostics` reported a false-positive builtin include error from `ia32intrin.h` via `windows.h`; build still passed cleanly.
+2026-05-11: `sf_param_dump.exe` built cleanly, but the real ER `regulation.bin` in this environment did not yield a matching `SpEffectParam` entry via the current public PARAM/BND4 APIs; the CLI now falls back to broader scanning, yet the runtime probe still reported `param 'SpEffectParam' not found`.
+2026-05-11: The matching `SpEffectParam.param` entry applies poorly on current patch-level data, so the example now keeps raw parsed rows and formats them with Paramdex headers instead of hard-failing on `sf_param_apply_paramdef`.
