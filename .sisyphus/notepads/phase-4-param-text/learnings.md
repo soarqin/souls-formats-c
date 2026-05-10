@@ -1,2 +1,2 @@
-2026-05-11: PARAMDEF public surface mirrors upstream closely: DefType is a 13-value enum, EditFlags uses sparse flag values (0/1/4), and v203 introduces variable-typed default/min/max/increment values via a tagged union.
-2026-05-11: For header-only phase work, keep the API split clean: binary reader/writer, XML read-only entrypoints, then const getters for borrowed field handles and file metadata.
+2026-05-11: PARAMTDF only supports six integer value types (s8/u8/s16/u16/s32/u32); upstream rejects all wider/other field kinds.
+2026-05-11: PARAMTDF entry names may be NULL and should be preserved as valid state in the public API.
