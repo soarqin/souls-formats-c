@@ -30,7 +30,7 @@ result codes, and opaque pointer types.
 | 0 | Project scaffolding (CMake, CPM, CI, smoke) | ✅ done | 4/4 PASS |
 | 1 | Runtime (IO, encoding, math, hash) | ✅ done | 5/5 PASS across 5 binaries (verified 2026-05-10) |
 | 2 | Compression + crypto (DCX, AES, Oodle) | ✅ done | 13/13 PASS across 13 binaries (verified 2026-05-10) |
-| 3 | Archive containers (BND/BXF/BHD5/TPF/ENFL) | ⏳ pending | — |
+| 3 | Archive containers (BND/BXF/BHD5/TPF/ENFL) | ✅ done | 32/32 PASS across 12 binaries (verified 2026-05-10) |
 | 4 | Param + text (PARAM/PARAMDEF/PARAMTDF/FMG) | ⏳ pending | — |
 | 5 | Script + map (EMEVD/ESD/MSB*) | ⏳ pending | — |
 | 6 | Geometry + material (FLVER2/MTD/MATBIN) | ⏳ pending | — |

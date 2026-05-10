@@ -1,6 +1,6 @@
 # Phase 3 — Archive Containers
 
-> **Status**: ⏳ Pending · **Estimate**: ~2 weeks · **Depends on**: Phase 2
+> **Status**: ✅ Complete (2026-05-10) · **Estimate**: ~2 weeks · **Depends on**: Phase 2
 
 Strict upstream alignment policy applies — see [AGENTS.md](../../AGENTS.md) §5.x.
 
@@ -249,11 +249,11 @@ ctest --test-dir build-mingw -L archive --output-on-failure
   `'DDS '`.
 
 ### Mapping Coverage Check
-* [ ] Verify all `未实现` rows in `format-binder-common.md` are addressed.
-* [ ] Verify all `未实现` rows in `format-bnd3.md` and `format-bnd4.md` are addressed.
-* [ ] Verify all `未实现` rows in `format-bxf3.md` and `format-bxf4.md` are addressed.
-* [ ] Verify all `未实现` rows in `format-bhd5.md` are addressed.
-* [ ] Verify all `未实现` rows in `format-tpf.md` and `format-enfl.md` are addressed.
+* [x] Verify all `未实现` rows in `format-binder-common.md` are addressed.
+* [x] Verify all `未实现` rows in `format-bnd3.md` and `format-bnd4.md` are addressed.
+* [x] Verify all `未实现` rows in `format-bxf3.md` and `format-bxf4.md` are addressed.
+* [x] Verify all `未实现` rows in `format-bhd5.md` are addressed.
+* [x] Verify all `未实现` rows in `format-tpf.md` and `format-enfl.md` are addressed.
 
 ---
 
@@ -270,13 +270,13 @@ ctest --test-dir build-mingw -L archive --output-on-failure
 
 ## Exit criteria
 
-- [ ] All deliverables checked off above.
-- [ ] `ctest -L archive` all green on the dev machine, including
+- [x] All deliverables checked off above.
+- [x] `ctest -L archive` all green on the dev machine, including
       `test_bhd5_e2e_er` walking the full BHD5 → AES → DCX → KRAK → Oodle chain.
-- [ ] `er_extract_from_data0` exposed in `tests/e2e/er_test_helper.h`,
+- [x] `er_extract_from_data0` exposed in `tests/e2e/er_test_helper.h`,
       ready for downstream phases to call.
-- [ ] `examples/sf_bnd_extract.c` builds, runs, and dumps a real ER chrbnd
+- [x] `examples/sf_bnd_extract.c` builds, runs, and dumps a real ER chrbnd
       to disk on the dev machine.
-- [ ] `PLAN.md` Phase 3 boxes ticked.
+- [ ] `PLAN.md` Phase 3 boxes ticked. (Skipped per Work_Context rule)
 
 When green, proceed to [Phase 4](phase-4-param-text.md).

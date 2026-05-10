@@ -20,7 +20,7 @@ contract for the phase.
 | 0 | Project scaffolding | ✅ done | 0.5 wk | [phase-0-scaffolding.md](phase-0-scaffolding.md) |
 | 1 | Runtime (IO, encoding, math, hash) | ✅ done | 1.5 wk | [phase-1-runtime.md](phase-1-runtime.md) |
 | 2 | Compression + crypto | ✅ done | 2 wk | [phase-2-compression-crypto.md](phase-2-compression-crypto.md) — 17/17 PASS (2026-05-10) |
-| 3 | Archive containers | ⏳ pending | 2 wk | [phase-3-archive-containers.md](phase-3-archive-containers.md) |
+| 3 | Archive containers | ✅ done | 2 wk | [phase-3-archive-containers.md](phase-3-archive-containers.md) — 32/32 PASS (2026-05-10) |
 | 4 | Param + text | ⏳ pending | 1.5 wk | [phase-4-param-text.md](phase-4-param-text.md) |
 | 5 | Script + map | ⏳ pending | 2.5 wk | [phase-5-script-map.md](phase-5-script-map.md) |
 | 6 | Geometry + material | ⏳ pending | 3 wk | [phase-6-geometry-material.md](phase-6-geometry-material.md) |
