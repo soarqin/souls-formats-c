@@ -17,9 +17,9 @@ contract for the phase.
 
 | Phase | Title | State | Estimate | Doc |
 |---|---|---|---|---|
-| 0 | Project scaffolding | ✅ done | 0.5 wk | (in PLAN.md) |
-| 1 | Runtime (IO, encoding, math, hash) | ✅ done | 1.5 wk | (in PLAN.md) |
-| 2 | Compression + crypto | ✅ done | 2 wk | [phase-2-compression-crypto.md](phase-2-compression-crypto.md) — 13/13 PASS across 13 binaries (2026-05-10) |
+| 0 | Project scaffolding | ✅ done | 0.5 wk | [phase-0-scaffolding.md](phase-0-scaffolding.md) |
+| 1 | Runtime (IO, encoding, math, hash) | ✅ done | 1.5 wk | [phase-1-runtime.md](phase-1-runtime.md) |
+| 2 | Compression + crypto | ✅ done | 2 wk | [phase-2-compression-crypto.md](phase-2-compression-crypto.md) — 10/10 PASS (2026-05-10) |
 | 3 | Archive containers | ⏳ pending | 2 wk | [phase-3-archive-containers.md](phase-3-archive-containers.md) |
 | 4 | Param + text | ⏳ pending | 1.5 wk | [phase-4-param-text.md](phase-4-param-text.md) |
 | 5 | Script + map | ⏳ pending | 2.5 wk | [phase-5-script-map.md](phase-5-script-map.md) |
@@ -28,6 +28,17 @@ contract for the phase.
 | v2+ | Legacy games | ⏳ post v1 GA | — | [post-v1.md](post-v1.md) |
 
 Total v1 (Phases 2-6) effort: **~11 weeks**, plus Phase 7 (~2 weeks) if shipped in v1.0.
+
+---
+
+## Strict upstream alignment
+
+Every code change in this repository must follow the mandatory rules defined in [`AGENTS.md`](../../AGENTS.md) §5.x.
+
+1. **STRICT UPSTREAM REFERENCE**: Every implementation must reference upstream code at the pinned commit. Guessing at semantics or wire formats is forbidden.
+2. **API MIRRORS UPSTREAM**: Public C API design must mirror upstream as closely as possible. Functional differences are forbidden.
+
+Refer to the [API Mapping](../api-mapping/README.md) directory for row-level alignment status, [POLICY.md](../api-mapping/POLICY.md) for adaptation rules, and [UPSTREAM.md](../api-mapping/UPSTREAM.md) for the source baseline.
 
 ---
 
@@ -62,31 +73,33 @@ inside `Data0-3.bhd/bdt`, never as a standalone `.dcx`.
 ## How to use a phase doc
 
 1. Open the matching `phase-N-*.md`.
-2. Read the **Upstream references** list and skim those `.cs` files in
+2. Open the relevant mapping docs in [`docs/api-mapping/`](../api-mapping/README.md) before writing any code. Verify the Status column for every method you plan to touch.
+3. Read the **Upstream references** list and skim those `.cs` files in
    `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/`.
-3. Implement headers → sources → tests in the file order shown under
+4. Implement headers → sources → tests in the file order shown under
    **File structure**.
-4. Wire each new test into [`tests/CMakeLists.txt`](../../tests/CMakeLists.txt)
+5. Wire each new test into [`tests/CMakeLists.txt`](../../tests/CMakeLists.txt)
    via `sf_add_test()`.
-5. Run the **QA scenarios** at the bottom of the doc until all green.
-6. Tick the corresponding boxes in [`PLAN.md`](../../.sisyphus/plans/PLAN.md)
+6. Run the **QA scenarios** at the bottom of the doc until all green.
+7. Tick the corresponding boxes in [`PLAN.md`](../../.sisyphus/plans/PLAN.md)
    `### Phase N` section with timestamp + concrete pass count.
-7. If the phase materially changed scope, re-run Momus on PLAN.md.
+8. If the phase materially changed scope, re-run Momus on PLAN.md.
 
 ---
 
 ## What lives in PLAN.md vs. here
 
-| Topic | PLAN.md | docs/roadmap/ |
-|---|---|---|
-| Strategic decisions, license, scope boundaries | ✅ canonical | brief reference |
-| Test data hardcoded paths | ✅ canonical (§8.4) | brief reference |
-| Risk register | ✅ canonical (§11) | per-phase risks only |
-| Phase deliverable checklist | ✅ tick-able | duplicated for working convenience |
-| File structure (concrete paths) | high-level (§6) | ✅ per-phase detail |
-| Upstream `.cs` files to read | implicit | ✅ explicit list |
-| Public API sketches | conventions (§5) | ✅ per-format signatures |
-| Implementation notes (gotchas) | — | ✅ here |
-| QA scenarios | ✅ canonical | duplicated + may add details |
+| Topic | PLAN.md | docs/roadmap/ | docs/api-mapping/ |
+|---|---|---|---|
+| Strategic decisions, license, scope | ✅ canonical | brief reference | — |
+| Test data hardcoded paths | ✅ canonical (§8.4) | brief reference | — |
+| Risk register | ✅ canonical (§11) | per-phase risks only | — |
+| Phase deliverable checklist | ✅ tick-able | duplicated | — |
+| File structure (concrete paths) | high-level (§6) | ✅ per-phase detail | — |
+| Upstream `.cs` files to read | implicit | ✅ explicit list | — |
+| Public API sketches | conventions (§5) | ✅ per-format signatures | — |
+| Row-level symbol mapping | — | — | ✅ canonical |
+| Implementation notes (gotchas) | — | ✅ here | — |
+| QA scenarios | ✅ canonical | duplicated + details | — |
 
 When the two disagree, **PLAN.md wins** — it is Momus-audited.
