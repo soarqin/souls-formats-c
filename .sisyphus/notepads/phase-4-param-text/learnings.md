@@ -8,3 +8,5 @@
 2026-05-11: clangd's `-Wunused-includes` is LSP-only and does NOT reflect the GCC `-Wall -Wextra -Werror` policy — safe to ignore those advisories when the includes are mandated for the surrounding API surface (e.g. T3.3 will need sf_param.h here).
 2026-05-11: For build-only stubs, an `enum { use = sizeof(sf_*_t *) };` after the include keeps clangd from flagging `unused-includes` without changing emitted code.
 2026-05-11: `sf_add_test()` can set `RUNTIME_OUTPUT_DIRECTORY` per label so phase-specific test binaries land under `build/tests/<label>/` and match verification path expectations.
+2026-05-11: PARAMDEF binary field layouts are easiest to preserve by treating v106..199 and v202+ string fields as varint offsets, while v201 still uses fixed 0x40 display-name storage despite being a >=200 format.
+2026-05-11: PARAMDEF v203 keeps four typed default/min/max/increment values after the v200 unknown string-offset triplet; earlier versions store those four values as f32 immediately after display format.
