@@ -1,0 +1,35 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 20
+    Start 20: souls_formats_test_bhd5_synthetic
+
+20: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_bhd5_synthetic.exe
+20: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+20: Test timeout computed to be: 60
+20: /home/soar/src/souls-formats-c/tests/archive/test_bhd5_synthetic.c:340:test_bhd5_eldenring_style:PASS
+20: /home/soar/src/souls-formats-c/tests/archive/test_bhd5_synthetic.c:341:test_bhd5_sekiro_style:PASS
+20: /home/soar/src/souls-formats-c/tests/archive/test_bhd5_synthetic.c:342:test_bhd5_range_skip:PASS
+20: /home/soar/src/souls-formats-c/tests/archive/test_bhd5_synthetic.c:343:test_bhd5_empty_bucket:PASS
+20: /home/soar/src/souls-formats-c/tests/archive/test_bhd5_synthetic.c:335:test_bhd5_rsa_wrapped:INFO: Skipped: RSA-wrapped BHD5 requires a game-signed fixture/private key
+20: /home/soar/src/souls-formats-c/tests/archive/test_bhd5_synthetic.c:344:test_bhd5_rsa_wrapped:PASS
+20: 
+20: -----------------------
+20: 5 Tests 0 Failures 0 Ignored 
+20: OK
+1/1 Test #20: souls_formats_test_bhd5_synthetic ...   Passed    0.10 sec
+
+The following tests passed:
+	souls_formats_test_bhd5_synthetic
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+archive    =   0.10 sec*proc (1 test)
+
+Total Test time (real) =   0.10 sec

@@ -63,6 +63,7 @@ add_custom_target(souls_formats_test_crypto
 # Phase 3 — archive containers
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_binder_common archive/test_binder_common.c "archive")
+sf_add_test(souls_formats_test_bhd5_synthetic archive/test_bhd5_synthetic.c "archive")
 sf_add_test(souls_formats_test_bnd3_synthetic archive/test_bnd3_synthetic.c "archive")
 sf_add_test(souls_formats_test_bnd4_synthetic archive/test_bnd4_synthetic.c "archive")
 

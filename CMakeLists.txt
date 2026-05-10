@@ -83,6 +83,7 @@ set(SF_SOURCES
     src/crypto/regulation_keys.c
     src/crypto/rsa_cng.c
     src/crypto/sl2.c
+    src/archive/bhd5.c
     src/archive/bhd5_keys.c
     src/archive/binder_common.c
     src/archive/sf_binder.c

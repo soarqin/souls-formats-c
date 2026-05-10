@@ -78,6 +78,13 @@
 - Tests for internal modules `#include "internal/dds_header.h"` directly — the
   test target inherits `target_include_directories(... PRIVATE ${CMAKE_SOURCE_DIR}/src)`
   via `sf_add_test()`, so the `internal/` prefix resolves to `src/internal/`.
+
+## T10 — BHD5 streaming reader (2026-05-10)
+
+- Modern v1 BHD5 parses cleanly with the upstream 64-bit layout: after magic/endian/flags/version/fileSize, read `bucketCount:int64`, `bucketsOffset:int64`, then `saltLength:int32 + salt`.
+- For 64-bit buckets, preserve the upstream `unknownFlag == 1` field between `count:int32` and `fileHeadersOffset:int64`; synthetic fixtures must include it or parser alignment breaks.
+- Inline AES data follows upstream `AESKey.Read`: exactly 16 key bytes, then `rangeCount:int32`, then `rangeCount` pairs of `int64` start/end offsets. No per-game AES constants are involved.
+- Windows wide `swprintf` format strings in MinGW tests should use `%ls` for wide strings. Using `%s` caused temp BHD/BDT paths to collide/truncate and made BDT bytes overwrite the synthetic BHD fixture.
 - DDS header layout (per task spec, verified working):
   - magic at off 0 (4 bytes, `'DDS '` = LE 0x20534444)
   - dwSize at off 4 (must be 124)

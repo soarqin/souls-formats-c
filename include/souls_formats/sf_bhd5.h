@@ -16,8 +16,9 @@
  * in an encrypted .bhd directly. Tracked as an extension in
  * docs/api-mapping/extensions.md.
  *
- * This skeleton header lands T0d (Phase 3 prep): opaque type + game enum
- * only. Read/write/extract entry points come in T10 of Phase 3.
+ * T10 adds the streaming reader API. The .bhd header is parsed into memory,
+ * but paired .bdt data stays file-backed and is read only for the requested
+ * file payload.
  */
 
 #ifndef SOULS_FORMATS_SF_BHD5_H
@@ -36,8 +37,8 @@ extern "C" {
 /*===========================================================================
  * Opaque BHD5 reader handle
  *
- * Defined in src/archive/bhd5.c (Phase 3 / T10). Construct via the
- * sf_bhd5_read_* APIs (added in T10), destroy via sf_bhd5_destroy.
+ * Defined in src/archive/bhd5.c. Construct via sf_bhd5_open, destroy via
+ * sf_bhd5_close.
  *===========================================================================*/
 typedef struct sf_bhd5 sf_bhd5_t;
 
@@ -57,6 +58,27 @@ typedef enum sf_bhd5_game {
 } sf_bhd5_game_t;
 
 _Static_assert(SF_BHD5_GAME_COUNT_ == 4, "sf_bhd5_game_t drift");
+
+SF_API sf_result_t sf_bhd5_open(sf_bhd5_t **out,
+                                const wchar_t *bhd_path,
+                                const wchar_t *bdt_path,
+                                sf_bhd5_game_t game,
+                                const sf_allocator_t *a);
+SF_API void        sf_bhd5_close(sf_bhd5_t *b);
+SF_API size_t      sf_bhd5_bucket_count     (const sf_bhd5_t *b);
+SF_API size_t      sf_bhd5_total_file_count (const sf_bhd5_t *b);
+SF_API const char *sf_bhd5_get_salt         (const sf_bhd5_t *b);
+SF_API bool        sf_bhd5_get_big_endian   (const sf_bhd5_t *b);
+SF_API sf_result_t sf_bhd5_extract_by_hash_64(const sf_bhd5_t *b, uint64_t path_hash,
+                                              void **out, size_t *out_size,
+                                              const sf_allocator_t *a);
+SF_API sf_result_t sf_bhd5_extract_by_hash_32(const sf_bhd5_t *b, uint32_t path_hash,
+                                              void **out, size_t *out_size,
+                                              const sf_allocator_t *a);
+SF_API sf_result_t sf_bhd5_extract_by_path (const sf_bhd5_t *b, const char *utf8_path,
+                                            void **out, size_t *out_size,
+                                            const sf_allocator_t *a);
+SF_API sf_result_t sf_bhd5_write           (const sf_bhd5_t *b, const wchar_t *bhd_path);
 
 #ifdef __cplusplus
 } /* extern "C" */
