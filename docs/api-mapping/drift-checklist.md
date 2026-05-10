@@ -40,7 +40,7 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 ## Phase 1 / Math
 
-- [ ] [Math] _Static_assert size guards missing for sf_vec2/3/4, sf_quat, sf_mat4, sf_color (closes when Task 13 ships)
+- [x] [Math] _Static_assert size guards missing for sf_vec2/3/4, sf_quat, sf_mat4, sf_color (closes when Task 13 ships)
 
 ## Phase 2 / DCX
 
@@ -69,5 +69,5 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 ## Phase 2 / SL2Decryptor
 
-- [ ] [SL2Decryptor] sf_sl2.h missing (no public API) (closes when Task 17 ships)
-- [ ] [SL2Decryptor] key getter functions missing (closes when Task 17 ships)
+- [x] [SL2Decryptor] sf_sl2.h missing (no public API) (closes when Task 17 ships)
+- [x] [SL2Decryptor] key getter functions missing (closes when Task 17 ships)
