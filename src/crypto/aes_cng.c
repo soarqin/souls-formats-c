@@ -87,6 +87,22 @@ sf_result_t sfi_aes_encrypt_cbc(const void *key, size_t key_len, const void *iv,
     return aes_cbc_crypt(key, key_len, iv, iv_len, in, n, out, true);
 }
 
+sf_result_t sfi_aes_decrypt_ecb_buffer(const uint8_t key[16], uint8_t *buf, size_t size) {
+    SF_CHECK_ARG(key && buf);
+    SF_RETURN_IF((size % 16u) != 0u, SF_ERR_INVALID_ARG);
+    if (size == 0u) return SF_OK;
+    SF_RETURN_IF(aes_alg(&g_aes_ecb, BCRYPT_CHAIN_MODE_ECB) != SF_OK, SF_ERR_CRYPTO);
+
+    BCRYPT_KEY_HANDLE hkey = NULL;
+    NTSTATUS st = BCryptGenerateSymmetricKey(g_aes_ecb, &hkey, NULL, 0, (PUCHAR)key, 16, 0);
+    if (!BCRYPT_SUCCESS(st)) return SF_ERR_CRYPTO;
+
+    ULONG done = 0;
+    st = BCryptDecrypt(hkey, buf, (ULONG)size, NULL, NULL, 0, buf, (ULONG)size, &done, 0);
+    BCryptDestroyKey(hkey);
+    return (BCRYPT_SUCCESS(st) && done == size) ? SF_OK : SF_ERR_CRYPTO;
+}
+
 void sfi_crypto_shutdown(void) {
     if (g_aes_ecb) BCryptCloseAlgorithmProvider(g_aes_ecb, 0);
     if (g_aes_cbc) BCryptCloseAlgorithmProvider(g_aes_cbc, 0);

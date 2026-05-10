@@ -42,6 +42,30 @@ static void test_aes128_ecb_block(void) {
     TEST_ASSERT_EQUAL_UINT8_ARRAY(k_plain, out, 16);
 }
 
+static void test_aes128_ecb_buffer_decrypt(void) {
+    uint8_t buf[16];
+    memcpy(buf, k_ecb128, 16);
+    TEST_ASSERT_EQUAL_INT(SF_OK, sfi_aes_decrypt_ecb_buffer(k_aes128, buf, 16));
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(k_plain, buf, 16);
+}
+
+static void test_aes128_ecb_buffer_multiblock(void) {
+    uint8_t cipher[64];
+    for (size_t i = 0; i < 4; i++) {
+        TEST_ASSERT_EQUAL_INT(SF_OK, sfi_aes_ecb_block(k_aes128, sizeof(k_aes128), true,
+                                                        &k_plain[i * 16u], &cipher[i * 16u]));
+    }
+    TEST_ASSERT_EQUAL_INT(SF_OK, sfi_aes_decrypt_ecb_buffer(k_aes128, cipher, 64));
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(k_plain, cipher, 64);
+}
+
+static void test_aes128_ecb_buffer_bounds(void) {
+    uint8_t buf[16] = {0};
+    TEST_ASSERT_EQUAL_INT(SF_ERR_INVALID_ARG, sfi_aes_decrypt_ecb_buffer(k_aes128, buf, 15));
+    TEST_ASSERT_EQUAL_INT(SF_ERR_INVALID_ARG, sfi_aes_decrypt_ecb_buffer(NULL, buf, 16));
+    TEST_ASSERT_EQUAL_INT(SF_ERR_INVALID_ARG, sfi_aes_decrypt_ecb_buffer(k_aes128, NULL, 16));
+}
+
 static void test_aes128_cbc_vectors(void) {
     uint8_t out[64];
     for (size_t blocks = 1; blocks <= 4; blocks++) {
@@ -65,6 +89,9 @@ static void test_aes256_cbc_vectors(void) {
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_aes128_ecb_block);
+    RUN_TEST(test_aes128_ecb_buffer_decrypt);
+    RUN_TEST(test_aes128_ecb_buffer_multiblock);
+    RUN_TEST(test_aes128_ecb_buffer_bounds);
     RUN_TEST(test_aes128_cbc_vectors);
     RUN_TEST(test_aes256_cbc_vectors);
     return UNITY_END();
