@@ -14,7 +14,11 @@
 #ifndef SOULS_FORMATS_SF_MATH_H
 #define SOULS_FORMATS_SF_MATH_H
 
+#if __has_include("souls_formats/sf_common.h")
 #include "souls_formats/sf_common.h"
+#else
+#include "sf_common.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
