@@ -12,19 +12,19 @@ test 6
 6: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_path.exe
 6: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
 6: Test timeout computed to be: 60
-6: /home/soar/src/souls-formats-c/tests/core/test_path.c:109:test_get_real_extension_dcx:PASS
-6: /home/soar/src/souls-formats-c/tests/core/test_path.c:110:test_get_real_extension_plain:PASS
-6: /home/soar/src/souls-formats-c/tests/core/test_path.c:111:test_get_real_extension_no_ext:PASS
-6: /home/soar/src/souls-formats-c/tests/core/test_path.c:112:test_get_real_extension_path:PASS
-6: /home/soar/src/souls-formats-c/tests/core/test_path.c:113:test_get_real_file_name_dcx:PASS
-6: /home/soar/src/souls-formats-c/tests/core/test_path.c:114:test_get_real_file_name_plain:PASS
-6: /home/soar/src/souls-formats-c/tests/core/test_path.c:115:test_get_real_file_name_path:PASS
-6: /home/soar/src/souls-formats-c/tests/core/test_path.c:116:test_backup_creates_bak:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:100:test_get_real_extension_dcx:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:101:test_get_real_extension_plain:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:102:test_get_real_extension_no_ext:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:103:test_get_real_extension_path:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:104:test_get_real_file_name_dcx:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:105:test_get_real_file_name_plain:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:106:test_get_real_file_name_path:PASS
+6: /home/soar/src/souls-formats-c/tests/core/test_path.c:107:test_backup_creates_bak:PASS
 6: 
 6: -----------------------
 6: 8 Tests 0 Failures 0 Ignored 
 6: OK
-1/1 Test #6: souls_formats_test_path ..........   Passed    0.12 sec
+1/1 Test #6: souls_formats_test_path ..........   Passed    0.11 sec
 
 The following tests passed:
 	souls_formats_test_path
@@ -32,6 +32,6 @@ The following tests passed:
 100% tests passed, 0 tests failed out of 1
 
 Label Time Summary:
-core    =   0.12 sec*proc (1 test)
+core    =   0.11 sec*proc (1 test)
 
-Total Test time (real) =   0.13 sec
+Total Test time (real) =   0.11 sec

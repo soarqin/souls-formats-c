@@ -26,9 +26,9 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 ## Phase 1 / PathHelper
 
-- [ ] [PathHelper] sf_path_backup missing entirely (closes when Task 10 ships)
-- [ ] [PathHelper] sf_path_get_real_extension missing entirely (closes when Task 10 ships)
-- [ ] [PathHelper] sf_path_get_real_file_name missing entirely (closes when Task 10 ships)
+- [x] [PathHelper] sf_path_backup missing entirely (closed by Task 11)
+- [x] [PathHelper] sf_path_get_real_extension missing entirely (closed by Task 11)
+- [x] [PathHelper] sf_path_get_real_file_name missing entirely (closed by Task 11)
 
 ## Phase 1 / HashHelper
 
