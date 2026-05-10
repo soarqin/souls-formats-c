@@ -71,3 +71,8 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 - [x] [SL2Decryptor] sf_sl2.h missing (no public API) (closes when Task 17 ships)
 - [x] [SL2Decryptor] key getter functions missing (closes when Task 17 ships)
+74: 
+75: ## Phase 3 Retro-fits
+76: 
+77: - [x] Phase 1 retro-fit: `sf_reverse_bits_u8` added to sf_io.h (needed by binder format byte read/write) (2026-05-10)
+78: - [x] Phase 2 retro-fit: `sfi_aes_decrypt_ecb_buffer` added to aes_cng.h/c (needed by BHD5 range decryption) (2026-05-10)

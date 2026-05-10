@@ -58,3 +58,8 @@ The following symbols are used in mapping tables to indicate the implementation 
 * `+ extension`: The C API provides functionality not present in the upstream library.
 * `未实现`: The API is planned but not yet implemented.
 * `_skipped_`: The API is intentionally omitted from the C port.
+61: 
+62: ### Phase 3 Specific Policies
+63: * RSA-bhd-decryption is integrated in our crypto layer; upstream BHD5 punts to caller. We support 4 v1 games via embedded PEM public keys.
+64: * TPF Headerizer scope cap: PC platform only in v1; non-PC platforms return `SF_ERR_UNSUPPORTED_VERSION` (mirrors upstream NotImplementedException semantics).
+65: * Round-trip semantic: synthetic fixtures byte-equal; real ER e2e content-equal (FromSoft hash table layouts are non-deterministic vs our writer).
