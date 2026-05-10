@@ -39,6 +39,7 @@ sf_add_test(souls_formats_test_dcx_sniff compression/test_dcx_sniff.c "compressi
 sf_add_test(souls_formats_test_aes_kat crypto/test_aes_kat.c "crypto")
 sf_add_test(souls_formats_test_md5_kat crypto/test_md5_kat.c "crypto")
 sf_add_test(souls_formats_test_regulation_decrypt crypto/test_regulation_decrypt.c "crypto")
+sf_add_test(souls_formats_test_sl2_kat crypto/test_sl2_kat.c "crypto")
 
 add_custom_target(souls_formats_test_compression
     DEPENDS
