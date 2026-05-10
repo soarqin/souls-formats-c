@@ -1,3 +1,7 @@
 add_executable(sf_bnd_extract sf_bnd_extract.c)
 target_link_libraries(sf_bnd_extract PRIVATE souls_formats_static)
 sf_apply_warnings(sf_bnd_extract)
+
+add_executable(sf_param_dump sf_param_dump.c)
+target_link_libraries(sf_param_dump PRIVATE souls_formats)
+sf_apply_warnings(sf_param_dump)

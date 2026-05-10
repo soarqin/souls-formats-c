@@ -7,6 +7,7 @@ function(sf_add_test name source label)
     add_executable(${name} ${source})
     target_link_libraries(${name} PRIVATE souls_formats_static unity bcrypt)
     target_include_directories(${name} PRIVATE ${CMAKE_SOURCE_DIR}/src)
+    set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/${label}")
     sf_apply_warnings(${name})
     sf_apply_sanitizers(${name})
     add_test(NAME ${name} COMMAND ${name})
@@ -123,6 +124,28 @@ target_compile_definitions(souls_formats_test_tpf_e2e_er PRIVATE
 # Phase 4 — PARAM/PARAMDEF
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_paramdef_bitstream param/test_paramdef_bitstream.c "param")
+sf_add_test(param_binary_read param/test_param_binary_read.c "param")
+sf_add_test(param_binary_write param/test_param_binary_write.c "param")
+sf_add_test(param_apply_paramdef param/test_param_apply_paramdef.c "param")
+sf_add_test(paramdef_binary_read param/test_paramdef_binary_read.c "param")
+sf_add_test(paramdef_binary_write param/test_paramdef_binary_write.c "param")
+sf_add_test(paramdef_xml_read param/test_paramdef_xml_read.c "param")
+sf_add_test(paramtdf_read param/test_paramtdf_read.c "param")
+sf_add_test(paramtdf_write param/test_paramtdf_write.c "param")
+sf_add_test(fmg_read param/test_fmg_read.c "param")
+sf_add_test(fmg_write param/test_fmg_write.c "param")
+sf_add_test(synthetic_roundtrip param/test_synthetic_roundtrip.c "param")
+sf_add_test(paramdef_xml_e2e param/test_paramdef_xml_e2e.c "param")
+sf_add_test(param_apply_paramdef_e2e param/test_param_apply_paramdef_e2e.c "param")
+sf_add_test(fmg_e2e_er param/test_fmg_e2e_er.c "param")
+
+#-----------------------------------------------------------------------------
+# Phase 4 — Script
+#-----------------------------------------------------------------------------
+sf_add_test(emevd_read script/test_emevd_read.c "script")
+sf_add_test(emevd_write script/test_emevd_write.c "script")
+sf_add_test(emevd_synthetic script/test_emevd_synthetic.c "script")
+sf_add_test(emevd_e2e_er script/test_emevd_e2e_er.c "script")
 
 #-----------------------------------------------------------------------------
 # Phase 4 — pre-flight empirical probe (T0.1)

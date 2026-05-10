@@ -54,6 +54,11 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_dcx.h
     include/souls_formats/sf_oodle.h
     include/souls_formats/sf_regulation.h
+    include/souls_formats/sf_param.h
+    include/souls_formats/sf_paramdef.h
+    include/souls_formats/sf_paramtdf.h
+    include/souls_formats/sf_fmg.h
+    include/souls_formats/sf_emevd.h
     include/souls_formats/sf_bhd5.h
     include/souls_formats/sf_binder.h
     include/souls_formats/sf_bnd3.h
@@ -99,6 +104,16 @@ set(SF_SOURCES
     src/archive/tpf.c
     src/archive/tpf_headerizer.c
     src/internal/dds_header.c
+    src/param/param.c
+    src/param/paramdef.c
+    src/param/paramdef_xml_read.c
+    src/param/paramtdf.c
+    src/text/fmg.c
+    src/script/emevd.c
+    src/script/emevd_event.c
+    src/script/emevd_instruction.c
+    src/script/emevd_layer.c
+    src/script/emevd_parameter.c
 )
 
 if(TARGET libzstd_static)
@@ -134,6 +149,7 @@ endfunction()
 #-----------------------------------------------------------------------------
 add_library(souls_formats_static STATIC ${SF_SOURCES})
 add_library(souls_formats::static ALIAS souls_formats_static)
+add_library(souls_formats ALIAS souls_formats_static)
 _sf_configure_library(souls_formats_static)
 set_target_properties(souls_formats_static PROPERTIES OUTPUT_NAME souls_formats)
 
