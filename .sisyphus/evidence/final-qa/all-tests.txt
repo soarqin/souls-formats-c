@@ -1,0 +1,46 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+      Start  1: souls_formats_test_smoke
+ 1/17 Test  #1: souls_formats_test_smoke ................   Passed    0.18 sec
+      Start  2: souls_formats_test_filename_hash
+ 2/17 Test  #2: souls_formats_test_filename_hash ........   Passed    0.15 sec
+      Start  3: souls_formats_test_encoding
+ 3/17 Test  #3: souls_formats_test_encoding .............   Passed    0.15 sec
+      Start  4: souls_formats_test_binary_reader
+ 4/17 Test  #4: souls_formats_test_binary_reader ........   Passed    0.17 sec
+      Start  5: souls_formats_test_binary_writer
+ 5/17 Test  #5: souls_formats_test_binary_writer ........   Passed    0.19 sec
+      Start  6: souls_formats_test_path
+ 6/17 Test  #6: souls_formats_test_path .................   Passed    0.12 sec
+      Start  7: souls_formats_test_sf_util
+ 7/17 Test  #7: souls_formats_test_sf_util ..............   Passed    0.36 sec
+      Start  8: souls_formats_test_dcx_dflt
+ 8/17 Test  #8: souls_formats_test_dcx_dflt .............   Passed    1.12 sec
+      Start  9: souls_formats_test_dcx_edge
+ 9/17 Test  #9: souls_formats_test_dcx_edge .............   Passed    0.29 sec
+      Start 10: souls_formats_test_dcx_zstd
+10/17 Test #10: souls_formats_test_dcx_zstd .............   Passed    0.59 sec
+      Start 11: souls_formats_test_dcx_krak
+11/17 Test #11: souls_formats_test_dcx_krak .............   Passed    0.53 sec
+      Start 12: souls_formats_test_dcx_sniff
+12/17 Test #12: souls_formats_test_dcx_sniff ............   Passed    0.28 sec
+      Start 13: souls_formats_test_aes_kat
+13/17 Test #13: souls_formats_test_aes_kat ..............   Passed    0.08 sec
+      Start 14: souls_formats_test_md5_kat
+14/17 Test #14: souls_formats_test_md5_kat ..............   Passed    0.08 sec
+      Start 15: souls_formats_test_regulation_decrypt
+15/17 Test #15: souls_formats_test_regulation_decrypt ...   Passed    0.37 sec
+      Start 16: souls_formats_test_sl2_kat
+16/17 Test #16: souls_formats_test_sl2_kat ..............   Passed    0.09 sec
+      Start 17: souls_formats_test_golden
+17/17 Test #17: souls_formats_test_golden ...............   Passed    0.27 sec
+
+100% tests passed, 0 tests failed out of 17
+
+Label Time Summary:
+compression    =   2.81 sec*proc (5 tests)
+core           =   1.14 sec*proc (6 tests)
+crypto         =   0.63 sec*proc (4 tests)
+golden         =   0.27 sec*proc (1 test)
+smoke          =   0.18 sec*proc (1 test)
+
+Total Test time (real) =   5.04 sec

@@ -179,3 +179,51 @@
 - MSBE (Elden Ring) and MSBVI (AC6) use 64-bit offsets and have more complex inheritance/struct patterns compared to MSBS (Sekiro).
 - MSBVI (AC6) implementation in SoulsFormatsNEXT is based on Smithbox and includes additional params like Layers.
 - Disambiguation of names is a common pattern across all MSB formats to handle duplicate entry names.
+Created docs/api-mapping/legacy.md with 69 legacy format classes categorized by type.
+
+## Phase Roadmap Rewrites (Tasks 30-31)
+
+* **Retrospective Documentation**: Shifting from "planned" to "retrospective" in phase docs provides a clearer history of what was actually delivered and how drift was resolved.
+* **Mapping Integration**: Linking roadmap docs directly to row-level mapping docs ensures that developers check alignment status before starting new work.
+* **Test Count Accuracy**: Using `ctest -N` as the source of truth for test counts prevents discrepancies between documentation and actual build artifacts.
+* **Wave-based Realignment**: Documenting follow-up fixes from subsequent waves (Wave 2/3) in the phase retrospectives helps track the evolution of the API toward strict upstream alignment.
+## Documentation Realignment (2026-05-10)
+- Rewrote phase-3 through phase-7 and post-v1 roadmap docs to align with strict upstream policy.
+- Added per-task upstream references and API alignment checklists.
+- Ensured cross-references to Tier A mapping docs are present and accurate.
+- Maintained existing QA scenarios and augmented with mapping coverage checks.
+- Synced PLAN.md with strict alignment policy from AGENTS.md §5.x.
+- Added completion retrospectives for Phase 0, 1, and 2 in PLAN.md §7.
+- Extended PLAN.md §12 with mapping doc cross-references in table format.
+- Bumped version to 0.2.0 in PLAN.md with footnote.
+
+## F4 Scope Fidelity Audit (2026-05-10)
+
+- T1-T37 compliance commands all passed; grouped checks expand to 37/37 task coverage.
+- Scope creep scan found no Phase 3+ format implementation source matches and no unexpected public headers beyond the planned 11-header set.
+- Working tree was not clean before notepad append: `.sisyphus/notepads/api-realignment/learnings.md` was already modified, so the audit verdict must reject on unaccounted modifications despite clean task/scope checks.
+
+## F3 Final QA — 2026-05-10
+
+- Clean MinGW build from scratch: 137/137 build steps OK
+- Full ctest: 17/17 PASS (compression 5, core 6, crypto 4, golden 1, smoke 1)
+- Golden hash regression: 9/9 sub-tests PASS (DCX_DFLT/ZSTD/KRAK round-trips, encoding, hash, AES KAT)
+- Mapping doc spot-check: 9/9 cited upstream lines resolve (BinaryReaderEx.cs:22/30/35, DCX.cs:28/47/58, RegulationDecryptor.cs:16/51/67)
+- DLL exports: 278 `sf_*` symbols; all 5 spot-checked patterns present
+
+## F3 Final QA — 2026-05-10
+
+- Clean MinGW cross build from scratch: 137/137 build steps OK, no warnings/errors
+- Full ctest: 17/17 PASS (compression 5, core 6, crypto 4, golden 1, smoke 1; total 5.04s)
+- Golden hash regression (`-L golden`): 9/9 sub-tests PASS (DCX_DFLT/ZSTD/KRAK round-trips, encoding, hash, AES KAT)
+- Mapping doc spot-check: 9/9 cited upstream lines resolve
+  - `util-io-binary-reader-ex.md` → `BinaryReaderEx.cs:22/30/35` ✓
+  - `format-dcx.md` → `DCX.cs:28/47/58` ✓ (path was `Formats/DCX.cs`, not `Formats/DCX/DCX.cs`)
+  - `util-cryptography-regulation-decryptor.md` → `RegulationDecryptor.cs:16/51/67` ✓
+- DLL exports: 278 `sf_*` symbols; all 5 spot-checked patterns present (read_i32s, decompressed_reader, regulation_decrypt[+4 variants], sl2_get_ds2_key, dcx_is_from_buffer)
+
+## 2026-05-10 F5 final consistency check
+- Alignment phrases present: STRICT upstream refs in AGENTS/PLAN, API mirror phrase in AGENTS.
+- DLL exports reflect 0.2.0 breaking rename reality: old symbols absent, new symbols present.
+- Provided sample-ref pipelines can under-sample when early doc matches lack numeric refs; selecting first numeric refs yields 20/20 resolving upstream lines.
+- Drift checklist: 0 unchecked, 37 checked. Versions: 0.2.0 consistent, no 0.1.0 in CMake/sf_common.
