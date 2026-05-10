@@ -28,6 +28,7 @@
 #include "souls_formats/sf_bnd3.h"
 #include "souls_formats/sf_bnd4.h"
 #include "souls_formats/sf_bxf3.h"
+#include "souls_formats/sf_bxf4.h"
 #include "souls_formats/sf_enfl.h"
 
 /* Format headers will be added here as each Phase lands.

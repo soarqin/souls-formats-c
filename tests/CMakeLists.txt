@@ -67,6 +67,7 @@ sf_add_test(souls_formats_test_bhd5_synthetic archive/test_bhd5_synthetic.c "arc
 sf_add_test(souls_formats_test_bnd3_synthetic archive/test_bnd3_synthetic.c "archive")
 sf_add_test(souls_formats_test_bnd4_synthetic archive/test_bnd4_synthetic.c "archive")
 sf_add_test(souls_formats_test_bxf3_synthetic archive/test_bxf3_synthetic.c "archive")
+sf_add_test(souls_formats_test_bxf4_synthetic archive/test_bxf4_synthetic.c "archive")
 sf_add_test(souls_formats_test_enfl_synthetic archive/test_enfl_synthetic.c "archive")
 
 #-----------------------------------------------------------------------------

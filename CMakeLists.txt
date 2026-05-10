@@ -59,6 +59,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_bnd3.h
     include/souls_formats/sf_bnd4.h
     include/souls_formats/sf_bxf3.h
+    include/souls_formats/sf_bxf4.h
     include/souls_formats/sf_enfl.h
 )
 
@@ -92,6 +93,7 @@ set(SF_SOURCES
     src/archive/bnd3.c
     src/archive/bnd4.c
     src/archive/bxf3.c
+    src/archive/bxf4.c
     src/archive/enfl.c
     src/internal/dds_header.c
 )
