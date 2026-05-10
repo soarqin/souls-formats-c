@@ -30,6 +30,7 @@
 #include "souls_formats/sf_bxf3.h"
 #include "souls_formats/sf_bxf4.h"
 #include "souls_formats/sf_enfl.h"
+#include "souls_formats/sf_tpf.h"
 
 /* Format headers will be added here as each Phase lands.
  * Phase 1: io, math, encoding, hash  (DONE)

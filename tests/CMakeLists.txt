@@ -69,6 +69,7 @@ sf_add_test(souls_formats_test_bnd4_synthetic archive/test_bnd4_synthetic.c "arc
 sf_add_test(souls_formats_test_bxf3_synthetic archive/test_bxf3_synthetic.c "archive")
 sf_add_test(souls_formats_test_bxf4_synthetic archive/test_bxf4_synthetic.c "archive")
 sf_add_test(souls_formats_test_enfl_synthetic archive/test_enfl_synthetic.c "archive")
+sf_add_test(souls_formats_test_tpf_synthetic  archive/test_tpf_synthetic.c  "archive")
 
 #-----------------------------------------------------------------------------
 # Pre-refactor SHA-256 baseline — pins deterministic byte outputs across

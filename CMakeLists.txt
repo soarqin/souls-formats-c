@@ -61,6 +61,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_bxf3.h
     include/souls_formats/sf_bxf4.h
     include/souls_formats/sf_enfl.h
+    include/souls_formats/sf_tpf.h
 )
 
 set(SF_SOURCES
@@ -95,6 +96,8 @@ set(SF_SOURCES
     src/archive/bxf3.c
     src/archive/bxf4.c
     src/archive/enfl.c
+    src/archive/tpf.c
+    src/archive/tpf_headerizer.c
     src/internal/dds_header.c
 )
 
