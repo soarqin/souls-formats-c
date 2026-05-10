@@ -153,3 +153,23 @@
 - Both formats share similar concepts: ShaderPath, Params, and Textures/Samplers.
 - MTD's `Texture` has an `Extended` flag for Sekiro-specific data (Path and UnkFloats).
 - MATBIN's `Param` and `Sampler` use 64-bit offsets for strings, reflecting the move to 64-bit engines.
+## PARAM Family Mapping (Phase 4)
+- PARAM and PARAMDEF are complex formats with multiple contributing files.
+- PARAMDEF supports XML serialization which is critical for community tools.
+- FMG supports multiple versions (DeS, DS1/2, DS3/BB) and optional MD5 hashing.
+- PARAMTDF is a simple plaintext format for enums.
+- Bitfield handling in PARAM rows is intricate and depends on PARAMDEF field types and bit sizes.
+
+## FLVER Family Mapping (2026-05-10)
+- FLVER2 upstream source is located at `Formats/FLVER/FLVER2/`, not at the root of Formats.
+- Discovered 13 contributing files for FLVER2 mapping.
+- Vertex decoding logic in `Vertex.cs` reveals version-dependent `uvFactor`: 1024 for < 0x2000E, 2048 for >= 0x2000E.
+- Armored Core VI (AC6) uses a unique normalization for normals when stored as `UShort4`.
+- Edge compression (`EdgeGeom`) is deeply integrated into both `VertexBuffer` and `FaceSet` (via `EdgeIndexGroup`/`EdgeIndexBuffer`).
+- `LayoutType` (format) and `LayoutSemantic` (purpose) define the vertex structure; `LayoutType` values are non-contiguous (e.g., 0-3, 16-24, 26, 45-47, 240).
+### Phase 7: TAE and FXR3 Mapping
+- TAE (Time Act Editor) has a complex hierarchical structure: TAE -> Animation -> Event/EventGroup.
+- TAE uses a Template system for event parameters, which is XML-driven in upstream.
+- FXR3 (Rainbow Stone FXR) is an SFX definition format with a state-machine-like structure (StateMap -> State -> Condition).
+- FXR3 supports XML serialization via FXR3EnhancedSerialization, which will be important for tool parity.
+- Both formats are planned for Phase 7 implementation.
