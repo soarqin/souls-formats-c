@@ -700,6 +700,14 @@ static void test_bool_invalid(void) {
     FREE_READER(r, s);
 }
 
+static void test_sf_reverse_bits_u8_known_values(void) {
+    TEST_ASSERT_EQUAL_UINT8(0x00, sf_reverse_bits_u8(0x00));
+    TEST_ASSERT_EQUAL_UINT8(0xFF, sf_reverse_bits_u8(0xFF));
+    TEST_ASSERT_EQUAL_UINT8(0x80, sf_reverse_bits_u8(0x01));
+    TEST_ASSERT_EQUAL_UINT8(0xD5, sf_reverse_bits_u8(0xAB));
+    TEST_ASSERT_EQUAL_UINT8(0x42, sf_reverse_bits_u8(0x42));
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_read_primitives_le);
@@ -732,5 +740,6 @@ int main(void) {
     RUN_TEST(test_11_11_10_zero);
     RUN_TEST(test_truncation);
     RUN_TEST(test_bool_invalid);
+    RUN_TEST(test_sf_reverse_bits_u8_known_values);
     return UNITY_END();
 }

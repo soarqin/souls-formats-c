@@ -120,3 +120,4 @@ Upstream reference: `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Utilities/IO/B
 | `public Color ReadRGBA()` | BinaryReaderEx.cs:1203 | Method | `sf_binary_reader_read_rgba(sf_binary_reader_t*, sf_color_t*)` | ✓ aligned | Color returned as RGBA fields. |
 | `public Color ReadBGRA()` | BinaryReaderEx.cs:1215 | Method | `sf_binary_reader_read_bgra(sf_binary_reader_t*, sf_color_t*)` | ✓ aligned | Color returned as RGBA fields. |
 | `public void Dispose()` | BinaryReaderEx.cs:1247 | Method | `sf_binary_reader_destroy(sf_binary_reader_t*)` | ✓ aligned | Reader frees only its own allocations and leaves borrowed stream open. |
+| `EndianHelper.ReverseBits` | EndianHelper.cs:11 | Static method | `sf_reverse_bits_u8(uint8_t)` | ✓ aligned | Phase 1 retro-fit; needed by binder format flag-byte readers. |

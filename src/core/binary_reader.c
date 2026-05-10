@@ -813,3 +813,20 @@ sf_result_t sf_binary_reader_get_shift_jis_n(sf_binary_reader_t *r, int64_t off,
     sf_result_t e2 = sf_binary_reader_step_out(r);
     return (e != SF_OK) ? e : e2;
 }
+
+/*===========================================================================
+ * Bit utilities — mirrors upstream SoulsFormats.Utilities.EndianHelper
+ *===========================================================================*/
+
+SF_API uint8_t sf_reverse_bits_u8(uint8_t b) {
+    return (uint8_t)(
+        ((b & 0x01u) << 7) |
+        ((b & 0x02u) << 5) |
+        ((b & 0x04u) << 3) |
+        ((b & 0x08u) << 1) |
+        ((b & 0x10u) >> 1) |
+        ((b & 0x20u) >> 3) |
+        ((b & 0x40u) >> 5) |
+        ((b & 0x80u) >> 7)
+    );
+}

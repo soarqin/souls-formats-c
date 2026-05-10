@@ -489,6 +489,17 @@ SF_API sf_result_t sf_binary_writer_write_abgr(sf_binary_writer_t *w, sf_color_t
 SF_API sf_result_t sf_binary_writer_write_rgba(sf_binary_writer_t *w, sf_color_t c);
 SF_API sf_result_t sf_binary_writer_write_bgra(sf_binary_writer_t *w, sf_color_t c);
 
+/*===========================================================================
+ * Bit utilities
+ *
+ * Mirrors upstream SoulsFormats.Utilities.EndianHelper.
+ *===========================================================================*/
+
+/*  Reverses the order of bits in a byte (bit 0 ↔ bit 7, bit 1 ↔ bit 6, …).
+ *  Mirrors upstream EndianHelper.ReverseBits. Used by binder format readers
+ *  that store flag fields with reversed bit ordering. */
+SF_API uint8_t sf_reverse_bits_u8(uint8_t b);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
