@@ -1,0 +1,114 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: windows-${{ matrix.toolchain }} (${{ matrix.build_type }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - toolchain: msvc
+            generator: Ninja
+            build_type: Debug
+          - toolchain: msvc
+            generator: Ninja
+            build_type: RelWithDebInfo
+          - toolchain: clang-cl
+            generator: Ninja
+            build_type: Debug
+            sanitizers: ON
+          - toolchain: mingw
+            generator: Ninja
+            build_type: Release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ninja (Windows)
+        uses: seanmiddleditch/gha-setup-ninja@v5
+
+      - name: Setup MSVC environment
+        if: matrix.toolchain == 'msvc' || matrix.toolchain == 'clang-cl'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Setup MinGW (msys2)
+        if: matrix.toolchain == 'mingw'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+
+      - name: Configure (msvc/clang-cl)
+        if: matrix.toolchain == 'msvc' || matrix.toolchain == 'clang-cl'
+        shell: cmd
+        env:
+          CC:  ${{ matrix.toolchain == 'clang-cl' && 'clang-cl' || 'cl' }}
+          CXX: ${{ matrix.toolchain == 'clang-cl' && 'clang-cl' || 'cl' }}
+        run: >-
+          cmake -B build -G "${{ matrix.generator }}"
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DSF_ENABLE_SANITIZERS=${{ matrix.sanitizers || 'OFF' }}
+
+      - name: Configure (mingw)
+        if: matrix.toolchain == 'mingw'
+        shell: msys2 {0}
+        run: >-
+          cmake -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        shell: ${{ matrix.toolchain == 'mingw' && 'msys2 {0}' || 'cmd' }}
+        run: cmake --build build
+
+      - name: Test
+        shell: ${{ matrix.toolchain == 'mingw' && 'msys2 {0}' || 'cmd' }}
+        run: ctest --test-dir build --output-on-failure
+
+  linux-cross:
+    # Mirrors the WSL2 dev loop's MinGW-w64 cross toolchain. Build-only:
+    # GitHub Linux runners have no Windows kernel, so .exe cannot run here.
+    name: ubuntu-mingw-cross (build sanity)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MinGW-w64 + ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build mingw-w64 mingw-w64-tools mingw-w64-x86-64-dev \
+            gcc-mingw-w64-x86-64-posix g++-mingw-w64-x86-64-posix
+
+      - name: Select POSIX-thread MinGW alternatives
+        run: |
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix || true
+          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix || true
+
+      - name: Configure (cross)
+        run: >-
+          cmake -B build-mingw -G Ninja
+          --toolchain cmake/toolchain-mingw-w64.cmake
+          -DCMAKE_BUILD_TYPE=Debug
+          -DSF_BUILD_TESTS=ON
+
+      - name: Build (cross — no run on Linux runner)
+        run: cmake --build build-mingw
