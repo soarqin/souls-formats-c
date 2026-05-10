@@ -134,7 +134,7 @@ sf_add_test(paramtdf_read param/test_paramtdf_read.c "param")
 sf_add_test(souls_formats_test_paramtdf_write param/test_paramtdf_write.c "param")
 sf_add_test(fmg_read param/test_fmg_read.c "param")
 sf_add_test(fmg_write param/test_fmg_write.c "param")
-sf_add_test(synthetic_roundtrip param/test_synthetic_roundtrip.c "param")
+sf_add_test(souls_formats_test_synthetic_roundtrip param/test_synthetic_roundtrip.c "param")
 sf_add_test(paramdef_xml_e2e param/test_paramdef_xml_e2e.c "param")
 sf_add_test(param_apply_paramdef_e2e param/test_param_apply_paramdef_e2e.c "param")
 sf_add_test(fmg_e2e_er param/test_fmg_e2e_er.c "param")
@@ -144,7 +144,7 @@ sf_add_test(fmg_e2e_er param/test_fmg_e2e_er.c "param")
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_emevd_read script/test_emevd_read.c "script")
 sf_add_test(souls_formats_test_emevd_write script/test_emevd_write.c "script")
-sf_add_test(emevd_synthetic script/test_emevd_synthetic.c "script")
+sf_add_test(souls_formats_test_emevd_synthetic script/test_emevd_synthetic.c "script")
 sf_add_test(emevd_e2e_er script/test_emevd_e2e_er.c "script")
 
 #-----------------------------------------------------------------------------
