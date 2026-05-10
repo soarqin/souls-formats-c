@@ -98,3 +98,35 @@
 - Round-trip test pads a 33-byte plaintext (intentionally not a multiple of 16) so the test exercises the PKCS#7 padding boundary on encrypt and the "Epic Encryption Technology" zero-padding on decrypt. Each key gets its own dedicated `test_roundtrip_*` so a per-key regression is identifiable in the Unity output.
 - DLL exports verified via `x86_64-w64-mingw32-objdump -p libsouls_formats.dll`: all 10 `sf_regulation_*` symbols present (`decrypt`, `encrypt`, plus 4 decrypt + 4 encrypt wrappers). The `sf_regulation_key_t` enum has no runtime export (compile-time-only type).
 - Header doc-comment placeholder for Phase 3 BND4 overloads documents the future API surface (`sf_regulation_*_bnd4(const wchar_t *path, sf_bnd4_t **out, ...)`) so callers know byte-buffer-level today is intentional, not an oversight.
+- ZlibHelper and ZstdHelper are mapped as internal-only extensions since they are implementation details of DCX and no public API is exposed for them.
+
+## Task 13 — SFUtil / sf_get_decompressed_reader (2026-05-10)
+
+- Upstream `SFUtil.GetDecompressedBinaryReader` only invokes `DCX.Decompress`
+  when `DCX.Is` returns true. `DCX.Is` matches `DCP\0` / `DCX\0` magic only —
+  it explicitly does NOT match plain zlib (0x78 0xDA). So plain-zlib bytes
+  fall through to the borrow path with `NoCompressionInfo`. Faithful port
+  of `sf_get_decompressed_reader` therefore uses `sf_dcx_is_from_buffer`
+  (which mirrors `DCX.Is`), not the broader `sf_dcx_sniff` (which also
+  recognises plain zlib). Test sub-case 1 must use a DCX/DCP-magic-prefixed
+  variant (e.g. `SF_DCX_TYPE_DCX_DFLT` via the
+  `DCX_DFLT_11000_44_9` preset) — using `SF_DCX_TYPE_ZLIB` here would land in
+  the borrow path and the test would assert that `new_reader == in_reader`,
+  not `!=`.
+- `sf_binary_reader_t` previously could only borrow its istream. Adding
+  `sf_binary_reader_create_from_memory` required two new fields
+  (`bool owns_stream`, `void *owned_buffer`) plus a destroy-time fan-out:
+  `sf_istream_close(stream)` if owned, then `sf_xfree(alloc, owned_buffer)`
+  if non-NULL. Existing `sf_binary_reader_create()` is unchanged because the
+  new fields are zero-initialised by `memset`.
+- Public API addition was made to `sf_io.h` (per task constraint — no new
+  `sf_util.h`). Implementation lives in `src/core/sf_util.c` so that the
+  upstream→ours module boundary stays one-to-one. `sf_io.h` now `#include`s
+  `sf_dcx.h` so that `sf_dcx_compression_info_t` is visible at the SFUtil
+  signature; this is acceptable because the IO header was already heavy
+  with downstream dependencies.
+- Verified DLL exports both `sf_binary_reader_create_from_memory` and
+  `sf_get_decompressed_reader` via
+  `x86_64-w64-mingw32-objdump -p libsouls_formats.dll | grep ...`.
+- Full ctest suite remains 17/17 PASS after the change; no golden-hash
+  regressions observed.

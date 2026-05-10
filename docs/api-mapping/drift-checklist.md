@@ -36,7 +36,7 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 ## Phase 1 / SFUtil
 
-- [ ] [SFUtil] sf_get_decompressed_reader missing (closes when Task 12 ships)
+- [x] [SFUtil] sf_get_decompressed_reader missing (closed by Task 13)
 
 ## Phase 1 / Math
 

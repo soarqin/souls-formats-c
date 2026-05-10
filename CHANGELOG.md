@@ -59,6 +59,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `sf_regulation_encrypt_ernr()` faithfully mirrors upstream's
   `EncryptERNRRegulation` quirk and uses the EldenRing key, not the Nightreign
   key — see `docs/api-mapping/util-cryptography-regulation-decryptor.md`.
+- `sf_get_decompressed_reader()` (declared in `sf_io.h`, defined in
+  `src/core/sf_util.c`) — mirrors upstream `SFUtil.GetDecompressedBinaryReader`.
+  Returns the input reader unchanged when not DCX (borrow path), or a new
+  reader over the decompressed buffer when DCX (owned path). Detection is
+  strict-upstream `DCX.Is` semantics (`DCP\0` / `DCX\0` magic only).
+- `sf_binary_reader_create_from_memory()` — mirrors upstream
+  `new BinaryReaderEx(big_endian, byte[])`. Takes ownership of the supplied
+  heap buffer; a single `sf_binary_reader_destroy()` frees the buffer and
+  closes the internal memory istream.
 
 ### Notes
 

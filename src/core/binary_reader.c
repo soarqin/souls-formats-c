@@ -19,7 +19,7 @@
 #include <string.h>
 
 struct sf_binary_reader {
-    sf_istream_t        *stream;       /* borrowed */
+    sf_istream_t        *stream;       /* borrowed unless owns_stream is set */
     const sf_allocator_t *alloc;
     bool                 big_endian;
     bool                 varint_long;
@@ -29,6 +29,9 @@ struct sf_binary_reader {
     size_t               steps_cap;
 
     bool                 is_flexible;
+
+    bool                 owns_stream;
+    void                *owned_buffer;
 };
 
 static bool g_binary_reader_flexible_default = false;
@@ -55,9 +58,40 @@ sf_result_t sf_binary_reader_create(sf_binary_reader_t **out, sf_istream_t *s,
     return SF_OK;
 }
 
+sf_result_t sf_binary_reader_create_from_memory(sf_binary_reader_t **out,
+                                                bool big_endian, void *data,
+                                                size_t size,
+                                                const sf_allocator_t *a) {
+    SF_CHECK_ARG(out != NULL && (size == 0u || data != NULL));
+    *out = NULL;
+
+    a = sf_alloc_or_default(a);
+
+    sf_istream_t *stream = NULL;
+    sf_result_t e = sf_istream_open_memory(&stream, data, size, a);
+    if (e != SF_OK) return e;
+
+    sf_binary_reader_t *r = NULL;
+    e = sf_binary_reader_create(&r, stream, big_endian, a);
+    if (e != SF_OK) {
+        sf_istream_close(stream);
+        return e;
+    }
+    r->owns_stream  = true;
+    r->owned_buffer = data;
+    *out = r;
+    return SF_OK;
+}
+
 void sf_binary_reader_destroy(sf_binary_reader_t *r) {
     if (!r) return;
     sf_xfree(r->alloc, r->steps);
+    if (r->owns_stream) {
+        sf_istream_close(r->stream);
+    }
+    if (r->owned_buffer) {
+        sf_xfree(r->alloc, r->owned_buffer);
+    }
     sf_xfree(r->alloc, r);
 }
 

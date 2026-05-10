@@ -23,6 +23,7 @@
 #define SOULS_FORMATS_SF_IO_H
 
 #include "souls_formats/sf_common.h"
+#include "souls_formats/sf_dcx.h"
 #include "souls_formats/sf_math.h"
 
 #include <stdbool.h>
@@ -109,6 +110,16 @@ typedef struct sf_binary_reader sf_binary_reader_t;
  *  stream; close the stream separately. */
 SF_API sf_result_t sf_binary_reader_create(sf_binary_reader_t **out, sf_istream_t *s,
                                             bool big_endian, const sf_allocator_t *a);
+
+/*  Build a reader on top of a heap buffer. The reader TAKES OWNERSHIP of
+ *  `data`: sf_binary_reader_destroy will free it (and the internal memory
+ *  istream wrapping it) using `a`. Mirrors upstream
+ *  `new BinaryReaderEx(big_endian, byte[] data)`. */
+SF_API sf_result_t sf_binary_reader_create_from_memory(sf_binary_reader_t **out,
+                                                       bool big_endian, void *data,
+                                                       size_t size,
+                                                       const sf_allocator_t *a);
+
 SF_API void        sf_binary_reader_destroy(sf_binary_reader_t *r);
 
 SF_API bool sf_binary_reader_flexible_default(void);
@@ -315,6 +326,34 @@ SF_API sf_result_t sf_binary_reader_get_shift_jis_n(sf_binary_reader_t *r, int64
                                                     size_t *out_len_bytes);
 SF_API sf_result_t sf_binary_reader_get_utf16(sf_binary_reader_t *r, int64_t off,
                                               char **out_utf8, size_t *out_len_bytes);
+
+/*===========================================================================
+ * SFUtil — DCX-aware reader entry point
+ *
+ * Mirrors upstream SFUtil.GetDecompressedBinaryReader.
+ *
+ * If @in contains DCX-compressed data:
+ *   - Decompresses into a heap buffer.
+ *   - Creates a NEW sf_binary_reader_t that owns both that buffer and an
+ *     internal memory istream wrapping it.
+ *   - Sets *out_reader to the new reader (CALLER OWNS: a single
+ *     sf_binary_reader_destroy(*out_reader) frees the backing buffer and
+ *     the internal istream).
+ *   - Fills *out_info with the concrete compression variant.
+ *
+ * If @in does NOT contain DCX data:
+ *   - Sets *out_reader = in (BORROW — do NOT destroy this pointer here;
+ *     it remains owned by whoever created `in`).
+ *   - Sets out_info->type = SF_DCX_TYPE_NONE.
+ *
+ * Callers must check out_info->type to determine ownership.
+ *===========================================================================*/
+
+SF_API sf_result_t sf_get_decompressed_reader(
+    sf_binary_reader_t *in,
+    sf_binary_reader_t **out_reader,
+    sf_dcx_compression_info_t *out_info,
+    const sf_allocator_t *alloc);
 
 /*===========================================================================
  * Binary writer

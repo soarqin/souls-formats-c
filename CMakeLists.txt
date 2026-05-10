@@ -64,6 +64,7 @@ set(SF_SOURCES
     src/core/stream.c
     src/core/binary_reader.c
     src/core/binary_writer.c
+    src/core/sf_util.c
     src/compression/dcx.c
     src/compression/deflate_zlibng.c
     src/compression/deflate_chunked.c
