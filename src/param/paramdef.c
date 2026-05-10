@@ -13,7 +13,9 @@
 
 #include <limits.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -197,6 +199,102 @@ static int16_t expected_field_size(int16_t version) {
     case 202: return 0x68;
     case 203: return 0x88;
     default: return -1;
+    }
+}
+
+static bool is_writable_version(int16_t version) {
+    switch (version) {
+    case 104:
+    case 106:
+    case 201:
+    case 202:
+    case 203:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static const char *def_type_name(sf_paramdef_def_type_t type) {
+    switch (type) {
+    case SF_PARAMDEF_DEF_TYPE_S8: return "s8";
+    case SF_PARAMDEF_DEF_TYPE_U8: return "u8";
+    case SF_PARAMDEF_DEF_TYPE_S16: return "s16";
+    case SF_PARAMDEF_DEF_TYPE_U16: return "u16";
+    case SF_PARAMDEF_DEF_TYPE_S32: return "s32";
+    case SF_PARAMDEF_DEF_TYPE_U32: return "u32";
+    case SF_PARAMDEF_DEF_TYPE_B32: return "b32";
+    case SF_PARAMDEF_DEF_TYPE_F32: return "f32";
+    case SF_PARAMDEF_DEF_TYPE_ANGLE32: return "angle32";
+    case SF_PARAMDEF_DEF_TYPE_F64: return "f64";
+    case SF_PARAMDEF_DEF_TYPE_DUMMY8: return "dummy8";
+    case SF_PARAMDEF_DEF_TYPE_FIXSTR: return "fixstr";
+    case SF_PARAMDEF_DEF_TYPE_FIXSTR_W: return "fixstrW";
+    default: return NULL;
+    }
+}
+
+static sf_result_t reserve_name(char out[64], const char *base, size_t index) {
+    int n = snprintf(out, 64, "%s%zu", base, index);
+    if (n < 0 || n >= 64) return SF_ERR_OUT_OF_RANGE;
+    return SF_OK;
+}
+
+static sf_result_t make_internal_name(const sf_paramdef_field_t *field, char **out,
+                                      const sf_allocator_t *alloc) {
+    SF_CHECK_ARG(field != NULL && out != NULL);
+    *out = NULL;
+    const char *name = field->internal_name ? field->internal_name : "";
+    int needed = 0;
+    if (field->bit_size != -1) {
+        needed = snprintf(NULL, 0, "%s:%" PRId32, name, field->bit_size);
+    } else if (is_array_type(field->display_type)) {
+        needed = snprintf(NULL, 0, "%s[%" PRId32 "]", name, field->array_length);
+    } else {
+        *out = sf_strdup(alloc, name);
+        return *out ? SF_OK : SF_ERR_OOM;
+    }
+    if (needed < 0) return SF_ERR_INTERNAL;
+    char *s = (char *)sf_xalloc(alloc, (size_t)needed + 1);
+    if (!s) return SF_ERR_OOM;
+    if (field->bit_size != -1) {
+        (void)snprintf(s, (size_t)needed + 1, "%s:%" PRId32, name, field->bit_size);
+    } else {
+        (void)snprintf(s, (size_t)needed + 1, "%s[%" PRId32 "]", name, field->array_length);
+    }
+    *out = s;
+    return SF_OK;
+}
+
+static float default_value_to_f32(sf_paramdef_default_value_t value) {
+    switch (value.type) {
+    case SF_PARAMDEF_DEF_TYPE_S8: return (float)value.v.s8;
+    case SF_PARAMDEF_DEF_TYPE_U8: return (float)value.v.u8;
+    case SF_PARAMDEF_DEF_TYPE_S16: return (float)value.v.s16;
+    case SF_PARAMDEF_DEF_TYPE_U16: return (float)value.v.u16;
+    case SF_PARAMDEF_DEF_TYPE_S32: return (float)value.v.s32;
+    case SF_PARAMDEF_DEF_TYPE_U32: return (float)value.v.u32;
+    case SF_PARAMDEF_DEF_TYPE_B32: return (float)value.v.b32;
+    case SF_PARAMDEF_DEF_TYPE_F32: return value.v.f32;
+    case SF_PARAMDEF_DEF_TYPE_ANGLE32: return value.v.angle32;
+    case SF_PARAMDEF_DEF_TYPE_F64: return (float)value.v.f64;
+    default: return 0.0f;
+    }
+}
+
+static int32_t default_value_to_i32(sf_paramdef_default_value_t value) {
+    switch (value.type) {
+    case SF_PARAMDEF_DEF_TYPE_S8: return value.v.s8;
+    case SF_PARAMDEF_DEF_TYPE_U8: return value.v.u8;
+    case SF_PARAMDEF_DEF_TYPE_S16: return value.v.s16;
+    case SF_PARAMDEF_DEF_TYPE_U16: return value.v.u16;
+    case SF_PARAMDEF_DEF_TYPE_S32: return value.v.s32;
+    case SF_PARAMDEF_DEF_TYPE_U32: return (int32_t)value.v.u32;
+    case SF_PARAMDEF_DEF_TYPE_B32: return (int32_t)value.v.b32;
+    case SF_PARAMDEF_DEF_TYPE_F32: return (int32_t)value.v.f32;
+    case SF_PARAMDEF_DEF_TYPE_ANGLE32: return (int32_t)value.v.angle32;
+    case SF_PARAMDEF_DEF_TYPE_F64: return (int32_t)value.v.f64;
+    default: return 0;
     }
 }
 
@@ -601,6 +699,339 @@ sf_result_t sf_paramdef_read_from_path(sf_paramdef_t **out, const wchar_t *path,
     if (r != SF_OK) return r;
     r = sf_paramdef_read_from_stream(out, stream, alloc);
     sf_istream_close(stream);
+    return r;
+}
+
+static sf_result_t paramdef_validate_for_write(const sf_paramdef_t *def) {
+    SF_CHECK_ARG(def != NULL);
+    if (!def->param_type || def->param_type[0] == '\0') return SF_ERR_INVALID_ARG;
+    if (def->field_count > 0 && !def->fields) return SF_ERR_INVALID_ARG;
+    if (def->field_count > (size_t)INT16_MAX) return SF_ERR_OUT_OF_RANGE;
+
+    for (size_t i = 0; i < def->field_count; i++) {
+        const sf_paramdef_field_t *field = &def->fields[i];
+        if (!field->display_name) return SF_ERR_INVALID_ARG;
+        if (!field->display_format) return SF_ERR_INVALID_ARG;
+        if (def->format_version >= 102 && !field->internal_type) return SF_ERR_INVALID_ARG;
+        if (!field->internal_name) return SF_ERR_INVALID_ARG;
+        if (!def_type_name(field->display_type)) return SF_ERR_INVALID_ARG;
+    }
+    return SF_OK;
+}
+
+static sf_result_t write_variable_value(sf_binary_writer_t *bw, sf_paramdef_def_type_t type,
+                                        sf_paramdef_default_value_t value) {
+    sf_result_t r;
+    switch (type) {
+    case SF_PARAMDEF_DEF_TYPE_S8:
+    case SF_PARAMDEF_DEF_TYPE_U8:
+    case SF_PARAMDEF_DEF_TYPE_S16:
+    case SF_PARAMDEF_DEF_TYPE_U16:
+    case SF_PARAMDEF_DEF_TYPE_S32:
+    case SF_PARAMDEF_DEF_TYPE_U32:
+    case SF_PARAMDEF_DEF_TYPE_B32:
+        r = sf_binary_writer_write_i32(bw, default_value_to_i32(value)); if (r != SF_OK) return r;
+        return sf_binary_writer_write_i32(bw, 0);
+    case SF_PARAMDEF_DEF_TYPE_F32:
+    case SF_PARAMDEF_DEF_TYPE_ANGLE32:
+        r = sf_binary_writer_write_f32(bw, default_value_to_f32(value)); if (r != SF_OK) return r;
+        return sf_binary_writer_write_i32(bw, 0);
+    case SF_PARAMDEF_DEF_TYPE_F64:
+        return sf_binary_writer_write_f64(bw, value.type == SF_PARAMDEF_DEF_TYPE_F64
+                                                  ? value.v.f64
+                                                  : (double)default_value_to_f32(value));
+    case SF_PARAMDEF_DEF_TYPE_DUMMY8:
+    case SF_PARAMDEF_DEF_TYPE_FIXSTR:
+    case SF_PARAMDEF_DEF_TYPE_FIXSTR_W:
+        return sf_binary_writer_write_i64(bw, 0);
+    default:
+        return SF_ERR_INVALID_ARG;
+    }
+}
+
+static sf_result_t write_field_record(sf_binary_writer_t *bw, const sf_paramdef_t *def,
+                                      size_t index) {
+    const sf_paramdef_field_t *field = &def->fields[index];
+    const int16_t version = def->format_version;
+    const bool indirect_strings = version >= 202 || (version >= 106 && version < 200);
+    sf_result_t r;
+    char name[64];
+
+    if (indirect_strings) {
+        r = reserve_name(name, "DisplayNameOffset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+    } else if (def->unicode) {
+        r = sf_binary_writer_write_fix_str_w(bw, field->display_name, 0x40,
+                                             (uint8_t)(version >= 104 ? 0x00 : 0x20));
+        if (r != SF_OK) return r;
+    } else {
+        r = sf_binary_writer_write_fix_str(bw, field->display_name, 0x40,
+                                           (uint8_t)(version >= 104 ? 0x00 : 0x20));
+        if (r != SF_OK) return r;
+    }
+
+    const uint8_t padding = (uint8_t)(version >= 106 ? 0x00 : 0x20);
+    const char *type_name = def_type_name(field->display_type);
+    if (!type_name) return SF_ERR_INVALID_ARG;
+    r = sf_binary_writer_write_fix_str(bw, type_name, 8, padding); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_fix_str(bw, field->display_format, 8, padding);
+    if (r != SF_OK) return r;
+
+    if (version >= 203) {
+        r = sf_binary_writer_write_pattern(bw, 0x10, 0x00); if (r != SF_OK) return r;
+    } else {
+        r = sf_binary_writer_write_f32(bw, default_value_to_f32(field->default_value));
+        if (r != SF_OK) return r;
+        r = sf_binary_writer_write_f32(bw, default_value_to_f32(field->minimum));
+        if (r != SF_OK) return r;
+        r = sf_binary_writer_write_f32(bw, default_value_to_f32(field->maximum));
+        if (r != SF_OK) return r;
+        r = sf_binary_writer_write_f32(bw, default_value_to_f32(field->increment));
+        if (r != SF_OK) return r;
+    }
+
+    r = sf_binary_writer_write_i32(bw, (int32_t)field->edit_flags); if (r != SF_OK) return r;
+    size_t value_size = sf_param_util_get_value_size(field->display_type);
+    if (value_size == 0) return SF_ERR_INVALID_ARG;
+    int32_t value_count = is_array_type(field->display_type) ? field->array_length : 1;
+    if (value_count <= 0 || value_size > (size_t)INT32_MAX / (size_t)value_count) {
+        return SF_ERR_OUT_OF_RANGE;
+    }
+    r = sf_binary_writer_write_i32(bw, (int32_t)(value_size * (size_t)value_count));
+    if (r != SF_OK) return r;
+
+    if (def->basic_fields) return SF_OK;
+
+    r = reserve_name(name, "DescriptionOffset", index); if (r != SF_OK) return r;
+    r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+
+    if (indirect_strings) {
+        r = reserve_name(name, "InternalTypeOffset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+    } else {
+        r = sf_binary_writer_write_fix_str(bw, field->internal_type, 0x20, padding);
+        if (r != SF_OK) return r;
+    }
+
+    if (indirect_strings) {
+        r = reserve_name(name, "InternalNameOffset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+    } else if (version >= 102) {
+        char *internal_name = NULL;
+        r = make_internal_name(field, &internal_name, def->alloc); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_fix_str(bw, internal_name, 0x20, padding);
+        sf_xfree(def->alloc, internal_name);
+        if (r != SF_OK) return r;
+    }
+
+    if (version >= 104) {
+        r = sf_binary_writer_write_i32(bw, field->sort_id); if (r != SF_OK) return r;
+    }
+
+    if (version >= 200) {
+        r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
+        r = reserve_name(name, "UnkB8Offset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+        r = reserve_name(name, "UnkC0Offset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+        r = reserve_name(name, "UnkC8Offset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+    } else if (version >= 106) {
+        r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
+    }
+
+    if (version >= 203) {
+        r = write_variable_value(bw, field->display_type, field->default_value); if (r != SF_OK) return r;
+        r = write_variable_value(bw, field->display_type, field->minimum); if (r != SF_OK) return r;
+        r = write_variable_value(bw, field->display_type, field->maximum); if (r != SF_OK) return r;
+        r = write_variable_value(bw, field->display_type, field->increment); if (r != SF_OK) return r;
+    }
+
+    return SF_OK;
+}
+
+static sf_result_t write_field_strings(sf_binary_writer_t *bw, const sf_paramdef_t *def,
+                                       size_t index) {
+    const sf_paramdef_field_t *field = &def->fields[index];
+    const int16_t version = def->format_version;
+    const bool indirect_strings = version >= 202 || (version >= 106 && version < 200);
+    sf_result_t r;
+    char name[64];
+
+    if (indirect_strings) {
+        r = reserve_name(name, "DisplayNameOffset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
+        if (r != SF_OK) return r;
+        r = sf_binary_writer_write_utf16(bw, field->display_name, true); if (r != SF_OK) return r;
+    }
+
+    if (def->basic_fields) return SF_OK;
+
+    int64_t description_offset = 0;
+    if (field->description && field->description[0] != '\0') {
+        description_offset = sf_binary_writer_position(bw);
+        r = def->unicode ? sf_binary_writer_write_utf16(bw, field->description, true)
+                         : sf_binary_writer_write_shift_jis(bw, field->description, true);
+        if (r != SF_OK) return r;
+    }
+    r = reserve_name(name, "DescriptionOffset", index); if (r != SF_OK) return r;
+    r = sf_binary_writer_fill_varint(bw, name, description_offset); if (r != SF_OK) return r;
+
+    if (indirect_strings) {
+        r = reserve_name(name, "InternalTypeOffset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
+        if (r != SF_OK) return r;
+        r = sf_binary_writer_write_ascii(bw, field->internal_type, true); if (r != SF_OK) return r;
+
+        char *internal_name = NULL;
+        r = make_internal_name(field, &internal_name, def->alloc); if (r != SF_OK) return r;
+        r = reserve_name(name, "InternalNameOffset", index);
+        if (r == SF_OK) r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
+        if (r == SF_OK) r = sf_binary_writer_write_ascii(bw, internal_name, true);
+        sf_xfree(def->alloc, internal_name);
+        if (r != SF_OK) return r;
+    }
+
+    if (version >= 200) {
+        r = reserve_name(name, "UnkB8Offset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_fill_i64(bw, name, 0); if (r != SF_OK) return r;
+        r = reserve_name(name, "UnkC0Offset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_fill_i64(bw, name, 0); if (r != SF_OK) return r;
+        r = reserve_name(name, "UnkC8Offset", index); if (r != SF_OK) return r;
+        r = sf_binary_writer_fill_i64(bw, name, 0); if (r != SF_OK) return r;
+    }
+
+    return SF_OK;
+}
+
+static sf_result_t paramdef_write_to_writer(const sf_paramdef_t *def, sf_binary_writer_t *bw) {
+    sf_result_t r = paramdef_validate_for_write(def);
+    if (r != SF_OK) return r;
+    if (def->version_aware) return SF_ERR_INVALID_ARG;
+    if (!is_writable_version(def->format_version)) return SF_ERR_UNSUPPORTED_VERSION;
+
+    sf_binary_writer_set_big_endian(bw, def->big_endian);
+    sf_binary_writer_set_varint_long(bw, def->format_version >= 200);
+
+    const int16_t version = def->format_version;
+    const bool indirect_param_type = version >= 202 || (version >= 106 && version < 200);
+
+    r = sf_binary_writer_reserve_i32(bw, "FileSize"); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_i16(bw, (int16_t)(version >= 200 ? 0xFF : 0x30));
+    if (r != SF_OK) return r;
+    r = sf_binary_writer_write_i16(bw, def->data_version); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_i16(bw, (int16_t)def->field_count); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_i16(bw, expected_field_size(version)); if (r != SF_OK) return r;
+
+    if (version >= 202) {
+        r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
+        r = sf_binary_writer_reserve_varint(bw, "ParamTypeOffset"); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
+    } else if (version >= 106 && version < 200) {
+        r = sf_binary_writer_reserve_varint(bw, "ParamTypeOffset"); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
+        r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
+    } else {
+        r = sf_binary_writer_write_fix_str(bw, def->param_type, 0x20,
+                                           (uint8_t)(version >= 200 ? 0x00 : 0x20));
+        if (r != SF_OK) return r;
+    }
+
+    r = sf_binary_writer_write_i8(bw, (int8_t)(def->big_endian ? -1 : 0)); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_bool(bw, def->unicode); if (r != SF_OK) return r;
+    r = sf_binary_writer_write_i16(bw, version); if (r != SF_OK) return r;
+    if (version >= 200) {
+        r = sf_binary_writer_write_i64(bw, 0x38); if (r != SF_OK) return r;
+    }
+
+    for (size_t i = 0; i < def->field_count; i++) {
+        r = write_field_record(bw, def, i); if (r != SF_OK) return r;
+    }
+
+    if (indirect_param_type) {
+        r = sf_binary_writer_fill_varint(bw, "ParamTypeOffset", sf_binary_writer_position(bw));
+        if (r != SF_OK) return r;
+        r = sf_binary_writer_write_shift_jis(bw, def->param_type, true); if (r != SF_OK) return r;
+    }
+
+    int64_t field_strings_start = sf_binary_writer_position(bw);
+    for (size_t i = 0; i < def->field_count; i++) {
+        r = write_field_strings(bw, def, i); if (r != SF_OK) return r;
+    }
+
+    if (version == 104 || version == 201) {
+        int64_t field_strings_length = sf_binary_writer_position(bw) - field_strings_start;
+        if ((field_strings_length % 0x10) != 0) {
+            r = sf_binary_writer_write_pattern(bw, (size_t)(0x10 - (field_strings_length % 0x10)), 0);
+            if (r != SF_OK) return r;
+        }
+    } else {
+        if (version >= 202 && (sf_binary_writer_position(bw) % 0x10) == 0) {
+            r = sf_binary_writer_write_pattern(bw, 0x10, 0); if (r != SF_OK) return r;
+        }
+        r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
+    }
+
+    return sf_binary_writer_fill_i32(bw, "FileSize", (int32_t)sf_binary_writer_position(bw));
+}
+
+sf_result_t sf_paramdef_write_to_memory(const sf_paramdef_t *paramdef, uint8_t **out,
+                                        size_t *out_size, const sf_allocator_t *alloc) {
+    SF_CHECK_ARG(paramdef != NULL && out != NULL && out_size != NULL);
+    *out = NULL;
+    *out_size = 0;
+    alloc = sf_alloc_or_default(alloc);
+
+    sf_ostream_t *stream = NULL;
+    sf_result_t r = sf_ostream_open_memory(&stream, alloc);
+    if (r != SF_OK) return r;
+
+    sf_binary_writer_t *bw = NULL;
+    r = sf_binary_writer_create(&bw, stream, false, alloc);
+    if (r != SF_OK) { sf_ostream_close(stream); return r; }
+
+    r = paramdef_write_to_writer(paramdef, bw);
+    if (r == SF_OK) {
+        r = sf_binary_writer_finish_bytes(bw, out, out_size);
+    } else {
+        sf_binary_writer_destroy(bw);
+    }
+    sf_ostream_close(stream);
+    return r;
+}
+
+sf_result_t sf_paramdef_write_to_stream(const sf_paramdef_t *paramdef, sf_ostream_t *stream,
+                                        const sf_allocator_t *alloc) {
+    SF_CHECK_ARG(paramdef != NULL && stream != NULL);
+    alloc = sf_alloc_or_default(alloc);
+
+    sf_binary_writer_t *bw = NULL;
+    sf_result_t r = sf_binary_writer_create(&bw, stream, false, alloc);
+    if (r != SF_OK) return r;
+
+    r = paramdef_write_to_writer(paramdef, bw);
+    if (r == SF_OK) r = sf_binary_writer_finish(bw);
+    else sf_binary_writer_destroy(bw);
+    return r;
+}
+
+sf_result_t sf_paramdef_write_to_path(const sf_paramdef_t *paramdef, const wchar_t *path,
+                                      const sf_allocator_t *alloc) {
+    SF_CHECK_ARG(paramdef != NULL && path != NULL);
+    alloc = sf_alloc_or_default(alloc);
+
+    sf_ostream_t *stream = NULL;
+    sf_result_t r = sf_ostream_open_wfile(&stream, path, alloc);
+    if (r != SF_OK) return r;
+
+    r = sf_paramdef_write_to_stream(paramdef, stream, alloc);
+    sf_ostream_close(stream);
     return r;
 }
 

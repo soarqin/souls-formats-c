@@ -2,3 +2,4 @@
 2026-05-11: clangd/lsp diagnostics can flag header-local `#include "souls_formats/..."` paths as missing when checking a standalone new header; conditional `__has_include` fallbacks reduce the noise, but include-chain diagnostics may still depend on workspace config.
 2026-05-11: Replacing project-relative public-header includes with local includes fixed the clangd false positives for the FMG header chain.
 2026-05-11: `lsp_diagnostics` has no server configured for `tests/CMakeLists.txt`; validate CMake changes through configure/build instead.
+2026-05-11: Existing `sf_paramdef.h` declares `sf_paramdef_write_to_stream(..., const sf_allocator_t *alloc)`, so T3.1 implementation preserves the existing public signature despite the task summary omitting the allocator parameter.

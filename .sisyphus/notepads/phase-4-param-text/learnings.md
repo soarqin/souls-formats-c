@@ -97,3 +97,5 @@ parameter and frees with `emevd->alloc`, matching PARAMTDF/FMG destroy behavior.
 2026-05-11: PARAMTDF write mirrors upstream exactly: always emit CRLF,
 keep the trailing line ending after the last entry, and quote the
 name/type/value fields with no escape processing.
+2026-05-11: PARAMDEF binary write should mirror upstream padding quirks: v104/v201 only pad field-string length when non-16-aligned; other writable versions pad absolute writer position to 0x10, with v202+ adding a full 0x10 block if already aligned.
+2026-05-11: PARAMDEF v201 is a >=200 format but still uses fixed ParamType/display/internal field strings; only v106..199 and v202+ use varint string offsets for those fields.
