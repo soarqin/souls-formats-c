@@ -50,6 +50,11 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 - [x] [DCX] sf_dcx_is_* family missing (closed by Task 15)
 - [x] [DCX] path/stream overloads missing (closed by Task 15)
 
+## Phase 2 / Zlib & Zstd
+
+- [x] [ZlibHelper] map as internal DCX implementation detail (Task 16)
+- [x] [ZstdHelper] map as internal DCX implementation detail (Task 17)
+
 ## Phase 2 / Oodle
 
 - [x] [Oodle] sf_oodle_lz_compressor_t not public (closed by Task 18)
