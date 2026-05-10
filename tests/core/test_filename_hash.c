@@ -141,6 +141,41 @@ static void test_is_prime(void) {
     }
 }
 
+static void test_sf_path_hash_64_equivalence(void) {
+    /*  For every existing 32-bit golden vector, sf_path_hash_64 must
+     *  return the same value zero-extended to 64 bits. */
+    for (size_t i = 0; i < sizeof(k_cases) / sizeof(k_cases[0]); i++) {
+        uint32_t h32 = sf_path_hash(k_cases[i].path);
+        uint64_t h64 = sf_path_hash_64(k_cases[i].path);
+        char msg[160];
+        snprintf(msg, sizeof(msg),
+                 "case %zu: \"%s\" — h64=0x%016llx, expected (uint64_t)h32=0x%016llx",
+                 i, k_cases[i].path,
+                 (unsigned long long)h64,
+                 (unsigned long long)(uint64_t)h32);
+        TEST_ASSERT_EQUAL_HEX64_MESSAGE((uint64_t)h32, h64, msg);
+    }
+}
+
+static void test_sf_path_hash_64_normalization_parity(void) {
+    /*  NULL input: same handling as 32-bit (treat as empty, hash "/" prefix). */
+    TEST_ASSERT_EQUAL_HEX64((uint64_t)sf_path_hash(NULL), sf_path_hash_64(NULL));
+
+    /*  Backslash + ASCII case-fold parity. */
+    TEST_ASSERT_EQUAL_HEX64(sf_path_hash_64("/chr/c0000.chrbnd.dcx"),
+                            sf_path_hash_64("\\chr\\C0000.CHRBND.DCX"));
+
+    /*  Auto-prepend leading slash. */
+    TEST_ASSERT_EQUAL_HEX64(sf_path_hash_64("/chr/c0000.chrbnd.dcx"),
+                            sf_path_hash_64("chr/c0000.chrbnd.dcx"));
+}
+
+static void test_sf_path_hash_64_real_bhd5_ground_truth(void) {
+    /*  Real-game BHD5 ER+ ground-truth validation requires Phase 3 BHD5 +
+     *  er_helper. Deferred to T15 keystone task. */
+    TEST_IGNORE_MESSAGE("requires Phase 3 BHD5 + er_helper");
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_golden_values);
@@ -149,5 +184,8 @@ int main(void) {
     RUN_TEST(test_slash_normalization);
     RUN_TEST(test_leading_slash_inserted);
     RUN_TEST(test_is_prime);
+    RUN_TEST(test_sf_path_hash_64_equivalence);
+    RUN_TEST(test_sf_path_hash_64_normalization_parity);
+    RUN_TEST(test_sf_path_hash_64_real_bhd5_ground_truth);
     return UNITY_END();
 }

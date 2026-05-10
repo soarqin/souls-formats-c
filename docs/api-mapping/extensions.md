@@ -11,3 +11,4 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 | `sf_oodle_unload` | `sf_oodle.h` | Explicit unload (no upstream equivalent) | stable | `include/souls_formats/sf_oodle.h` |
 | `sf_oodle_version` | `sf_oodle.h` | Query currently loaded Oodle DLL major version | stable | `include/souls_formats/sf_oodle.h` |
 | `sf_istream_t + sf_ostream_t dual-layer stream` | `sf_io.h` | Layered abstraction over Win32 handles + memory; upstream BinaryReaderEx wraps a .NET Stream directly | stable | `include/souls_formats/sf_io.h` |
+| `sf_path_hash_64` | `sf_hash.h` | Extension. Upstream `HashHelper.FromPathHash` returns `uint` (32-bit). BHD5 ER+ stores hash as `UInt64` on disk via implicit cast (`BHD5.cs:474`). We expose a named 64-bit wrapper for consumer clarity. Same algorithm, no functional divergence — just a widening cast. | stable | `include/souls_formats/sf_hash.h` |

@@ -31,6 +31,22 @@ extern "C" {
 SF_API uint32_t sf_path_hash(const char *utf8_path);
 
 /*
+ * 64-bit-wide variant of sf_path_hash, for BHD5 ER+ tables.
+ *
+ * Elden Ring (and later) BHD5 files store the file-name hash as a UInt64
+ * field on disk, even though the upstream HashHelper.FromPathHash returns
+ * a 32-bit unsigned integer. Upstream relies on an implicit C# widening
+ * conversion (`uint → ulong`); we expose a named wrapper so C callers
+ * cannot accidentally truncate the 64-bit field when populating BHD5
+ * APIs.
+ *
+ * Behaviour: identical to sf_path_hash, then zero-extended to 64 bits.
+ * No separate algorithm exists upstream — this is a documented widening
+ * cast (see docs/api-mapping/extensions.md).
+ */
+SF_API uint64_t sf_path_hash_64(const char *utf8_path);
+
+/*
  * Trial-division primality test.
  *
  * Mirrors upstream HashHelper.IsPrime (HashHelper.cs:24-40):

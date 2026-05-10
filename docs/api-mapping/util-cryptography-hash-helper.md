@@ -6,4 +6,5 @@
 | Upstream signature | Upstream loc | Kind | Our API | Status | Notes |
 |---|---|---|---|---|---|
 | `static uint FromPathHash(string text)` | `HashHelper.cs:13` | static method | `sf_path_hash(const char *utf8_path) → uint32_t` | `✓ aligned` | ASCII-only fold; UTF-8 bytes outside ASCII pass through unchanged, matching upstream `ToLowerInvariant` behaviour |
+| _(implicit `uint → ulong` widening at `BHD5.cs:474`)_ | `BHD5.cs:474` | implicit cast | `sf_path_hash_64(const char *utf8_path) → uint64_t` | `+ extension` | Named 64-bit wrapper for BHD5 ER+ `FileNameHash` (UInt64). Same algorithm as `sf_path_hash`; just `(uint64_t)sf_path_hash(path)`. See [extensions.md](extensions.md) |
 | `static bool IsPrime(uint candidate)` | `HashHelper.cs:24` | static method | `sf_is_prime(uint32_t candidate) → bool` | `✓ aligned` | Trial-division; exact algorithm match including boundary cases (0,1→false; 2→true; even→false) |

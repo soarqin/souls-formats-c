@@ -55,6 +55,10 @@ uint32_t sf_path_hash(const char *utf8_path) {
     return acc;
 }
 
+uint64_t sf_path_hash_64(const char *utf8_path) {
+    return (uint64_t)sf_path_hash(utf8_path);
+}
+
 /*  sf_is_prime — mirrors upstream HashHelper.IsPrime (HashHelper.cs:24-40).
  *
  *  Algorithm transcript:
