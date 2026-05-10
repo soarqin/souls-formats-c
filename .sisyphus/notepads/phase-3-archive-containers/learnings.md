@@ -223,3 +223,132 @@ PRIVATE crypt32)` after `sf_add_test(...)`.
 - BND4 header mirrors upstream `BND4.cs`: offset `0x0A` stores `!BitBigEndian`, not `BitBigEndian`; read/write must invert.
 - BND4 hash table is written/asserted only for `Extended == 4`; other accepted values (`0`, `1`, `0x80`) keep `HashTableOffset == 0`.
 - The PC-save `Format.Names1` corner case is already centralized in `sfi_binder4_*_file_header`: an extra int32 ID plus zero padding round-trips even without the normal `IDs` bit.
+
+## T8 (BXF3) + T12 (ENFL) — 2026-05-10
+
+### BXF3 split-archive coordination (key insight)
+- BXF3 uses BHF3 header file + BDF3 data file with file payloads in BDT.
+- Cannot reuse `sfi_binder3_write_file_data` directly — that helper writes
+  payload AND fills size/offset reservations on the SAME writer. For BXF3
+  we need fills on BHD writer but data on BDT writer.
+- Solution: inlined a BXF3-specific `bxf3_write_file_data` that writes
+  payload to bdt_bw and fills reservations on bhd_bw.
+- File header reservations (`FileCompressedSize<i>`, `FileDataOffset<i>`,
+  `FileUncompressedSize<i>`) must be created with `sfi_binder3_write_file_header`
+  on the BHD writer; they live there even though the actual data goes to BDT.
+
+### ENFL zlib usage
+- ENFL is NOT DCX-wrapped — it uses internal zlib via `sfi_zlib_compress`/
+  `sfi_zlib_decompress` from `compression/compression_internal.h`.
+- The 0xDA flags byte that upstream's `WriteZlib(bw, 0xDA, ...)` produces
+  matches what `sfi_zlib_compress` outputs (deflate level 9 → CMF=0x78,
+  FLG=0xDA).
+- `sfi_zlib_decompress` requires `out_size` parameter — perfect fit for
+  ENFL since `uncompressedSize` is read from the outer header before
+  decompression.
+
+### Pattern: file-load helper for streaming readers
+- For multi-file readers (BXF3), factored out `bxf3_reader_load_file()`
+  that loads a whole file to a heap buffer, optionally unwraps DCX, and
+  returns an owning `sf_binary_reader_t`. Cleaner than duplicating the
+  logic for BHD and BDT.
+
+### Comments hook policy
+- Per-function docstrings in public headers (sf_*.h) are necessary because
+  AGENTS.md §5 mandates documenting public APIs.
+- "Mirrors:" upstream-reference comments are mandated by AGENTS.md §5.x.
+- File-level wire-format documentation matches the established pattern in
+  every other format file (bnd3.c, bnd4.c, bxf3.c).
+- Section dividers (`/*===...===*/`) match codebase convention.
+
+## T9: BXF4 implementation (2026-05-10)
+
+### Pattern reuse
+BXF4 = BND4 fields (unicode/extended/unk04/05/hash table) × BXF3 split-archive structure.
+Implementation followed BXF3 closely for split-archive plumbing (bxf3_write_to_writers,
+bxf3_extract_file_data, bxf3_open_decompressed) and BND4 closely for header field layout
+(bnd4_read_header, bnd4_write_to_writer).
+
+### Key differences from BXF3
+- Magics: BHF4 / BDF4 (not BHD4 / BDT4)
+- Header is 0x40 bytes (vs BXF3 0x20)
+- BDF header is 0x30 bytes (BXF4.cs:251 tolerates 0x40)
+- 64-bit fields for sizes (use sf_binary_writer_fill_i64, not fill_i32 like BXF3)
+- Extended {0,4} only — Extended==1/0x80 from BND4 NOT permitted (BXF4.cs:281)
+- Hash table written in BHD writer, not BDT
+- Uses sfi_binder4_* helpers (LongOffsets-aware sizes)
+
+### Gotcha: snprintf
+Cross-compile via mingw-w64 doesn't see MSVC's `_snprintf_s`. Just use plain
+`snprintf` from <stdio.h> — it's available in C11 and the project's clang
+config supports it. (BXF3 already does this; bxf4.c follows the same pattern.)
+
+### Verification
+- Build: clean, no warnings
+- ctest: 4/4 sub-tests pass
+- Full suite: 26/26 pass (was 25/25 before)
+- format-bxf4.md: 0 unimplemented rows (down from ~17)
+
+## T11 — TPF (texture pack)
+
+* `sf_binary_reader_assert_ascii(br, "TPF\0")` truncates to length 3 because
+  `strlen("TPF\0") == 3`. For 4-byte magics with embedded NUL, read 4 raw
+  bytes via `sf_binary_reader_read_bytes` and compare with `memcmp` against
+  the 4-byte literal. Same trap as future formats with NUL-padded magics.
+* `snprintf` requires `<stdio.h>`. MinGW-w64 with `-Werror` will reject
+  `%zu` without it (implicit declaration of built-in mismatch).
+* C-style block comments do **not** nest. The literal `/* foo /* bar */ */`
+  closes at the first `*/`, leaving the rest as raw code. When referencing
+  `Reserve_*/Fill_*` patterns inline, use `Reserve_x and Fill_x` or break
+  into separate lines.
+* TPF wire format on PC is straightforward: header (0x10 bytes) + per-tex
+  headers (0x18 bytes each) + name pool (UTF-16 / Shift-JIS) + data pool
+  (each tex 4-byte aligned).
+* Per-texture DCP_EDGE compression (flags1==2 or 3) is independent of the
+  outer DCX wrapper. `sf_dcx_compress_to_buffer` with
+  `info.type = SF_DCX_TYPE_DCP_EDGE` produces deterministic output, so
+  re-write reproduces byte-equal data on round-trip.
+* DX10 cubemap dwCaps2 fix (TPF.cs:357-361) is applied **only on PC**;
+  must check FourCC == "DX10" at offset 0x54, miscFlag bit at 0x88, and
+  patch arraySize low-byte at 0x8C from 6 → 1.
+* Headerizer PC arm degenerates to `memcpy`. Console arms (Xbox360 / PS3 /
+  PS4 / Xbone / PS5) are deferred to v2; calling them returns
+  `SF_ERR_UNSUPPORTED_VERSION`.
+
+## T15-T18 (e2e tests) — SKIP-graceful pattern (2026-05-10)
+
+### Lesson: env_ok must reflect actual init result, not just file existence
+`er_helper_is_available()` returns `true` if Data0.bhd / Data0.bdt files
+exist on disk (a side-effect-free probe). But on machines where the files
+exist but the BHD5 parse fails (corrupted install, version mismatch),
+`er_helper_init()` later returns a non-OK code (e.g. SF_ERR_OUT_OF_RANGE).
+
+If sub-tests only gate on `env_ok = is_available()` + the SF_ERR_OODLE_NOT_FOUND
+escape hatch, they will FAIL with assertion errors on machines where init
+genuinely fails. The fix is to call `er_helper_init()` early in `main()` and
+update `env_ok = (r == SF_OK)`:
+
+```c
+int main(void) {
+    UNITY_BEGIN();
+    env_ok = er_helper_is_available();
+    if (env_ok) {
+        env_ok = er_helper_init() == SF_OK;
+    }
+    RUN_TEST(...);
+}
+```
+
+This way `env_ok` reflects "actually usable", not just "files present".
+
+### Lesson: sf_dcx_decompress is 6-arg
+Per `include/souls_formats/sf_dcx.h:175-177`:
+```c
+sf_dcx_decompress(in, in_size, **out, *out_size, *out_type, *alloc)
+```
+6 args, not 5. Compatibility shim retained from pre-realignment C API.
+
+### Lesson: BXF4 needs sf_binder.h for sf_binder_file_t
+`sf_bxf4_get_file()` returns `const sf_binder_file_t *`. Tests that
+dereference fields must `#include "souls_formats/sf_binder.h"` even if
+they only call BXF4 APIs.

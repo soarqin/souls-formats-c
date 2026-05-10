@@ -1,88 +1,23 @@
 {
-  "active_plan": "/home/soar/src/souls-formats-c/.sisyphus/plans/api-realignment.md",
-  "started_at": "2026-05-10T07:27:23.897Z",
+  "active_plan": "/home/soar/src/souls-formats-c/.sisyphus/plans/phase-3-archive-containers.md",
+  "started_at": "2026-05-10T13:06:57.219Z",
   "session_ids": [
-    "ses_1ef37613effe2Hllt7gkliCc6S",
-    "ses_1eee7eb55ffeiUPaxt6wCRqhWv"
+    "ses_1ee0081e3ffexB9R6D69f7Tces"
   ],
-  "session_origins": {
-    "ses_1ef37613effe2Hllt7gkliCc6S": "direct",
-    "ses_1eee7eb55ffeiUPaxt6wCRqhWv": "direct"
-  },
-  "plan_name": "api-realignment",
+  "plan_name": "phase-3-archive-containers",
   "agent": "atlas",
+  "session_origins": {
+    "ses_1ee0081e3ffexB9R6D69f7Tces": "direct"
+  },
   "task_sessions": {
-    "todo:1": {
-      "task_key": "todo:1",
-      "task_label": "1",
-      "task_title": "**Pin upstream commit + create UPSTREAM.md**",
-      "session_id": "ses_1ef34cfafffeTCDUBs2WNVpaoB",
-      "agent": "Sisyphus-Junior",
-      "category": "writing",
-      "updated_at": "2026-05-10T07:31:10.478Z"
-    },
-    "todo:2": {
-      "task_key": "todo:2",
-      "task_label": "2",
-      "task_title": "**Capture pre-refactor golden hashes**",
-      "session_id": "ses_1ef2c4151ffek9NCXN5nZHHHJ3",
-      "agent": "Sisyphus-Junior",
-      "category": "unspecified-high",
-      "updated_at": "2026-05-10T07:52:27.084Z"
-    },
-    "todo:8": {
-      "task_key": "todo:8",
-      "task_label": "8",
-      "task_title": "**BinaryReaderEx — map + fix + test**",
-      "session_id": "ses_1eee5ba4dffeGiO8nMVVO4k4H4",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-05-10T09:02:55.406Z"
-    },
-    "todo:13": {
-      "task_key": "todo:13",
-      "task_label": "13",
-      "task_title": "**SFUtil — map + sf_get_decompressed_reader + test**",
-      "session_id": "ses_1eec7b662ffeEhbdFoApVWoM7x",
-      "agent": "Sisyphus-Junior",
-      "category": "unspecified-high",
-      "updated_at": "2026-05-10T09:38:29.261Z"
-    },
-    "todo:21": {
-      "task_key": "todo:21",
-      "task_label": "21",
-      "task_title": "**Binder family mapping (Binder common + BND3 + BND4 + BXF3 + BXF4 + BHD5)**",
-      "session_id": "ses_1eebd5312ffesfUfferQFykG8i",
-      "agent": "Sisyphus-Junior",
-      "category": "writing",
-      "updated_at": "2026-05-10T09:41:30.887Z"
-    },
-    "todo:29": {
-      "task_key": "todo:29",
-      "task_label": "29",
-      "task_title": "**Tier B legacy inventory (legacy.md)**",
-      "session_id": "ses_1eeb88c1bffe0QDIeWqLUELfzL",
-      "agent": "Sisyphus-Junior",
-      "category": "writing",
-      "updated_at": "2026-05-10T09:47:05.684Z"
-    },
-    "todo:37": {
-      "task_key": "todo:37",
-      "task_label": "37",
-      "task_title": "**PLAN.md sync (§5 / §7 / §11 / §12)**",
-      "session_id": "ses_1eeb5450fffe57GMTV4ptiw5PT",
-      "agent": "Sisyphus-Junior",
-      "category": "writing",
-      "updated_at": "2026-05-10T09:51:09.295Z"
-    },
     "final-wave:f1": {
       "task_key": "final-wave:f1",
       "task_label": "F1",
       "task_title": "**Plan Compliance Audit** — `oracle`",
-      "session_id": "ses_1eea90a06ffeWJiIIDjZtRRYxN",
+      "session_id": "ses_1ed6d0569ffeBcMZ19IO2Gy6dT",
       "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-05-10T10:04:31.950Z"
+      "category": "unspecified-high",
+      "updated_at": "2026-05-10T15:56:49.365Z"
     }
   }
 }
