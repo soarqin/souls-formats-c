@@ -365,3 +365,75 @@ they only call BXF4 APIs.
   in `read_file_header` / `write_file_headers` rather than relying only on
   header-width `is64_bit` detection; bucket/header-width detection and
   FileHeader layout selection are separate concerns.
+
+## F2 Code Quality Review (2026-05-11)
+
+### Verdict: APPROVE
+
+### Files reviewed (4 most complex)
+- src/archive/bnd4.c (847 lines)
+- src/archive/bhd5.c (724 lines)
+- src/archive/binder_common.c (676 lines)
+- src/archive/tpf.c (750 lines)
+
+### Quality findings
+
+**Strengths:**
+- 100% SF_API coverage on public functions across all 8 archive headers
+  (469 SF_API hits total across 17 public headers)
+- All public fallible APIs return sf_result_t; output via pointer
+- Zero fopen/fread/fwrite in src/ — paths only via sf_istream_t/sf_ostream_t
+- Zero `-Wno-` or `#pragma warning` suppressions in src/
+- Every sf_binary_writer_reserve_* paired with matching fill_* (verified
+  in bnd4_write_to_writer, bhd5_write, binder3/4_write_file_data, tpf)
+- _Static_assert drift-guard on sf_bhd5_game_t (`SF_BHD5_GAME_COUNT_ == 4`)
+  matching the canonical pattern in src/core/error.c
+- Synthetic tests do `write→read→write→compare byte-equal` on synthetic
+  data ONLY (test_bnd4_synthetic.c:101-102, test_bhd5_synthetic.c does the
+  same on plaintext only); E2E tests against real ER files only assert
+  magic bytes + counts, never full byte-equal
+- Allocator threading is consistent: every "create" routes through
+  sf_alloc_or_default(a) and remembers the allocator on the handle
+- Error cleanup paths verified: bnd4_populate_from_reader (3-stage
+  cleanup_files/cleanup_headers), bhd5 parse_bhd5 (single `out` label
+  with header_offsets free), tpf_populate (recs always freed)
+
+**Minor concerns (non-blocking):**
+1. `sfi_binder_write_format` / `sfi_binder_write_file_flags` (binder_common.c:39-67)
+   return void and `(void)`-cast the underlying `sf_binary_writer_write_u8`
+   result. This is technically silent error swallowing, but:
+   - Internal-only helpers (sfi_ prefix, no SF_API, not in public header)
+   - Mirrors upstream's `Binder.WriteFormat` (returns void in C#)
+   - Subsequent writes will fail and surface the underlying I/O error
+   Consider tightening to `sf_result_t` in a future cleanup pass.
+2. `sfi_binder_read_format` returns `SF_BINDER_FORMAT_NONE` on read error,
+   masking I/O failure as a valid format byte 0x00. Same mitigation as #1.
+3. `tpf.c:644` casts `(uint8_t **)&cx` where `void *cx` would cleanly
+   become `uint8_t *cx = NULL;` — minor stylistic.
+4. `bhd5.c:472` doesn't check whether `sf_istream_length(b->bdt_stream)`
+   returned a negative value before storing in `b->bdt_length`. Subsequent
+   `extract_file` does unsigned arithmetic on (b->bdt_length - file_offset)
+   which would behave oddly on negative bdt_length. Should error.
+5. `lsp_diagnostics`: 1 clangd warning about unused include
+   `archive/tpf_headerizer.h` in tpf.c. Trivial cleanup.
+
+**Non-issues confirmed clean:**
+- No generic AI-slop names (`temp`, `helper`, `tmp_data`, `internal_v2`,
+  `new_data`, `my_data`) anywhere in src/archive/
+- No redundant `// just restates the code` comments — most comments either
+  cite upstream line ranges (BinderHashTable.cs:46-47, TPF.cs:357-361, …)
+  or document non-obvious wire-format layout
+- No dead/unreachable branches detected in spot checks
+- Pseudo-helper risk: only `sfi_format_index_name` (binder_common.c:174)
+  wraps a single snprintf — but it standardises a naming convention used
+  ~25 times for reservation labels, so it earns its keep
+
+## F3 QA verification - 2026-05-11
+
+- Full ctest: 32/32 pass, 0 fail in 8.71s (build-mingw).
+- e2e label: 5 tests pass (with IGNOREs because ER copy / Oodle DLL not available in this env). bxf4 e2e has 1 PASS + 2 IGNORE. Acceptable per F3 contract.
+- DLL exports: 469 sf_* symbols, zero sfi_/rsa/RSA leaks.
+- Internal-leak grep for sfi_aes_decrypt_ecb_buffer / sfi_rsa / sfi_bhd5_get returns empty.
+- CLI sf_bnd_extract.exe (5.30 MB) prints usage banner, exit=1 on no args (correct).
+- Regression: core 7/7, compression 5/5, crypto 5/5 all green.
+- VERDICT: APPROVE.

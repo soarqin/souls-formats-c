@@ -110,3 +110,31 @@ c) **Provide the orchestrator with the actual source** if there is one I
 
 I am pausing T3 and awaiting orchestrator guidance to avoid violating the
 "no made up keys" constraint or producing dead code.
+
+## 2026-05-11 — F3 Real Manual QA findings
+
+QA run (Sisyphus-Junior) verifying Phase 3 deliverables against the plan.
+
+### What passed
+- Build: clean (`ninja: no work to do`).
+- Full ctest: **32/32 PASS**, 0 failures, 8.57s total (logged in `evidence/final-qa/all-tests.log`).
+- Core regression (Phase 0/1): **7/7 PASS**.
+- Phase 2 (compression+crypto): **10/10 PASS**.
+- Phase 3 archive synthetic round-trips: **8/8 PASS** (`binder_common`, `bhd5`, `bnd3`, `bnd4`, `bxf3`, `bxf4`, `enfl`, `tpf`).
+- Phase 3 e2e: **5/5 binaries PASS** (er_helper_smoke + 4 keystone e2e_er). All inner Unity sub-tests gracefully `IGNORE` because ER copy/Oodle DLL not present — expected behavior.
+- DLL exports: **469** `sf_*` symbols (well above 200 floor).
+- Mapping docs: **0** files contain `未实现` markers across the 8 Phase 3 format docs.
+- CLI binary `examples/sf_bnd_extract.exe` exists (5.2 MB), prints documented usage when invoked w/ no args, returns exit code 1 (per spec).
+
+### Gap (does NOT block APPROVE, but tracked)
+- Phase 3 plan deliverable `tests/examples/test_sf_bnd_extract_smoke.c` (synthetic deterministic CLI round-trip) is **not implemented**; the test `souls_formats_test_sf_bnd_extract_smoke` is not registered in `tests/CMakeLists.txt`. `ctest -R 'sf_bnd_extract_smoke'` returns "No tests were found!!!". The CLI binary itself is functional (manual verification passes), but there is no automated invariant proving end-to-end synthetic-fixture round-trip via the CLI surface. Recommend adding before declaring Phase 3 fully closed.
+
+### Evidence files (11)
+`evidence/final-qa/{build,all-tests,core-tests,phase2-tests,archive-tests,e2e-tests,keystone-e2e,cli-smoke,dll-exports,mapping-check}.log` + `EVIDENCE-LIST.txt`.
+
+## 2026-05-11 — F4 upstream alignment spot-check findings
+
+- BND4 critical fields and `!BitBigEndian` inversion match upstream; Names1 extra ID/zero trailer is implemented in `binder_common.c`.
+- BHD5 spot-check rejected: current C code only models v1 ER-style file headers and drops SHA range metadata on read/write, so it does not fully mirror upstream BHD5 per-game layouts or SHA blob round-tripping.
+- TPF spot-check rejected against the F4 scope note: current C code parses/writes non-PC metadata rather than returning `SF_ERR_UNSUPPORTED_VERSION` for non-PC TPFs.
+- Binder hash table implementation mirrors upstream `files.Count / 7` integer-division start; note that this conflicts with the older notepad/spot-check wording that says `ceil(n/7)`.

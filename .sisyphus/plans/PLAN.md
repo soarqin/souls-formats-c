@@ -529,16 +529,16 @@ souls-formats-c/
     - `~/dev/oodle/oo2core_6_win64.dll` 缺失 → `test_dcx_krak` SKIP（`TEST_IGNORE_MESSAGE("oodle dll missing")`）。
     - `/mnt/c/Games/ELDEN RING/` 缺失 → `test_regulation_decrypt`、`test_dcx_krak` SKIP。
 
-### Phase 3 — 档案容器（预估 2 周）
-- [ ] `sf_binder.h`：共享 `sf_binder_file_t { id, name(UTF-8), data, size, flags, compressed_size }`。
-- [ ] `sf_bnd3.{h,c}`：读 + 写，DCX 自动识别 / 重新打包。
-- [ ] `sf_bnd4.{h,c}`：同上，含 ER/AC6 的 unicode 名称、hash table、长 ID 表。
-- [ ] `sf_bxf3.{h,c}` / `sf_bxf4.{h,c}`：分离的 .bhd + .bdt。
-- [ ] `sf_bhd5.{h,c}`：带 AES 范围加密 + 32 字节 salted SHA blob 解析（仅存储不计算，与上游一致）。
-- [ ] `sf_tpf.{h,c}`：DDS / platform-specific texture container；不解 DDS 像素数据（透传）。
-- [ ] `sf_enfl.{h,c}`：load screen preload list（zlib 压缩负载）。
-- [ ] 示例：`examples/sf_bnd_extract.c`。
-- [ ] **QA 场景**：
+### Phase 3 — 档案容器（预估 2 周）✅ **DONE 2026-05-10 — 32/32 PASS across 12 test binaries**
+- [x] `sf_binder.h`：共享 `sf_binder_file_t { id, name(UTF-8), data, size, flags, compressed_size }`。
+- [x] `sf_bnd3.{h,c}`：读 + 写，DCX 自动识别 / 重新打包。
+- [x] `sf_bnd4.{h,c}`：同上，含 ER/AC6 的 unicode 名称、hash table、长 ID 表。
+- [x] `sf_bxf3.{h,c}` / `sf_bxf4.{h,c}`：分离的 .bhd + .bdt。
+- [x] `sf_bhd5.{h,c}`：带 AES 范围加密 + 32 字节 salted SHA blob 解析（仅存储不计算，与上游一致）。
+- [x] `sf_tpf.{h,c}`：DDS / platform-specific texture container；不解 DDS 像素数据（透传）。
+- [x] `sf_enfl.{h,c}`：load screen preload list（zlib 压缩负载）。
+- [x] 示例：`examples/sf_bnd_extract.c`。
+- [x] **QA 场景**：
   - **工具**：cmake / ninja / ctest / WSL interop / ER 副本
   - **命令**：
     ```bash
