@@ -32,7 +32,7 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 ## Phase 1 / HashHelper
 
-- [ ] [HashHelper] sf_is_prime missing (closes when Task 11 ships)
+- [x] [HashHelper] sf_is_prime missing (closed by Task 12)
 
 ## Phase 1 / SFUtil
 
