@@ -1,0 +1,27 @@
+# clangd configuration for souls-formats-c
+#
+# We cross-compile from WSL2 / Linux to Windows PE via MinGW-w64. clangd needs
+# to be told this is a Windows target so it pulls headers from the MinGW sysroot
+# rather than the host Linux libc.
+
+CompileFlags:
+  Compiler: x86_64-w64-mingw32-gcc-posix
+  Add:
+    - --target=x86_64-w64-mingw32
+    - -isystem/usr/x86_64-w64-mingw32/include
+    - -isystem/usr/lib/gcc/x86_64-w64-mingw32/13-posix/include
+    - -I${SourceDir}/include
+    - -I${SourceDir}/src
+    - -D_WIN32
+    - -D__MINGW32__
+  Remove:
+    # Strip MSVC-only flags that may sneak in from MSVC compile_commands.json
+    # (no-op on MinGW builds).
+    - /W*
+    - /WX
+    - /D*
+
+Diagnostics:
+  Suppress:
+    # Unity uses K&R-style internal helpers; not our problem.
+    - -Wmissing-prototypes

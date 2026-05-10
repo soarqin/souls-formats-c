@@ -1,0 +1,65 @@
+# souls-formats-c style — Linux kernel-ish, 4 spaces, 100 columns
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++17
+
+# Indent
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+NamespaceIndentation: None
+AccessModifierOffset: -4
+
+# Width
+ColumnLimit: 100
+
+# Braces
+BreakBeforeBraces: Attach
+BraceWrapping:
+  AfterFunction: false
+  AfterStruct: false
+  AfterEnum: false
+  BeforeElse: false
+
+# Spaces
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpacesBeforeTrailingComments: 2
+
+# Pointer / reference style: int *p, not int* p
+PointerAlignment: Right
+DerivePointerAlignment: false
+
+# Function decls
+AllowShortFunctionsOnASingleLine: None
+AlwaysBreakAfterReturnType: None
+BinPackArguments: true
+BinPackParameters: true
+
+# Includes — group public, then internal, then system
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^"souls_formats/'
+    Priority: 1
+  - Regex: '^"sf_'
+    Priority: 1
+  - Regex: '^".*"'
+    Priority: 2
+  - Regex: '^<windows\.h>'
+    Priority: 4
+  - Regex: '^<.*\.h>'
+    Priority: 3
+  - Regex: '.*'
+    Priority: 5
+
+# Misc
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignTrailingComments: true
+ReflowComments: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1

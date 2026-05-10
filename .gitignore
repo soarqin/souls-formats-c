@@ -1,0 +1,59 @@
+# Build directories
+build/
+build-*/
+out/
+cmake-build-*/
+
+# Compile commands (clangd)
+compile_commands.json
+.cache/
+
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# CMake-generated
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+cmake_install.cmake
+Makefile
+*.cbp
+
+# CPM cache (per-developer, never commit)
+.cpm-cache/
+
+# Coverage
+*.gcda
+*.gcno
+*.gcov
+coverage/
+*.profraw
+*.profdata
+
+# Compiled / linked artifacts
+*.obj
+*.o
+*.lib
+*.a
+*.dll
+*.so
+*.exe
+*.pdb
+*.exp
+*.ilk
+*.idb
+
+# Test data — real game files / DLLs / paramdex are NEVER committed
+tests/fixtures/real/
+tests/data/
+
+# Sisyphus internal scratch (plans are committed; logs are not)
+.sisyphus/logs/
+.sisyphus/cache/
