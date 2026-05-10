@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.0] — 2026-05-10
+
+### Added
+- Archive container layer: 7 formats (BND3/BND4/BXF3/BXF4/BHD5/TPF/ENFL) — full read/write + streaming readers
+- BHD5: RSA-decrypt for Data0.bhd (Sekiro/ER/Nightreign/AC6 community PEM keys); AES range decryption inline from .bhd data
+- Phase 1 retro-fit: `sf_reverse_bits_u8` for binder format byte read/write
+- Phase 1 retro-fit: `sf_path_hash_64` for BHD5 ER+ 64-bit hash
+- Phase 2 retro-fit: `sfi_aes_decrypt_ecb_buffer` for BHD5 range decryption
+- Minimal DDS header parser (`sfi_dds_parse_header`) for TPF texture metadata
+- ER e2e test helper (`er_extract_from_data0`) — singleton opening real ER Data0.bhd/bdt
+- CLI example: `sf_bnd_extract.exe` — extract BND4 archives to disk
+
 ## [0.2.0] - 2026-05-10
 
 ### Breaking changes
