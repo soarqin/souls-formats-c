@@ -11,3 +11,37 @@
 2026-05-11: PARAMDEF binary field layouts are easiest to preserve by treating v106..199 and v202+ string fields as varint offsets, while v201 still uses fixed 0x40 display-name storage despite being a >=200 format.
 2026-05-11: PARAMDEF v203 keeps four typed default/min/max/increment values after the v200 unknown string-offset triplet; earlier versions store those four values as f32 immediately after display format.
 2026-05-11: PARAM binary read should pre-read endian/Format2D/Format2E at 0x2C before parsing offset-width-dependent header and row tables; v1 intentionally rejects unnamed/headerless rows when DataStart leaves less space than row_count * row_header_size.
+
+## T2.3 PARAMTDF text parser (2026-05-11)
+
+**Approach**: zero-allocation tokenizer + 6-type whitelist + per-type integer parse.
+
+- `next_nonempty_line` walks the buffer once, skipping `\r`/`\n` runs,
+  yielding `(start, len)` slices without copying. Mirrors C# `Split(new
+  char[]{'\r','\n'}, RemoveEmptyEntries)` exactly.
+- `trim_quotes` returns slice into source buffer (NOT NUL-terminated) to
+  avoid heap churn during parse. Only the final dup_slice for `name` and
+  the per-entry `value_cstr` allocate.
+- Two-pass: `count_nonempty_lines` first to size the entries array
+  exactly, then parse. Saves a `realloc` loop and matches upstream's
+  `new List<Entry>(lines.Length - 2)` capacity hint.
+
+**Error code mapping** (upstream throws → our return):
+- `Enum.Parse` failure (bad type name) → `SF_ERR_INVALID_ARG`
+- `int.Parse` `FormatException` (not a number) → `SF_ERR_OUT_OF_RANGE`
+- `int.Parse` `OverflowException` (out of range) → `SF_ERR_OUT_OF_RANGE`
+- `IndexOutOfRangeException` on `lines[1]` (truncated) → `SF_ERR_TRUNCATED`
+- `IndexOutOfRangeException` on `Split(',')[1]` (no comma) → `SF_ERR_INVALID_ARG`
+
+The task spec mentioned `SF_ERR_BAD_DATA` but that code does not exist in
+`sf_common.h`. `SF_ERR_OUT_OF_RANGE` is the canonical "value cannot be
+parsed/cannot fit" code in this codebase (49 uses across 13 files).
+
+**C-vs-C# subtlety**: `byte.Parse("-1")` throws in C#, but C's `strtoul`
+silently wraps to `ULONG_MAX`. Added explicit leading-`-` guard before
+calling `strtoul` to preserve upstream rejection semantics.
+
+**Allocator on destroy**: The destroy function ignores the `alloc`
+parameter and uses the allocator stored on the object (`tdf->alloc`).
+The parameter is accepted for symmetric API but the body is `(void)alloc;`.
+This matches the API spec but should be considered when reviewing.
