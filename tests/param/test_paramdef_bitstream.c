@@ -7,6 +7,7 @@
  * translation unit to exercise them without touching the public API.
  */
 
+#define SF_PARAMDEF_APPLY_BITSTREAM_ONLY
 #include "param/paramdef_apply.c"
 
 #include "unity.h"

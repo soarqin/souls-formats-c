@@ -106,6 +106,7 @@ set(SF_SOURCES
     src/internal/dds_header.c
     src/param/param.c
     src/param/paramdef.c
+    src/param/paramdef_apply.c
     src/param/paramdef_xml_read.c
     src/param/paramtdf.c
     src/text/fmg.c

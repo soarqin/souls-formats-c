@@ -4,3 +4,4 @@
 2026-05-11: `lsp_diagnostics` has no server configured for `tests/CMakeLists.txt`; validate CMake changes through configure/build instead.
 2026-05-11: Existing `sf_paramdef.h` declares `sf_paramdef_write_to_stream(..., const sf_allocator_t *alloc)`, so T3.1 implementation preserves the existing public signature despite the task summary omitting the allocator parameter.
 2026-05-11: In MinGW/LLP64 builds, `(int64_t)SIZE_MAX` can become `-1`; use unsigned comparison (`(uint64_t)size64 > (uint64_t)SIZE_MAX`) when guarding int64-to-size_t row-data sizes.
+2026-05-11: `sf_common.h` still has no `SF_ERR_MISMATCH` or `SF_ERR_BAD_DATA`; T3.3 maps “paramdef not applied” to `SF_ERR_NOT_FOUND` and invalid/orphaned bit data to `SF_ERR_BAD_MAGIC`.
