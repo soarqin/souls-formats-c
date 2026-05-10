@@ -88,11 +88,11 @@ test 14
 14: -----------------------
 14: 9 Tests 0 Failures 0 Ignored 
 14: OK
-1/1 Test #14: souls_formats_test_golden ........   Passed    0.28 sec
+1/1 Test #14: souls_formats_test_golden ........   Passed    0.31 sec
 
 100% tests passed, 0 tests failed out of 1
 
 Label Time Summary:
-golden    =   0.28 sec*proc (1 test)
+golden    =   0.31 sec*proc (1 test)
 
-Total Test time (real) =   0.29 sec
+Total Test time (real) =   0.31 sec
