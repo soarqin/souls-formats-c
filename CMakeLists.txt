@@ -23,6 +23,7 @@ include(sanitizers)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/CPM.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/deps/zlib-ng.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/deps/zstd.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/deps/mxml.cmake)
 
 #-----------------------------------------------------------------------------
 # Platform guard — Windows only (per project charter)
@@ -140,7 +141,7 @@ function(_sf_configure_library target)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/archive
     )
     target_compile_features(${target} PUBLIC c_std_11)
-    target_link_libraries(${target} PRIVATE bcrypt crypt32 zlib ${SF_ZSTD_TARGET})
+    target_link_libraries(${target} PRIVATE bcrypt crypt32 zlib ${SF_ZSTD_TARGET} mxml_static)
     sf_apply_warnings(${target})
     sf_apply_sanitizers(${target})
 endfunction()

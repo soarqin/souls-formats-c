@@ -10,6 +10,7 @@
 #include "souls_formats/sf_paramdef.h"
 
 #include "internal/sf_internal.h"
+#include "param/paramdef_internal.h"
 
 #include <limits.h>
 #include <stdbool.h>
@@ -18,43 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-struct sf_paramdef_field {
-    char *display_name;
-    char *internal_type;
-    char *internal_name;
-    char *description;
-    char *display_format;
-
-    sf_paramdef_def_type_t display_type;
-    sf_paramdef_default_value_t default_value;
-    sf_paramdef_default_value_t minimum;
-    sf_paramdef_default_value_t maximum;
-    sf_paramdef_default_value_t increment;
-    sf_paramdef_edit_flags_t edit_flags;
-    int32_t byte_count;
-    int32_t bit_size;
-    int32_t array_length;
-    int32_t sort_id;
-    uint64_t first_regulation_version;
-    uint64_t removed_regulation_version;
-};
-
-struct sf_paramdef {
-    const sf_allocator_t *alloc;
-    sf_paramdef_field_t *fields;
-    size_t field_count;
-
-    char *param_type;
-    int16_t data_version;
-    int16_t format_version;
-    int32_t row_size;
-    int32_t index;
-    bool big_endian;
-    bool unicode;
-    bool version_aware;
-    bool basic_fields;
-};
 
 static void field_free(sf_paramdef_field_t *f, const sf_allocator_t *a) {
     if (!f) return;

@@ -129,7 +129,7 @@ sf_add_test(souls_formats_test_param_binary_write param/test_param_binary_write.
 sf_add_test(souls_formats_test_param_apply_paramdef param/test_param_apply_paramdef.c "param")
 sf_add_test(souls_formats_test_paramdef_binary_read param/test_paramdef_binary_read.c "param")
 sf_add_test(souls_formats_test_paramdef_binary_write param/test_paramdef_binary_write.c "param")
-sf_add_test(paramdef_xml_read param/test_paramdef_xml_read.c "param")
+sf_add_test(souls_formats_test_paramdef_xml_read param/test_paramdef_xml_read.c "param")
 sf_add_test(paramtdf_read param/test_paramtdf_read.c "param")
 sf_add_test(souls_formats_test_paramtdf_write param/test_paramtdf_write.c "param")
 sf_add_test(fmg_read param/test_fmg_read.c "param")
