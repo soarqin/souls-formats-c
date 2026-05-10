@@ -93,3 +93,7 @@ and compare against `{ 'E', 'V', 'D', 0 }` instead.
 
 **Ownership pattern**: `sf_emevd_destroy(emevd, alloc)` ignores the allocator
 parameter and frees with `emevd->alloc`, matching PARAMTDF/FMG destroy behavior.
+
+2026-05-11: PARAMTDF write mirrors upstream exactly: always emit CRLF,
+keep the trailing line ending after the last entry, and quote the
+name/type/value fields with no escape processing.

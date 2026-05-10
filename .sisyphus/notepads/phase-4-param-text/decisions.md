@@ -6,6 +6,9 @@
 - PARAM apply: 3-mode enum (UNCONDITIONAL/SOMEWHAT_CAREFUL/CAREFUL) — folds 8 upstream variants
 - PARAMDEF XML: Def attribute parsed with 3 regex patterns (outer/bit/array) — mirrors XmlSerializer.cs
 - PARAMTDF: Pure text, no binary — mirrors upstream
+
+- PARAMTDF write: naive quoted text with CRLF line endings and no escape
+  handling — mirrors upstream Write() literally.
 - EMEVD ArgData: Raw bytes passthrough — no EMEDF JSON loading
 - FMG groups: Internal write-time concept — not exposed in public API
 - Bit-packing: little-endian bit order, paramdef_apply.c helpers — mirrors Row.cs:236-244
