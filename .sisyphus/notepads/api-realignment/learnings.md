@@ -173,3 +173,9 @@
 - FXR3 (Rainbow Stone FXR) is an SFX definition format with a state-machine-like structure (StateMap -> State -> Condition).
 - FXR3 supports XML serialization via FXR3EnhancedSerialization, which will be important for tool parity.
 - Both formats are planned for Phase 7 implementation.
+
+## MSB Family Mapping (Task 25)
+- MSB formats share a common base structure (Models, Events, Regions, Routes, Parts) but differ significantly in the specific types and data structures within those categories.
+- MSBE (Elden Ring) and MSBVI (AC6) use 64-bit offsets and have more complex inheritance/struct patterns compared to MSBS (Sekiro).
+- MSBVI (AC6) implementation in SoulsFormatsNEXT is based on Smithbox and includes additional params like Layers.
+- Disambiguation of names is a common pattern across all MSB formats to handle duplicate entry names.
