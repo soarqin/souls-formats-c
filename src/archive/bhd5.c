@@ -234,7 +234,7 @@ out:
 }
 
 static sf_result_t read_sha_hash(sf_binary_reader_t *r, sf_bhd5_file_t *file,
-                                 int64_t sha_hash_offset) {
+                                  int64_t sha_hash_offset) {
     sf_result_t rr = sf_binary_reader_step_in(r, sha_hash_offset);
     if (rr != SF_OK) return rr;
     rr = sf_binary_reader_read_bytes(r, file->sha_hash, sizeof(file->sha_hash));
@@ -244,24 +244,34 @@ static sf_result_t read_sha_hash(sf_binary_reader_t *r, sf_bhd5_file_t *file,
 }
 
 static sf_result_t read_file_header(sf_binary_reader_t *r, sf_bhd5_file_t *file,
-                                    const sf_allocator_t *a) {
+                                    sf_bhd5_game_t game, const sf_allocator_t *a) {
     int64_t sha_hash_offset = 0;
     int64_t aes_key_offset = 0;
     int32_t padded = 0;
     int32_t unpadded = 0;
 
-    sf_result_t rr = sf_binary_reader_read_u64(r, &file->path_hash);
-    if (rr != SF_OK) return rr;
-    rr = read_i32_nonnegative(r, &padded);
-    if (rr != SF_OK) return rr;
-    rr = read_i32_nonnegative(r, &unpadded);
-    if (rr != SF_OK) return rr;
-    rr = sf_binary_reader_read_i64(r, &file->file_offset);
-    if (rr != SF_OK) return rr;
-    rr = sf_binary_reader_read_i64(r, &sha_hash_offset);
-    if (rr != SF_OK) return rr;
-    rr = sf_binary_reader_read_i64(r, &aes_key_offset);
-    if (rr != SF_OK) return rr;
+    sf_result_t rr = SF_OK;
+    switch (game) {
+    case SF_BHD5_GAME_SEKIRO:
+    case SF_BHD5_GAME_ELDENRING:
+    case SF_BHD5_GAME_NIGHTREIGN:
+    case SF_BHD5_GAME_ARMOREDCORE6:
+        rr = sf_binary_reader_read_u64(r, &file->path_hash);
+        if (rr != SF_OK) return rr;
+        rr = read_i32_nonnegative(r, &padded);
+        if (rr != SF_OK) return rr;
+        rr = read_i32_nonnegative(r, &unpadded);
+        if (rr != SF_OK) return rr;
+        rr = sf_binary_reader_read_i64(r, &file->file_offset);
+        if (rr != SF_OK) return rr;
+        rr = sf_binary_reader_read_i64(r, &sha_hash_offset);
+        if (rr != SF_OK) return rr;
+        rr = sf_binary_reader_read_i64(r, &aes_key_offset);
+        if (rr != SF_OK) return rr;
+        break;
+    default:
+        return SF_ERR_UNSUPPORTED_VERSION;
+    }
 
     if (file->file_offset < 0 || sha_hash_offset < 0 || aes_key_offset < 0) return SF_ERR_OUT_OF_RANGE;
     file->padded_size = (uint32_t)padded;
@@ -404,7 +414,7 @@ static sf_result_t parse_bhd5(sf_bhd5_t *b, uint8_t *bytes, size_t size) {
         rr = sf_binary_reader_step_in(r, header_offsets[i]);
         if (rr != SF_OK) goto out;
         for (size_t j = 0; j < b->buckets[i].count; j++) {
-            rr = read_file_header(r, &b->files[b->buckets[i].first_file + j], b->alloc);
+            rr = read_file_header(r, &b->files[b->buckets[i].first_file + j], b->game, b->alloc);
             if (rr != SF_OK) goto out;
         }
         rr = sf_binary_reader_step_out(r);
@@ -557,21 +567,31 @@ sf_result_t sf_bhd5_extract_by_path(const sf_bhd5_t *b, const char *utf8_path,
 }
 
 static sf_result_t write_file_headers(sf_binary_writer_t *w, const sf_bhd5_t *b,
-                                      const int64_t *sha_offsets, const int64_t *aes_offsets) {
+                                       const int64_t *sha_offsets, const int64_t *aes_offsets) {
     for (size_t i = 0; i < b->file_count; i++) {
         const sf_bhd5_file_t *f = &b->files[i];
-        sf_result_t rr = sf_binary_writer_write_u64(w, f->path_hash);
-        if (rr != SF_OK) return rr;
-        rr = sf_binary_writer_write_u32(w, f->padded_size);
-        if (rr != SF_OK) return rr;
-        rr = sf_binary_writer_write_u32(w, f->unpadded_size);
-        if (rr != SF_OK) return rr;
-        rr = sf_binary_writer_write_i64(w, f->file_offset);
-        if (rr != SF_OK) return rr;
-        rr = sf_binary_writer_write_i64(w, sha_offsets[i]);
-        if (rr != SF_OK) return rr;
-        rr = sf_binary_writer_write_i64(w, aes_offsets[i]);
-        if (rr != SF_OK) return rr;
+        sf_result_t rr = SF_OK;
+        switch (b->game) {
+        case SF_BHD5_GAME_SEKIRO:
+        case SF_BHD5_GAME_ELDENRING:
+        case SF_BHD5_GAME_NIGHTREIGN:
+        case SF_BHD5_GAME_ARMOREDCORE6:
+            rr = sf_binary_writer_write_u64(w, f->path_hash);
+            if (rr != SF_OK) return rr;
+            rr = sf_binary_writer_write_u32(w, f->padded_size);
+            if (rr != SF_OK) return rr;
+            rr = sf_binary_writer_write_u32(w, f->unpadded_size);
+            if (rr != SF_OK) return rr;
+            rr = sf_binary_writer_write_i64(w, f->file_offset);
+            if (rr != SF_OK) return rr;
+            rr = sf_binary_writer_write_i64(w, sha_offsets[i]);
+            if (rr != SF_OK) return rr;
+            rr = sf_binary_writer_write_i64(w, aes_offsets[i]);
+            if (rr != SF_OK) return rr;
+            break;
+        default:
+            return SF_ERR_UNSUPPORTED_VERSION;
+        }
     }
     return SF_OK;
 }
