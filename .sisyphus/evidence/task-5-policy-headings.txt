@@ -1,0 +1,13 @@
+### Properties
+### Method overloads by parameter type
+### Generic methods
+### Default parameter values
+### params arrays
+### out / ref parameters
+### Static state
+### null vs empty string
+### internal upstream APIs
+### Throwing exceptions
+### Encoding boundary
+### Round-trip invariant
+### Status legend
