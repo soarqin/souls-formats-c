@@ -78,6 +78,7 @@ set(SF_SOURCES
     src/crypto/regulation.c
     src/crypto/regulation_keys.c
     src/crypto/sl2.c
+    src/internal/dds_header.c
 )
 
 if(TARGET libzstd_static)
