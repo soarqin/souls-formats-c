@@ -1,0 +1,4 @@
+rows: 6
+## C-style adaptation note
+Upstream exposes 4 `static readonly System.Text.Encoding` singletons (ASCII, ShiftJIS, UTF16, UTF16BE). C has no encoding-object idiom; we expose imperative converter functions instead. This is a documented C-style adaptation per `docs/api-mapping/POLICY.md §11 (Encoding boundary)`.
+| `static readonly Encoding ASCII` | `SFEncoding.cs:13` | static field | `sf_ascii_to_utf8` / `sf_utf8_to_ascii` | `~ partial` | C-style adaptation: imperative functions instead of singleton; Win32 CP1252 |

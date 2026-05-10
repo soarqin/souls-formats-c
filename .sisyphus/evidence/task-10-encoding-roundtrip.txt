@@ -1,0 +1,43 @@
+UpdateCTestConfiguration  from :/home/soar/src/souls-formats-c/build-mingw/DartConfiguration.tcl
+Test project /home/soar/src/souls-formats-c/build-mingw
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 3
+    Start 3: souls_formats_test_encoding
+
+3: Test command: /home/soar/src/souls-formats-c/build-mingw/tests/souls_formats_test_encoding.exe
+3: Working Directory: /home/soar/src/souls-formats-c/build-mingw/tests
+3: Test timeout computed to be: 60
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:252:test_ascii_roundtrip:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:253:test_ascii_terminate:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:254:test_ascii_empty:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:255:test_shift_jis_decode_known_bytes:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:256:test_shift_jis_encode_known_bytes:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:257:test_shift_jis_roundtrip_mixed:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:258:test_shift_jis_roundtrip:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:259:test_utf16le_decode:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:260:test_utf16be_decode:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:261:test_utf16le_encode:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:262:test_utf16be_encode:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:263:test_utf16_roundtrip_terminated:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:264:test_utf16_le_roundtrip:PASS
+3: /home/soar/src/souls-formats-c/tests/core/test_encoding.c:265:test_utf16_be_roundtrip:PASS
+3: 
+3: -----------------------
+3: 14 Tests 0 Failures 0 Ignored 
+3: OK
+1/1 Test #3: souls_formats_test_encoding ......   Passed    0.10 sec
+
+The following tests passed:
+	souls_formats_test_encoding
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+core    =   0.10 sec*proc (1 test)
+
+Total Test time (real) =   0.10 sec
