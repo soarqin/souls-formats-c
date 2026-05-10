@@ -9,6 +9,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Breaking changes
 
+- `sf_dcx_params_t` and `sf_dcx_read_params()` were removed; use
+  `sf_dcx_compression_info_t` plus the DCX preset factory helpers instead.
 - `sf_oodle_version()` return type changed from `int` to `sf_oodle_version_t` enum.
 - `sf_binary_writer_pattern()` was renamed to `sf_binary_writer_write_pattern()` to match
   upstream `BinaryWriterEx.WritePattern`; no compatibility alias is provided.
@@ -21,6 +23,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### New APIs
 
+- `sf_dcx_compression_info_t` tagged union with all 9 upstream `CompressionInfo`
+  variants, plus `sf_dcx_default_type_t`, `sf_dcx_dflt_compression_preset_t`, and
+  `sf_dcx_krak_compression_preset_t`.
+- DCX factory helpers: `sf_dcx_compression_info_from_default_type()`,
+  `sf_dcx_compression_info_from_dflt_preset()`, and
+  `sf_dcx_compression_info_from_krak_preset()`.
+- DCX overloads mirroring upstream `Is`, `Decompress`, and `Compress` entry points:
+  `sf_dcx_is_from_buffer/stream/path()`,
+  `sf_dcx_decompress_from_buffer/stream/path()`, and
+  `sf_dcx_compress_to_buffer/stream/path()`.
 - `sf_oodle_version_t` enum (SF_OODLE_VERSION_UNKNOWN/6/8/9)
 - `sf_oodle_lz_compressor_t` and 7 other OodleLZ_* enums
 - `sf_oodle_lz_compress_options_t` struct

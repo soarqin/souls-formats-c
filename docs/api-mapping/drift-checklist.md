@@ -44,11 +44,11 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 ## Phase 2 / DCX
 
-- [ ] [DCX] flat sf_dcx_params_t must become tagged union sf_dcx_compression_info_t with 9 variants (closes when Task 14 ships)
-- [ ] [DCX] preset enums missing (sf_dcx_default_type_t, sf_dcx_dflt_compression_preset_t, sf_dcx_krak_compression_preset_t) (closes when Task 14 ships)
-- [ ] [DCX] factory helpers missing (closes when Task 14 ships)
-- [ ] [DCX] sf_dcx_is_* family missing (closes when Task 14 ships)
-- [ ] [DCX] path/stream overloads missing (closes when Task 14 ships)
+- [x] [DCX] flat sf_dcx_params_t must become tagged union sf_dcx_compression_info_t with 9 variants (closed by Task 15)
+- [x] [DCX] preset enums missing (sf_dcx_default_type_t, sf_dcx_dflt_compression_preset_t, sf_dcx_krak_compression_preset_t) (closed by Task 15)
+- [x] [DCX] factory helpers missing (closed by Task 15)
+- [x] [DCX] sf_dcx_is_* family missing (closed by Task 15)
+- [x] [DCX] path/stream overloads missing (closed by Task 15)
 
 ## Phase 2 / Oodle
 

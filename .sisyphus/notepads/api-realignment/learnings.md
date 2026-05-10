@@ -83,3 +83,9 @@
 - Upstream `BinaryWriterEx` reserves placeholders in-band as `0xFE` bytes, then keys fills by `(name, typeName)`; the C writer keeps equivalent per-type reservation identity via internal type tags (`bool`, `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`, `varint32`, `varint64`, `f32`, `f64`).
 - C writer finish semantics now mirror the upstream 3-mode split: `to_array` snapshots without closing the writer, `finish` verifies and closes the writer handle, and `finish_bytes` snapshots then verifies/closes. The borrowed `sf_ostream_t` remains caller-owned so tests can still inspect bytes after writer close.
 - `sf_binary_writer_write_pattern` is a clean break from the old `sf_binary_writer_pattern` name; tests and implementation should not retain aliases, to keep upstream `WritePattern` mapping unambiguous.
+
+## Task 15 — DCX tagged-union realignment (2026-05-10)
+
+- Upstream `DCX.Is(...)` only checks `DCP\0` / `DCX\0` file wrappers; plain zlib is supported by `Decompress` but must return false from the public `sf_dcx_is_from_*` family.
+- `DefaultType` has duplicate `Type` ordinals upstream, so the C `sf_dcx_default_type_t` uses distinct values and the factory helper maps each game to the documented preset.
+- KRAK files store compression level but not the Oodle compressor enum; decompression reconstructs `SF_OODLE_LZ_COMPRESSOR_KRAKEN`, matching upstream default constructor behavior.

@@ -137,8 +137,8 @@ sf_result_t sfi_oodle_decompress(const void *in, size_t in_size, void *out, size
     return got == (int64_t)out_size ? SF_OK : SF_ERR_DECOMPRESS;
 }
 
-sf_result_t sfi_oodle_compress(int level, const void *in, size_t in_size, void **out,
-                               size_t *out_size, const sf_allocator_t *a) {
+sf_result_t sfi_oodle_compress(int compressor, int level, const void *in, size_t in_size,
+                               void **out, size_t *out_size, const sf_allocator_t *a) {
     SF_CHECK_ARG((in || in_size == 0u) && out && out_size);
     SF_RETURN_IF(sf_oodle_load() != SF_OK, SF_ERR_OODLE_NOT_FOUND);
     int64_t bound = g_version == SF_OODLE_VERSION_6 ? g_bound((int64_t)in_size)
@@ -148,11 +148,12 @@ sf_result_t sfi_oodle_compress(int level, const void *in, size_t in_size, void *
     if (!buf) return SF_ERR_OOM;
     oodle_options_t opts;
     memset(&opts, 0, sizeof(opts));
-    void *def = g_version == SF_OODLE_VERSION_6 ? g_options(8, 4) : g_options_v8();
+    void *def = g_version == SF_OODLE_VERSION_6 ? g_options(compressor, 4) : g_options_v8();
     if (def) memcpy(&opts, def, sizeof(opts));
     opts.seekChunkReset = 1;
     opts.seekChunkLen = 0x40000;
-    int64_t got = g_compress(8, in, (int64_t)in_size, buf, level, &opts, NULL, NULL, NULL, 0);
+    int64_t got = g_compress(compressor, in, (int64_t)in_size, buf, level, &opts, NULL,
+                             NULL, NULL, 0);
     if (got <= 0) { sf_xfree(a, buf); return SF_ERR_DECOMPRESS; }
     *out = buf;
     *out_size = (size_t)got;
