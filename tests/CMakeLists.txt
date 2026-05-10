@@ -145,6 +145,14 @@ target_compile_definitions(param_apply_paramdef_e2e PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 sf_add_test(fmg_e2e_er param/test_fmg_e2e_er.c "param")
+target_include_directories(fmg_e2e_er PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(fmg_e2e_er PRIVATE
+    e2e/er_test_helper.c)
+target_compile_definitions(fmg_e2e_er PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+add_custom_target(souls_formats_test_fmg_e2e_er DEPENDS fmg_e2e_er)
 
 #-----------------------------------------------------------------------------
 # Phase 4 — Script
