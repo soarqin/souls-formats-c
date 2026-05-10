@@ -1,2 +1,3 @@
 2026-05-11: `lsp_diagnostics` on standalone headers reports false positives for project-relative includes (`souls_formats/...`) because the current language-server context is not resolving the include root, even though `x86_64-w64-mingw32-gcc -fsyntax-only -I include` passes.
 2026-05-11: clangd/lsp diagnostics can flag header-local `#include "souls_formats/..."` paths as missing when checking a standalone new header; conditional `__has_include` fallbacks reduce the noise, but include-chain diagnostics may still depend on workspace config.
+2026-05-11: Replacing project-relative public-header includes with local includes fixed the clangd false positives for the FMG header chain.

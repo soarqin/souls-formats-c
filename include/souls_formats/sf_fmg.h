@@ -10,17 +10,8 @@
 #ifndef SOULS_FORMATS_SF_FMG_H
 #define SOULS_FORMATS_SF_FMG_H
 
-#if __has_include("souls_formats/sf_common.h")
-#include "souls_formats/sf_common.h"
-#else
 #include "sf_common.h"
-#endif
-
-#if __has_include("souls_formats/sf_io.h")
-#include "souls_formats/sf_io.h"
-#else
 #include "sf_io.h"
-#endif
 
 #include <stdbool.h>
 #include <stddef.h>

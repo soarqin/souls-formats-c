@@ -3,11 +3,7 @@
 #ifndef SOULS_FORMATS_SF_OODLE_H
 #define SOULS_FORMATS_SF_OODLE_H
 
-#if __has_include("souls_formats/sf_common.h")
-#include "souls_formats/sf_common.h"
-#else
 #include "sf_common.h"
-#endif
 
 #include <stdint.h>
 #include <wchar.h>
