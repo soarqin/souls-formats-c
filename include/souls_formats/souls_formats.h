@@ -21,6 +21,7 @@
 #include "souls_formats/sf_path.h"
 #include "souls_formats/sf_dcx.h"
 #include "souls_formats/sf_oodle.h"
+#include "souls_formats/sf_regulation.h"
 
 /* Format headers will be added here as each Phase lands.
  * Phase 1: io, math, encoding, hash  (DONE)

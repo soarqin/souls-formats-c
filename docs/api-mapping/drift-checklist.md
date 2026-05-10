@@ -59,8 +59,8 @@ All Phase 0/1/2 drift items; ticked as fixes land in Wave 2/3 tasks.
 
 ## Phase 2 / RegulationDecryptor
 
-- [ ] [RegulationDecryptor] sf_regulation.h missing (no public API) (closes when Task 16 ships)
-- [ ] [RegulationDecryptor] game-specific convenience wrappers missing (closes when Task 16 ships)
+- [x] [RegulationDecryptor] sf_regulation.h missing (no public API) (closed by Task 19)
+- [x] [RegulationDecryptor] game-specific convenience wrappers missing (closed by Task 19)
 
 ## Phase 2 / SL2Decryptor
 

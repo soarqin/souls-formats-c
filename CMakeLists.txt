@@ -53,6 +53,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_path.h
     include/souls_formats/sf_dcx.h
     include/souls_formats/sf_oodle.h
+    include/souls_formats/sf_regulation.h
 )
 
 set(SF_SOURCES

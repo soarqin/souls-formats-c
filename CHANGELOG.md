@@ -20,6 +20,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `sf_binary_reader_assert_u8/u16/u32/i32/u64()` now use multi-option
   `(size_t n_options, const T *options, T *out_value)` signatures; use the
   new `_one()` helpers for the previous single-option convenience form.
+- The internal `sfi_regulation_decrypt`/`sfi_regulation_encrypt` helpers and
+  the `sfi_regulation_game_t` enum (`SFI_REGULATION_DS3` / `_ER` / `_AC6` /
+  `_NIGHTREIGN`) were removed. Use the new public
+  `sf_regulation_{decrypt,encrypt}` API and `sf_regulation_key_t` enum from
+  `<souls_formats/sf_regulation.h>` instead.
 
 ### New APIs
 
@@ -47,6 +52,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   i64/u64/f32/f64/varint arrays.
 - `sf_binary_writer_pad_ff()`, `sf_binary_writer_to_array()`,
   `sf_binary_writer_finish_bytes()`, and `sf_binary_writer_stream()`.
+- `sf_regulation.h` public header exposing the AES-256-CBC byte-level
+  RegulationDecryptor API: `sf_regulation_key_t` enum (DS3/ER/AC6/ER:NR),
+  generic `sf_regulation_decrypt()` / `sf_regulation_encrypt()`, and eight
+  game-specific wrappers (`sf_regulation_{decrypt,encrypt}_{ds3,er,ac6,ernr}`).
+  `sf_regulation_encrypt_ernr()` faithfully mirrors upstream's
+  `EncryptERNRRegulation` quirk and uses the EldenRing key, not the Nightreign
+  key — see `docs/api-mapping/util-cryptography-regulation-decryptor.md`.
 
 ### Notes
 
