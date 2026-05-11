@@ -1,11 +1,11 @@
 # ESD Mapping
 
-| Upstream File | Upstream Class | C Type | Status |
-| :--- | :--- | :--- | :--- |
-| `ESD.cs` | `SoulsFormats.ESD` | `sf_esd_t` | 未实现 |
-| `ESD.cs` | `SoulsFormats.ESD.State` | `sf_esd_state_t` | 未实现 |
-| `ESD.cs` | `SoulsFormats.ESD.Condition` | `sf_esd_condition_t` | 未实现 |
-| `ESD.cs` | `SoulsFormats.ESD.CommandCall` | `sf_esd_command_call_t` | 未实现 |
+| Upstream File | Upstream Class | C Type | Status | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| `SoulsFormats/Formats/ESD.cs` | `SoulsFormats.ESD` | `sf_esd_t` | 未实现 | inner classes (State, Condition, CommandCall) defined in same file |
+| `SoulsFormats/Formats/ESD.cs` | `SoulsFormats.ESD.State` | `sf_esd_state_t` | 未实现 | line 435; inner class defined in same file |
+| `SoulsFormats/Formats/ESD.cs` | `SoulsFormats.ESD.Condition` | `sf_esd_condition_t` | 未实现 | line 584; inner class defined in same file |
+| `SoulsFormats/Formats/ESD.cs` | `SoulsFormats.ESD.CommandCall` | `sf_esd_command_call_t` | 未实现 | line 742; inner class defined in same file |
 
 ## Member Mapping
 
