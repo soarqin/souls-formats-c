@@ -148,12 +148,19 @@ static sf_result_t rsa_unwrap_bhd5(sf_bhd5_game_t game,
             sf_xfree(a, plain);
             return r;
         }
-        if (chunk_size > SIZE_MAX - plain_size) {
+        const size_t block_size = 256u;
+        size_t padded_size = block_size;
+        if (chunk_size > padded_size) {
             sf_free(a, chunk);
             sf_xfree(a, plain);
             return SF_ERR_OUT_OF_RANGE;
         }
-        size_t need = plain_size + chunk_size;
+        if (padded_size > SIZE_MAX - plain_size) {
+            sf_free(a, chunk);
+            sf_xfree(a, plain);
+            return SF_ERR_OUT_OF_RANGE;
+        }
+        size_t need = plain_size + padded_size;
         if (need > plain_cap) {
             size_t next = plain_cap ? plain_cap : 512u;
             while (next < need) {
@@ -169,8 +176,11 @@ static sf_result_t rsa_unwrap_bhd5(sf_bhd5_game_t game,
             plain = grown;
             plain_cap = next;
         }
-        memcpy(plain + plain_size, chunk, chunk_size);
-        plain_size += chunk_size;
+        if (chunk_size < padded_size) {
+            memset(plain + plain_size, 0, padded_size - chunk_size);
+        }
+        memcpy(plain + plain_size + (padded_size - chunk_size), chunk, chunk_size);
+        plain_size += padded_size;
         sf_free(a, chunk);
     }
 
