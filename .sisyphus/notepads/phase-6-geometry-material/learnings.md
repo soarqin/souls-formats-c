@@ -46,3 +46,12 @@
 - Phase 5 completion text used: `5/5 PASS across 32 test binaries`
 - Phase 6 status now reads `🚧 in progress` across AGENTS.md and docs/roadmap/README.md
 - PLAN.md Phase 5 checklist was fully checked off without touching Phase 6 scope
+
+## [2026-05-12] T5 MATBIN ParamType empirical survey
+
+- Probe: `tests/probes/probe_matbin_paramtypes.c`; evidence written to `.sisyphus/evidence/task-5-matbin-survey.md` and raw stdout to `.sisyphus/evidence/task-5-matbin-survey.txt`.
+- `allmaterial.matbinbnd.dcx` BND4 entry count: 15103.
+- First 10 `.matbin` sample histogram: Bool(0)=63, Int(4)=20, Int2(5)=10, Float(8)=58, Float2(9)=0, Float3(10)=10, Float4(11)=0, Float5(12)=28.
+- Unknown ParamTypes: none; sampled raw values stayed within `{0,4,5,8,9,10,11,12}`.
+- De-duplicated sampler types included C_Detail3Blend and OverlayBlend texture slots; smallest MATBIN found was `S[Ghost].matbin` at 425 bytes.
+- Gotcha: current `er_extract_from_data0()` 32-bit/37 hash path did not locate allmaterial in this install; the probe falls back to the BHD5 64-bit `h = c + 133*h` hash used by modern archives, then applies the same one-layer DCX unwrap.
