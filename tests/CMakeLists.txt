@@ -137,6 +137,8 @@ target_compile_definitions(souls_formats_test_tpf_e2e_er PRIVATE
 # Phase 5 — script formats
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_esd_read script/test_esd_read.c "script")
+sf_add_test(souls_formats_test_esd_write script/test_esd_write.c "script")
+sf_add_test(souls_formats_test_esd_synthetic_rt script/test_esd_synthetic_rt.c "script")
 
 #-----------------------------------------------------------------------------
 # Phase 4 — PARAM/PARAMDEF
@@ -201,6 +203,46 @@ sf_add_test(msbs_root_smoke
     map/msbs/test_msbs_root_smoke.c "map")
 sf_add_test(souls_formats_test_msbs_model_param_synthetic
     map/msbs/test_model_param_synthetic.c "map")
+sf_add_test(souls_formats_test_msbs_synthetic_rt
+    map/msbs/test_msbs_synthetic_rt.c "map")
+sf_add_test(souls_formats_test_msbs_event_param_synthetic
+    map/msbs/test_event_param_synthetic.c "map")
+sf_add_test(msbs_point_param_synthetic
+    map/msbs/test_point_param_synthetic.c "map")
+sf_add_test(msbs_parts_param_synthetic
+    map/msbs/test_parts_param_synthetic.c "map")
+sf_add_test(msbs_route_param_synthetic
+    map/msbs/test_route_param_synthetic.c "map")
+sf_add_test(msbe_root_smoke
+    map/msbe/test_msbe_root_smoke.c "map")
+sf_add_test(souls_formats_test_msbe_model_param_synthetic
+    map/msbe/test_model_param_synthetic.c "map")
+sf_add_test(souls_formats_test_msbe_synthetic_rt
+    map/msbe/test_msbe_synthetic_rt.c "map")
+sf_add_test(souls_formats_test_msbe_event_param_synthetic
+    map/msbe/test_event_param_synthetic.c "map")
+sf_add_test(msbe_point_param_synthetic
+    map/msbe/test_point_param_synthetic.c "map")
+sf_add_test(msbe_parts_param_synthetic
+    map/msbe/test_parts_param_synthetic.c "map")
+sf_add_test(msbe_route_param_synthetic
+    map/msbe/test_route_param_synthetic.c "map")
+sf_add_test(msbvi_root_smoke
+    map/msbvi/test_msbvi_root_smoke.c "map")
+sf_add_test(souls_formats_test_msbvi_model_param_synthetic
+    map/msbvi/test_model_param_synthetic.c "map")
+sf_add_test(souls_formats_test_msbvi_synthetic_rt
+    map/msbvi/test_msbvi_synthetic_rt.c "map")
+sf_add_test(souls_formats_test_msbvi_event_param_synthetic
+    map/msbvi/test_event_param_synthetic.c "map")
+sf_add_test(msbvi_point_param_synthetic
+    map/msbvi/test_point_param_synthetic.c "map")
+sf_add_test(msbvi_parts_param_synthetic
+    map/msbvi/test_parts_param_synthetic.c "map")
+sf_add_test(msbvi_route_param_synthetic
+    map/msbvi/test_route_param_synthetic.c "map")
+sf_add_test(msbvi_layer_param_synthetic
+    map/msbvi/test_layer_param_synthetic.c "map")
 
 #-----------------------------------------------------------------------------
 # Phase 5 — Sekiro e2e helper
@@ -230,6 +272,54 @@ target_sources(souls_formats_test_emevd_format_probe PRIVATE
 target_compile_definitions(souls_formats_test_emevd_format_probe PRIVATE
     SF_E2E_REPO_DIR=L"${CMAKE_SOURCE_DIR}"
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+#-----------------------------------------------------------------------------
+# Phase 5 — script + map
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_esd_bytecode script/test_esd_bytecode.c "script")
+
+#-----------------------------------------------------------------------------
+# Phase 5 — ESD + MSBE/MSBS real-game e2e tests (T36-T39)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_esd_e2e_er
+    script/test_esd_e2e_er.c "e2e_er")
+target_include_directories(souls_formats_test_esd_e2e_er PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_esd_e2e_er PRIVATE
+    e2e/er_test_helper.c)
+target_compile_definitions(souls_formats_test_esd_e2e_er PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+sf_add_test(souls_formats_test_msbe_e2e_er
+    map/msbe/test_msbe_e2e_er.c "e2e_er")
+target_include_directories(souls_formats_test_msbe_e2e_er PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_msbe_e2e_er PRIVATE
+    e2e/er_test_helper.c)
+target_compile_definitions(souls_formats_test_msbe_e2e_er PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+sf_add_test(souls_formats_test_msbe_e2e_nr
+    map/msbe/test_msbe_e2e_nr.c "e2e_nightreign")
+target_include_directories(souls_formats_test_msbe_e2e_nr PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_msbe_e2e_nr PRIVATE
+    e2e/nightreign_test_helper.c)
+target_compile_definitions(souls_formats_test_msbe_e2e_nr PRIVATE
+    SF_E2E_NIGHTREIGN_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
+
+sf_add_test(souls_formats_test_msbs_e2e_sekiro
+    map/msbs/test_msbs_e2e_sekiro.c "e2e_sekiro")
+target_include_directories(souls_formats_test_msbs_e2e_sekiro PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_msbs_e2e_sekiro PRIVATE
+    e2e/sekiro_test_helper.c)
+target_compile_definitions(souls_formats_test_msbs_e2e_sekiro PRIVATE
+    SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 # ── Probes (one-shot diagnostics, not part of regular test suite) ──────────

@@ -53,6 +53,8 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_hash.h
     include/souls_formats/sf_msb.h
     include/souls_formats/sf_msbs.h
+    include/souls_formats/sf_msbe.h
+    include/souls_formats/sf_msbvi.h
     include/souls_formats/sf_path.h
     include/souls_formats/sf_dcx.h
     include/souls_formats/sf_oodle.h
@@ -120,9 +122,28 @@ set(SF_SOURCES
     src/script/emevd_layer.c
     src/script/emevd_parameter.c
     src/script/esd.c
+    src/script/esd_write.c
+    src/script/esd_bytecode.c
     src/map/msb_common.c
     src/map/msbs/msbs.c
+    src/map/msbs/event_param.c
     src/map/msbs/model_param.c
+    src/map/msbs/parts_param.c
+    src/map/msbs/point_param.c
+    src/map/msbs/route_param.c
+    src/map/msbe/msbe.c
+    src/map/msbe/event_param.c
+    src/map/msbe/model_param.c
+    src/map/msbe/parts_param.c
+    src/map/msbe/point_param.c
+    src/map/msbe/route_param.c
+    src/map/msbvi/msbvi.c
+    src/map/msbvi/event_param.c
+    src/map/msbvi/layer_param.c
+    src/map/msbvi/model_param.c
+    src/map/msbvi/parts_param.c
+    src/map/msbvi/point_param.c
+    src/map/msbvi/route_param.c
 )
 
 if(TARGET libzstd_static)

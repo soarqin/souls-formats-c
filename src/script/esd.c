@@ -802,16 +802,6 @@ sf_result_t sf_esd_read_from_memory(sf_esd_t **out, const uint8_t *data, size_t 
     return r;
 }
 
-sf_result_t sf_esd_write_to_memory(const sf_esd_t *esd, uint8_t **out_data, size_t *out_size,
-                                   const sf_allocator_t *alloc) {
-    (void)esd;
-    (void)alloc;
-    SF_CHECK_ARG(out_data != NULL && out_size != NULL);
-    *out_data = NULL;
-    *out_size = 0;
-    return SF_ERR_UNSUPPORTED_VERSION;
-}
-
 void sf_esd_destroy(sf_esd_t *esd) {
     if (!esd) return;
     const sf_allocator_t *alloc = esd->alloc;

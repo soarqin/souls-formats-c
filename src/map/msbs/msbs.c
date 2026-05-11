@@ -49,53 +49,6 @@ typedef struct msbs_read_ctx {
     int32_t               index;
 } msbs_read_ctx_t;
 
-static sf_result_t msbs_alloc_entries(void **out, int32_t count, size_t elem_size,
-                                      const sf_allocator_t *a) {
-    if (!out || elem_size == 0) return SF_ERR_INVALID_ARG;
-    *out = NULL;
-    if (count < 0) return SF_ERR_OUT_OF_RANGE;
-    if (count == 0) return SF_OK;
-
-    size_t size = (size_t)count * elem_size;
-    void *entries = sf_xalloc(a, size);
-    if (!entries) return SF_ERR_OOM;
-    memset(entries, 0, size);
-    *out = entries;
-    return SF_OK;
-}
-
-sf_result_t msbs_event_param_read(sf_binary_reader_t *r, int32_t count, sf_msbs_t *out,
-                                  const sf_allocator_t *a) {
-    (void)r;
-    if (!out) return SF_ERR_INVALID_ARG;
-    out->event_count = count;
-    return msbs_alloc_entries((void **)&out->events, count, sizeof(*out->events), a);
-}
-
-sf_result_t msbs_point_param_read(sf_binary_reader_t *r, int32_t count, sf_msbs_t *out,
-                                  const sf_allocator_t *a) {
-    (void)r;
-    if (!out) return SF_ERR_INVALID_ARG;
-    out->region_count = count;
-    return msbs_alloc_entries((void **)&out->regions, count, sizeof(*out->regions), a);
-}
-
-sf_result_t msbs_parts_param_read(sf_binary_reader_t *r, int32_t count, sf_msbs_t *out,
-                                  const sf_allocator_t *a) {
-    (void)r;
-    if (!out) return SF_ERR_INVALID_ARG;
-    out->part_count = count;
-    return msbs_alloc_entries((void **)&out->parts, count, sizeof(*out->parts), a);
-}
-
-sf_result_t msbs_route_param_read(sf_binary_reader_t *r, int32_t count, sf_msbs_t *out,
-                                  const sf_allocator_t *a) {
-    (void)r;
-    if (!out) return SF_ERR_INVALID_ARG;
-    out->route_count = count;
-    return msbs_alloc_entries((void **)&out->routes, count, sizeof(*out->routes), a);
-}
-
 static sf_result_t msbs_expect_zero_entries(int32_t count) {
     return (count == 0) ? SF_OK : SF_ERR_UNSUPPORTED_VERSION;
 }
@@ -160,31 +113,7 @@ static sf_result_t msbs_fill_next_param(sf_binary_writer_t *w, int reserve_id, i
 
 static sf_result_t msbs_write_current_counts_are_supported(const sf_msbs_t *msbs) {
     if (!msbs) return SF_ERR_INVALID_ARG;
-    if (msbs->event_count != 0 || msbs->region_count != 0 || msbs->route_count != 0 ||
-        msbs->part_count != 0) {
-        return SF_ERR_UNSUPPORTED_VERSION;
-    }
     return SF_OK;
-}
-
-sf_result_t msbs_event_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs) {
-    (void)w;
-    return (!msbs || msbs->event_count != 0) ? SF_ERR_UNSUPPORTED_VERSION : SF_OK;
-}
-
-sf_result_t msbs_point_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs) {
-    (void)w;
-    return (!msbs || msbs->region_count != 0) ? SF_ERR_UNSUPPORTED_VERSION : SF_OK;
-}
-
-sf_result_t msbs_parts_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs) {
-    (void)w;
-    return (!msbs || msbs->part_count != 0) ? SF_ERR_UNSUPPORTED_VERSION : SF_OK;
-}
-
-sf_result_t msbs_route_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs) {
-    (void)w;
-    return (!msbs || msbs->route_count != 0) ? SF_ERR_UNSUPPORTED_VERSION : SF_OK;
 }
 
 sf_result_t sf_msbs_read_from_memory(sf_msbs_t **out, const uint8_t *data, size_t size,
@@ -276,6 +205,14 @@ sf_result_t sf_msbs_write_to_memory(const sf_msbs_t *msbs, uint8_t **out_data,
 
         if (i == MSBS_LIST_MODELS) {
             rc = msbs_model_param_write(writer, msbs);
+        } else if (i == MSBS_LIST_EVENTS) {
+            rc = msbs_event_param_write(writer, msbs);
+        } else if (i == MSBS_LIST_REGIONS) {
+            rc = msbs_point_param_write(writer, msbs);
+        } else if (i == MSBS_LIST_ROUTES) {
+            rc = msbs_route_param_write(writer, msbs);
+        } else if (i == MSBS_LIST_PARTS) {
+            rc = msbs_parts_param_write(writer, msbs);
         } else {
             rc = msbs_write_empty_param(writer, k_msbs_lists[i].name, k_msbs_lists[i].version, i);
         }
@@ -299,6 +236,10 @@ void sf_msbs_destroy(sf_msbs_t *msbs) {
     if (!msbs) return;
     const sf_allocator_t *alloc = msbs->alloc;
     msbs_model_param_free(msbs->models, msbs->model_count, alloc);
+    msbs_event_param_free(msbs->events, msbs->event_count, alloc);
+    msbs_point_param_free(msbs->regions, msbs->region_count, alloc);
+    msbs_route_param_free(msbs->routes, msbs->route_count, alloc);
+    msbs_parts_param_free(msbs->parts, msbs->part_count, alloc);
     sf_xfree(alloc, msbs->models);
     sf_xfree(alloc, msbs->events);
     sf_xfree(alloc, msbs->regions);
