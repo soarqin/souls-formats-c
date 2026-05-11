@@ -35,6 +35,25 @@ AC6: 35c8fd511e78caf6998a553a54b30649af2e1c24ea4594ba5d027161d751ac05
 
 Risk note: If the user updates any game, MSB/ESD field layouts may change; e2e fixtures only guaranteed for this snapshot.
 
+### Phase 6 e2e File Snapshots (Elden Ring)
+
+| File | BHD5 Path | Archive | sha256 (archive, first 12 chars) | Snapped |
+|------|-----------|---------|----------------------------------|---------|
+| `c0000.chrbnd.dcx` | `/chr/c0000.chrbnd.dcx` | `Data1.bhd` | `fd7cccc12d2f` | 2026-05-12 |
+| `allmaterial.matbinbnd.dcx` | `/material/allmaterial.matbinbnd.dcx` | `Data0.bhd` | `fbe82e31c36b` | 2026-05-12 |
+
+```text
+ER Data0.bhd: fbe82e31c36b7a58258a9d318d0a20d8ae626beda952811106c2b0029194981a
+ER Data1.bhd: fd7cccc12d2fe57989a2627fdc02a2eb29bfd8837d2e9d7aa05f8fe25170c714
+ER Data2.bhd: c2e0bed43bfa6ee5c8397baee8c49f9ac4245c43fdcf0ba36aa04460e2ae13a0
+ER Data3.bhd: 6094382a24bf7c1bb3e07697a31f1fc9d74840f2aec7deecaa6431a92f81d1e5
+```
+
+Note: sha256 values above are of the BHD5 archive index files (not the extracted DCX content).
+`c0000.chrbnd.dcx` is in Data1 (not Data0); `allmaterial.matbinbnd.dcx` is in Data0.
+Phase 6 e2e tests will verify archive sha256 as a sanity check; if the game is patched and
+sha256 mismatches, tests SKIP with a log message rather than failing (avoids false failures).
+
 ## Re-audit policy
 
 When upstream advances past 50 commits on the recorded branch, re-survey
