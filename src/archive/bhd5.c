@@ -148,7 +148,11 @@ static sf_result_t rsa_unwrap_bhd5(sf_bhd5_game_t game,
             sf_xfree(a, plain);
             return r;
         }
-        const size_t block_size = 256u;
+        /* BHD5 uses raw RSA with 255-byte plaintext chunks. The RSA result is a
+         * 256-byte integer whose high byte is always 0x00 (plaintext < 2^2040).
+         * sfi_rsa_decrypt_pkcs1 strips ALL leading zeros, which may remove bytes
+         * that are part of the plaintext. We re-pad to 255 to restore them. */
+        const size_t block_size = 255u;
         size_t padded_size = block_size;
         if (chunk_size > padded_size) {
             sf_free(a, chunk);
