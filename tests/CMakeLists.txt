@@ -197,6 +197,8 @@ add_custom_target(souls_formats_test_emevd_e2e_er DEPENDS emevd_e2e_er)
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_msb_common_skeleton
     map/test_msb_common_skeleton.c "map")
+sf_add_test(msbs_root_smoke
+    map/msbs/test_msbs_root_smoke.c "map")
 
 #-----------------------------------------------------------------------------
 # Phase 5 — Sekiro e2e helper

@@ -52,6 +52,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_encoding.h
     include/souls_formats/sf_hash.h
     include/souls_formats/sf_msb.h
+    include/souls_formats/sf_msbs.h
     include/souls_formats/sf_path.h
     include/souls_formats/sf_dcx.h
     include/souls_formats/sf_oodle.h
@@ -120,6 +121,7 @@ set(SF_SOURCES
     src/script/emevd_parameter.c
     src/script/esd.c
     src/map/msb_common.c
+    src/map/msbs/msbs.c
 )
 
 if(TARGET libzstd_static)
