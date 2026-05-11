@@ -22,20 +22,20 @@
 #  if __has_include("souls_formats/sf_common.h")
 #    include "souls_formats/sf_common.h"
 #  else
-#    include "/home/soar/src/souls-formats-c/include/souls_formats/sf_common.h"
+#    include "souls_formats/sf_common.h"
 #  endif
 #else
-#  include "/home/soar/src/souls-formats-c/include/souls_formats/sf_common.h"
+#  include "souls_formats/sf_common.h"
 #endif
 
 #if defined(__has_include)
 #  if __has_include("souls_formats/sf_io.h")
 #    include "souls_formats/sf_io.h"
 #  else
-#    include "/home/soar/src/souls-formats-c/include/souls_formats/sf_io.h"
+#    include "souls_formats/sf_io.h"
 #  endif
 #else
-#  include "/home/soar/src/souls-formats-c/include/souls_formats/sf_io.h"
+#  include "souls_formats/sf_io.h"
 #endif
 
 #include <stddef.h>

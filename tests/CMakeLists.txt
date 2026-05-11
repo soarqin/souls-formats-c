@@ -29,6 +29,9 @@ sf_add_test(souls_formats_test_binary_writer core/test_binary_writer.c "core")
 sf_add_test(souls_formats_test_path          core/test_path.c          "core")
 sf_add_test(souls_formats_test_sf_util       core/test_sf_util.c       "core")
 sf_add_test(souls_formats_test_dds_header    core/test_dds_header.c    "core")
+sf_add_test(souls_formats_test_no_absolute_paths core/test_no_absolute_paths.c "hygiene")
+target_compile_definitions(souls_formats_test_no_absolute_paths PRIVATE
+    SOULS_FORMATS_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 
 #-----------------------------------------------------------------------------
 # Phase 2 — compression + crypto
@@ -142,8 +145,11 @@ target_include_directories(param_apply_paramdef_e2e PRIVATE
 target_sources(param_apply_paramdef_e2e PRIVATE
     e2e/er_test_helper.c)
 target_compile_definitions(param_apply_paramdef_e2e PRIVATE
+    SOULS_FORMATS_ROOT_DIR="${CMAKE_SOURCE_DIR}"
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+target_compile_definitions(paramdef_xml_e2e PRIVATE
+    SOULS_FORMATS_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 sf_add_test(fmg_e2e_er param/test_fmg_e2e_er.c "param")
 target_include_directories(fmg_e2e_er PRIVATE
     ${CMAKE_SOURCE_DIR}/tests/e2e)

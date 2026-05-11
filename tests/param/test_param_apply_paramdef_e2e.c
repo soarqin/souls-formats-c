@@ -19,7 +19,7 @@
  * it never FAILs in a clean checkout.
  *
  * Path roots: regulation.bin at /mnt/c/Games/ELDEN RING/Game/regulation.bin
- * (hardcoded in er_load_param), Paramdex XML at /home/soar/dev/paramdex.
+ * (hardcoded in er_load_param), Paramdex XML under the sibling dev tree.
  */
 
 #include "er_test_helper.h"
@@ -45,9 +45,9 @@ void setUp(void) {}
 void tearDown(void) {}
 
 static const char *k_speffect_xml =
-    "/home/soar/dev/paramdex/ER/Defs/SpEffect.xml";
+    SOULS_FORMATS_ROOT_DIR "/../../dev/paramdex/ER/Defs/SpEffect.xml";
 static const char *k_equip_weapon_xml =
-    "/home/soar/dev/paramdex/ER/Defs/EquipParamWeapon.xml";
+    SOULS_FORMATS_ROOT_DIR "/../../dev/paramdex/ER/Defs/EquipParamWeapon.xml";
 
 static bool path_to_wide(const char *utf8, wchar_t *out, size_t out_len)
 {

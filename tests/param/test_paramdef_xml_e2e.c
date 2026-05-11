@@ -23,7 +23,7 @@ void setUp(void) {}
 void tearDown(void) {}
 
 static const char *k_paramdex_sp_effect_xml =
-    "/home/soar/dev/paramdex/ER/Defs/SpEffect.xml";
+    SOULS_FORMATS_ROOT_DIR "/../../dev/paramdex/ER/Defs/SpEffect.xml";
 
 static const sf_paramdef_field_t *find_field_by_internal_name(const sf_paramdef_t *def,
                                                               const char *name)
