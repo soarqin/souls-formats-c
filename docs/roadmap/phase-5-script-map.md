@@ -1,6 +1,6 @@
 # Phase 5: Script + Map
 
-> **Status**: 🚧 In Progress · **Estimate**: ~3 weeks · **Depends on**: Phase 3
+> **Status**: ✅ Complete · **Estimate**: ~3 weeks · **Depends on**: Phase 3
 
 Strict upstream alignment policy applies. See [AGENTS.md](../../AGENTS.md) §5.x.
 
@@ -167,6 +167,22 @@ SF_API sf_result_t sf_msbe_read_from_memory(sf_msbe_t **out,
 SF_API size_t sf_msbe_part_count  (const sf_msbe_t *m);
 SF_API size_t sf_msbe_region_count(const sf_msbe_t *m);
 SF_API size_t sf_msbe_event_count (const sf_msbe_t *m);
+
+---
+
+## Delivery Summary (2026-05-12)
+
+Phase 5 is complete with the following deliverables:
+
+- **ESD (State Machines)**: Full implementation including reader, writer, and bytecode decoder. Verified with synthetic round-trip and Elden Ring e2e tests.
+- **MSB Common**: Shared infrastructure for MSB parsing, including header validation and list iteration.
+- **MSB Variants**:
+    - **MSBS (Sekiro)**: Dispatcher and all 5 sub-param types (Model, Event, Point, Parts, Route). Verified with Sekiro e2e tests.
+    - **MSBE (Elden Ring + Nightreign)**: Dispatcher and all 5 sub-param types. Verified with Elden Ring and Nightreign e2e tests.
+    - **MSBVI (AC6)**: Dispatcher and all 6 sub-param types, including the AC6-specific LayerParam.
+- **Test Helpers**: Specialized helpers for Sekiro and Nightreign to facilitate e2e testing.
+- **QA**: 38/38 tests passing across 38 test binaries.
+
 SF_API size_t sf_msbe_model_count (const sf_msbe_t *m);
 SF_API const sf_msb_part_t *sf_msbe_part(const sf_msbe_t *m, size_t i);
 /* … */
