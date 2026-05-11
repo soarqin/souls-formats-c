@@ -178,6 +178,19 @@ target_compile_definitions(emevd_e2e_er PRIVATE
 add_custom_target(souls_formats_test_emevd_e2e_er DEPENDS emevd_e2e_er)
 
 #-----------------------------------------------------------------------------
+# Phase 5 — Sekiro e2e helper
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_sekiro_helper_smoke
+    e2e/test_sekiro_helper_smoke.c "e2e_sekiro")
+target_include_directories(souls_formats_test_sekiro_helper_smoke PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_sekiro_helper_smoke PRIVATE
+    e2e/sekiro_test_helper.c)
+target_compile_definitions(souls_formats_test_sekiro_helper_smoke PRIVATE
+    SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+#-----------------------------------------------------------------------------
 # Phase 4 — pre-flight empirical probe (T0.1)
 # Reads real ER data and writes findings to
 # .sisyphus/evidence/phase4-pre-flight.md. No format parsing here.
