@@ -25,3 +25,31 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 | `SF_EMEVD_FORMAT_ELDEN_RING/ARMORED_CORE_VI/NIGHTREIGN` | `sf_emevd.h` | Sekiro aliases for ER/AC6/Nightreign (pending probe confirmation) | stable | `include/souls_formats/sf_emevd.h` |
 | `sf_paramdef_get_index` | `sf_paramdef.h` | Paramdex XML `<Index>` element; binary returns -1 | stable | `include/souls_formats/sf_paramdef.h` |
 | `sf_paramdef_field_get_sort_id` | `sf_paramdef.h` | Paramdex XML `<SortID>` element; binary returns 0 | stable | `include/souls_formats/sf_paramdef.h` |
+
+## Phase 6: Geometry + Material
+
+### sf_flver2_decode_mesh
+- **Type**: Extension (C-side only, no upstream counterpart)
+- **Upstream Ref**: `Mesh.cs:244` (`GetFaces()`) — upstream only triangulates; does NOT decode vertex attributes
+- **C API or behavior description**:
+  ```c
+  SF_API sf_result_t sf_flver2_decode_mesh(
+      const sf_flver2_t *f, size_t mesh_index,
+      sf_flver2_decoded_mesh_t *out, const sf_allocator_t *a);
+  ```
+- **Rationale**: C consumers need typed position/normal/uv/bone arrays; upstream C# users access Vertex fields via LINQ/List — no C equivalent idiom exists, must provide helper
+- **Impact**: Consumers of flver2 library get easy access to decoded vertex data
+
+### FLVER2 big-endian byte-order refusal
+- **Type**: Functional divergence (C-side is stricter than upstream)
+- **Upstream Ref**: `FLVER2.cs:95` — upstream reads `AssertASCII("L\0", "B\0")` and supports BE
+- **C API or behavior description**: If byte at offset 0x06 is `'B'` (0x42) → immediately return `SF_ERR_UNSUPPORTED_VERSION`, do not parse further
+- **Rationale**: v1 target games (Sekiro/Elden Ring/Nightreign/AC6) are all x86_64 LE; BE support is upstream compat for PS3-era games, deferred to v2 legacy phase
+- **Impact**: Upstream BE FLVER2 files cannot be read; write always emits LE
+
+### FLVER2 EdgeCompression flag refusal
+- **Type**: Functional divergence
+- **Upstream Ref**: `FaceSet.cs:19` — FSFlags enum includes EdgeCompressed; upstream silently drops it on write
+- **C API or behavior description**: Read: if FaceSet.Flags includes EdgeCompressed → `SF_ERR_UNSUPPORTED_VERSION`. Write: does not accept any Edge-related input
+- **Rationale**: Edge geometry is explicitly OUT-of-scope for v1; silent data loss would be worse than a clear error
+- **Impact**: EdgeCompressed FaceSets cannot be read or written in v1
