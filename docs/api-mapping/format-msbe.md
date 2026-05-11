@@ -22,7 +22,7 @@
 
 | Upstream signature | Upstream loc | Kind | Our API | Status | Notes |
 |--------------------|-------------|------|---------|--------|-------|
-| `public partial class MSBE : SoulsFile<MSBE>, IMsb` | MSBE.cs:11 | Class | 未实现 | 未实现 | Elden Ring MSB. Nightreign compatibility: C, see .sisyphus/evidence/task-4-nightreign-probe.md |
+| `public partial class MSBE : SoulsFile<MSBE>, IMsb` | MSBE.cs:11 | Class | 未实现 | 未实现 | Elden Ring MSB. Nightreign compatibility: UNKNOWN (probe blocked by BHD5 open bug; community assumption = A compatible; verify at T38 NR e2e), see .sisyphus/evidence/task-4-nightreign-probe.md |
 | `public abstract class Param<T> where T : Entry` | MSBE.cs:160 | Class | 未实现 | 未实现 | |
 | `public abstract class Entry : IMsbEntry` | MSBE.cs:247 | Class | 未实现 | 未实现 | |
 | `internal enum ModelType : uint` | ModelParam.cs:10 | Enum | 未实现 | 未实现 | |
