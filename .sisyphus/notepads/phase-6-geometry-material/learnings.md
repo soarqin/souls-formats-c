@@ -58,6 +58,14 @@
 
 ## [2026-05-12] T4 c0000 FLVER2 layout probe
 
+- `/chr/c0000.chrbnd.dcx` is in ER `Data3`, not `Data0`; the probe needs to fan out across `Data0`-`Data3` with the archive-specific ER RSA keys.
+- ER Data3 BHD5 uses the 64-bit `h = c + 133*h` path hash and 40-byte ER file headers (`u64 hash`, `i32 padded`, `i32 unpadded`, `i64 file offset`, `i64 SHA offset`, `i64 AES offset`).
+- RSA-unwrapped BHD5 blocks must be restored to 255-byte plaintext chunks before parsing, matching `src/archive/bhd5.c`'s padding behavior.
+- Empirical result for this install: `N:\GR\data\INTERROOT_win64\chr\c0000\c0000.flver` has version `0x2001A`, endian byte `0`, 510 dummies, 488 bones, but `MESH_COUNT=0`, `BUFFER_LAYOUT_COUNT=0`, and no `(Type, Semantic)` layout pairs/triples.
+- Gotcha: local ER `Data0.bhd` contains 5824 files and opens fine, but the current snapshot scan did not expose `/chr/c0000.chrbnd.dcx` or `/material/allmaterial.matbinbnd.dcx`; later archives in the install returned `SF_ERR_OUT_OF_RANGE` from `sf_bhd5_open`.
+
+## [2026-05-12] T4 c0000 FLVER2 layout probe
+
 - `probe_flver2_layouts` must use ER Data3 for `/chr/c0000.chrbnd.dcx`; Data0 does not contain this path in the installed build.
 - ER Data3 BHD top-level header uses 32-bit bucket count/offset with 40-byte ER file records; c0000's BHD record has `unpadded_size == 0`, so extraction must use `padded_size`.
 - ER 64-bit BHD path hash is the `h = c + 133*h` algorithm, not the public 32-bit `sf_path_hash_64` shim.
