@@ -194,6 +194,18 @@ target_compile_definitions(souls_formats_test_emevd_format_probe PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
+# ── Probes (one-shot diagnostics, not part of regular test suite) ──────────
+add_executable(probe_nightreign_msb ${CMAKE_SOURCE_DIR}/tests/probes/probe_nightreign_msb.c
+                                    ${CMAKE_SOURCE_DIR}/tests/e2e/er_test_helper.c)
+target_link_libraries(probe_nightreign_msb PRIVATE souls_formats_static bcrypt crypt32)
+target_include_directories(probe_nightreign_msb PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_compile_definitions(probe_nightreign_msb PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game")
+set_target_properties(probe_nightreign_msb PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
+
 #-----------------------------------------------------------------------------
 # Pre-refactor SHA-256 baseline — pins deterministic byte outputs across
 # the api-realignment effort. See tests/golden/golden_hashes.h.
