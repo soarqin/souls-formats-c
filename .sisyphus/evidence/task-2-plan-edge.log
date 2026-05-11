@@ -1,0 +1,2 @@
+$ awk '/### 2.2/,/### 2.3/' .sisyphus/plans/PLAN.md | grep -E 'Edge|SPU|RSX'
+- **遗留几何**：FLVER0、MDL / MDL0 / MDL4 / SMD4 / OM2、CLM2、F2TR、GRASS。Edge Geometry / SPU vertex format / RSX vertex format（PS3-era console-specific 顶点压缩；v1 4 款目标游戏均不使用，推迟到 v2）。

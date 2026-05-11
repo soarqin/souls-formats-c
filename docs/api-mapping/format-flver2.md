@@ -93,37 +93,41 @@
 
 ## Edge Geometry Enums
 
+Edge / SPU / RSX 子表 20 行均 v1 OUT-of-scope，标 `_skipped_`。
+FLVER2 主表仍未实现，Vertex Element Layout / Vertex Format Dispatch 也仍未实现。
+Edge 历史压缩/皮肤路径本身也暂未实现。
+
 ### SpuVertexFormat
 
 | Upstream signature | Upstream loc (File.cs:LINE) | Kind | Our API | Status | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `Float3 = 0` | `EdgeGeomSpuConfigInfo.cs:130` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_FLOAT3` | 未实现 | Position in 3 floats. |
-| `Float3PackedNorm2 = 1` | `EdgeGeomSpuConfigInfo.cs:137` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_FLOAT3_PACKED_NORM2` | 未实现 | Position in 3 floats. Normal/Tangent packed. |
-| `Float3PackedNormShortNorm4 = 2` | `EdgeGeomSpuConfigInfo.cs:144` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_FLOAT3_PACKED_NORM_SHORT_NORM4` | 未实现 | Position in 3 floats. Normal packed, Tangent short4. |
-| `Float3PackedNorm3 = 3` | `EdgeGeomSpuConfigInfo.cs:152` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_FLOAT3_PACKED_NORM3` | 未实现 | Position in 3 floats. Normal/Tangent/BiNormal packed. |
-| `EdgeFixedUnit2 = 4` | `EdgeGeomSpuConfigInfo.cs:159` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_EDGE_FIXED_UNIT2` | 未实现 | Position fixed, Normal/Tangent unit. |
-| `EdgeFixedUnit3 = 5` | `EdgeGeomSpuConfigInfo.cs:167` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_EDGE_FIXED_UNIT3` | 未实现 | Position fixed, Normal/Tangent/BiNormal unit. |
-| `EdgeFixed = 254` | `EdgeGeomSpuConfigInfo.cs:173` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_EDGE_FIXED` | 未实现 | Position as an edge fixed point. |
-| `Custom = 255` | `EdgeGeomSpuConfigInfo.cs:178` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_CUSTOM` | 未实现 | A user defined format. |
+| `Float3 = 0` | `EdgeGeomSpuConfigInfo.cs:130` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_FLOAT3` | `_skipped_` | Position in 3 floats. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `Float3PackedNorm2 = 1` | `EdgeGeomSpuConfigInfo.cs:137` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_FLOAT3_PACKED_NORM2` | `_skipped_` | Position in 3 floats. Normal/Tangent packed. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `Float3PackedNormShortNorm4 = 2` | `EdgeGeomSpuConfigInfo.cs:144` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_FLOAT3_PACKED_NORM_SHORT_NORM4` | `_skipped_` | Position in 3 floats. Normal packed, Tangent short4. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `Float3PackedNorm3 = 3` | `EdgeGeomSpuConfigInfo.cs:152` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_FLOAT3_PACKED_NORM3` | `_skipped_` | Position in 3 floats. Normal/Tangent/BiNormal packed. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `EdgeFixedUnit2 = 4` | `EdgeGeomSpuConfigInfo.cs:159` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_EDGE_FIXED_UNIT2` | `_skipped_` | Position fixed, Normal/Tangent unit. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `EdgeFixedUnit3 = 5` | `EdgeGeomSpuConfigInfo.cs:167` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_EDGE_FIXED_UNIT3` | `_skipped_` | Position fixed, Normal/Tangent/BiNormal unit. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `EdgeFixed = 254` | `EdgeGeomSpuConfigInfo.cs:173` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_EDGE_FIXED` | `_skipped_` | Position as an edge fixed point. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `Custom = 255` | `EdgeGeomSpuConfigInfo.cs:178` | Enum Value | `SF_FLVER2_SPU_VERTEX_FORMAT_CUSTOM` | `_skipped_` | A user defined format. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
 
 ### RsxVertexFormat
 
 | Upstream signature | Upstream loc (File.cs:LINE) | Kind | Our API | Status | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `Float3 = 0` | `EdgeGeomSpuConfigInfo.cs:189` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_FLOAT3` | 未实现 | Position in 3 floats. |
-| `Float3PackedNorm2 = 1` | `EdgeGeomSpuConfigInfo.cs:196` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_FLOAT3_PACKED_NORM2` | 未实现 | Position in 3 floats. Normal/Tangent packed. |
-| `Float3PackedNormShortNorm4 = 2` | `EdgeGeomSpuConfigInfo.cs:203` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_FLOAT3_PACKED_NORM_SHORT_NORM4` | 未实现 | Position in 3 floats. Normal packed, Tangent short4. |
-| `Float3PackedNorm3 = 3` | `EdgeGeomSpuConfigInfo.cs:211` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_FLOAT3_PACKED_NORM3` | 未实现 | Position in 3 floats. Normal/Tangent/BiNormal packed. |
-| `Custom = 255` | `EdgeGeomSpuConfigInfo.cs:216` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_CUSTOM` | 未实现 | A user defined format. |
+| `Float3 = 0` | `EdgeGeomSpuConfigInfo.cs:189` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_FLOAT3` | `_skipped_` | Position in 3 floats. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `Float3PackedNorm2 = 1` | `EdgeGeomSpuConfigInfo.cs:196` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_FLOAT3_PACKED_NORM2` | `_skipped_` | Position in 3 floats. Normal/Tangent packed. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `Float3PackedNormShortNorm4 = 2` | `EdgeGeomSpuConfigInfo.cs:203` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_FLOAT3_PACKED_NORM_SHORT_NORM4` | `_skipped_` | Position in 3 floats. Normal packed, Tangent short4. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `Float3PackedNorm3 = 3` | `EdgeGeomSpuConfigInfo.cs:211` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_FLOAT3_PACKED_NORM3` | `_skipped_` | Position in 3 floats. Normal/Tangent/BiNormal packed. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `Custom = 255` | `EdgeGeomSpuConfigInfo.cs:216` | Enum Value | `SF_FLVER2_RSX_VERTEX_FORMAT_CUSTOM` | `_skipped_` | A user defined format. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
 
 ### EdgeGeomSkin
 
 | Upstream signature | Upstream loc (File.cs:LINE) | Kind | Our API | Status | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `None = 0` | `EdgeGeomSpuConfigInfo.cs:66` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_NONE` | 未实现 | No skinning. |
-| `NoScaling = 1` | `EdgeGeomSpuConfigInfo.cs:71` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_NO_SCALING` | 未实现 | Do skinning by unit matrix. |
-| `UniformScaling = 2` | `EdgeGeomSpuConfigInfo.cs:76` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_UNIFORM_SCALING` | 未实现 | Do skinning. |
-| `NonUniformScaling = 3` | `EdgeGeomSpuConfigInfo.cs:81` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_NON_UNIFORM_SCALING` | 未实现 | Do skinning and compute cofactor matrices. |
-| `SingleBoneNoScaling = 4` | `EdgeGeomSpuConfigInfo.cs:86` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_SINGLE_BONE_NO_SCALING` | 未实现 | Do skinning by a single bone unit matrix. |
-| `SingleBoneUniformScaling = 5` | `EdgeGeomSpuConfigInfo.cs:91` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_SINGLE_BONE_UNIFORM_SCALING` | 未实现 | Do skinning by a single bone. |
-| `SingleBoneNonUniformScaling = 6` | `EdgeGeomSpuConfigInfo.cs:96` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_SINGLE_BONE_NON_UNIFORM_SCALING` | 未实现 | Do skinning by a single bone and compute cofactor matrices. |
+| `None = 0` | `EdgeGeomSpuConfigInfo.cs:66` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_NONE` | `_skipped_` | No skinning. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `NoScaling = 1` | `EdgeGeomSpuConfigInfo.cs:71` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_NO_SCALING` | `_skipped_` | Do skinning by unit matrix. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `UniformScaling = 2` | `EdgeGeomSpuConfigInfo.cs:76` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_UNIFORM_SCALING` | `_skipped_` | Do skinning. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `NonUniformScaling = 3` | `EdgeGeomSpuConfigInfo.cs:81` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_NON_UNIFORM_SCALING` | `_skipped_` | Do skinning and compute cofactor matrices. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `SingleBoneNoScaling = 4` | `EdgeGeomSpuConfigInfo.cs:86` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_SINGLE_BONE_NO_SCALING` | `_skipped_` | Do skinning by a single bone unit matrix. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `SingleBoneUniformScaling = 5` | `EdgeGeomSpuConfigInfo.cs:91` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_SINGLE_BONE_UNIFORM_SCALING` | `_skipped_` | Do skinning by a single bone. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |
+| `SingleBoneNonUniformScaling = 6` | `EdgeGeomSpuConfigInfo.cs:96` | Enum Value | `SF_FLVER2_EDGE_GEOM_SKIN_SINGLE_BONE_NON_UNIFORM_SCALING` | `_skipped_` | Do skinning by a single bone and compute cofactor matrices. v1 OUT-of-scope, see PLAN.md §2.2 / extensions.md |

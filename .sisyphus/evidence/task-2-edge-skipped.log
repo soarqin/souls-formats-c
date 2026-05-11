@@ -1,0 +1,12 @@
+$ awk '/^## Edge Geometry Enums$/{flag=1;next} /^## /&&flag{flag=0} flag' docs/api-mapping/format-flver2.md | grep -c '_skipped_'
+21
+---
+$ awk '/^### SpuVertexFormat$/{flag=1;next} /^### /&&flag{flag=0} flag' docs/api-mapping/format-flver2.md | grep -c '_skipped_'
+8
+---
+$ awk '/^### RsxVertexFormat$/{flag=1;next} /^### /&&flag{flag=0} flag' docs/api-mapping/format-flver2.md | grep -c '_skipped_'
+5
+---
+$ awk '/^### EdgeGeomSkin$/{flag=1;next} /^### /&&flag{flag=0} flag' docs/api-mapping/format-flver2.md | grep -c '_skipped_'
+7
+---
