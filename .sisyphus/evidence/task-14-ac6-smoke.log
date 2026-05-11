@@ -1,0 +1,46 @@
+/home/soar/src/souls-formats-c/tests/e2e/test_ac6_helper_smoke.c:77:test_ac6_helper_init_or_skip:PASS
+/home/soar/src/souls-formats-c/tests/e2e/test_ac6_helper_smoke.c:54:test_ac6_helper_extract_first_candidate:IGNORE: No candidate AC6 path was accessible from Data0
+/home/soar/src/souls-formats-c/tests/e2e/test_ac6_helper_smoke.c:79:test_ac6_helper_is_idempotent:PASS
+/home/soar/src/souls-formats-c/tests/e2e/test_ac6_helper_smoke.c:80:test_ac6_helper_shutdown_is_idempotent:PASS
+
+-----------------------
+4 Tests 0 Failures 1 Ignored 
+OK
+
+=== ctest -L e2e_ac6 ===
+Test project /home/soar/src/souls-formats-c/build-mingw
+    Start 31: souls_formats_test_ac6_helper_smoke
+1/2 Test #31: souls_formats_test_ac6_helper_smoke ...   Passed    0.28 sec
+    Start 32: souls_formats_test_msbvi_e2e_ac6
+2/2 Test #32: souls_formats_test_msbvi_e2e_ac6 ......   Passed    0.27 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Label Time Summary:
+e2e_ac6    =   0.55 sec*proc (2 tests)
+
+Total Test time (real) =   0.56 sec
+
+=== full suite (last lines) ===
+88/88 Test #88: souls_formats_test_golden ........................   Passed    0.16 sec
+
+100% tests passed, 0 tests failed out of 88
+
+Label Time Summary:
+archive           =   1.36 sec*proc (8 tests)
+compression       =   1.64 sec*proc (5 tests)
+core              =   0.58 sec*proc (7 tests)
+crypto            =   0.48 sec*proc (5 tests)
+e2e               =   1.69 sec*proc (5 tests)
+e2e_ac6           =   0.54 sec*proc (2 tests)
+e2e_er            =   0.67 sec*proc (2 tests)
+e2e_nightreign    =   0.45 sec*proc (2 tests)
+e2e_sekiro        =   0.37 sec*proc (2 tests)
+golden            =   0.16 sec*proc (1 test)
+hygiene           =   0.07 sec*proc (1 test)
+map               =   2.00 sec*proc (23 tests)
+param             =   1.82 sec*proc (15 tests)
+script            =   1.40 sec*proc (9 tests)
+smoke             =   0.05 sec*proc (1 test)
+
+Total Test time (real) =  13.32 sec

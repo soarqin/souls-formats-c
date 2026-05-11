@@ -1,0 +1,19 @@
+/home/soar/src/souls-formats-c/tests/map/msbvi/test_msbvi_e2e_ac6.c:81:test_msbvi_e2e_ac6:IGNORE: AC6 MSBVI not accessible from Data0 (mapstudio entries may live in another shard)
+
+-----------------------
+1 Tests 0 Failures 1 Ignored 
+OK
+
+=== ctest -L e2e_ac6 ===
+Test project /home/soar/src/souls-formats-c/build-mingw
+    Start 31: souls_formats_test_ac6_helper_smoke
+1/2 Test #31: souls_formats_test_ac6_helper_smoke ...   Passed    0.26 sec
+    Start 32: souls_formats_test_msbvi_e2e_ac6
+2/2 Test #32: souls_formats_test_msbvi_e2e_ac6 ......   Passed    0.26 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Label Time Summary:
+e2e_ac6    =   0.52 sec*proc (2 tests)
+
+Total Test time (real) =   0.52 sec
