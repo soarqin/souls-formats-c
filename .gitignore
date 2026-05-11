@@ -54,6 +54,9 @@ coverage/
 tests/fixtures/real/
 tests/data/
 
-# Sisyphus internal scratch (plans are committed; logs are not)
+# Sisyphus internal scratch (plans are committed; runtime state is not)
 .sisyphus/logs/
 .sisyphus/cache/
+.sisyphus/boulder.json
+.sisyphus/run-continuation/
+.sisyphus/notepads/

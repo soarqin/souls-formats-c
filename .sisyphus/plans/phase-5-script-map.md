@@ -1242,7 +1242,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `tests/e2e/nightreign_test_helper.{c,h}`, `tests/e2e/test_nightreign_helper_smoke.c`, `tests/CMakeLists.txt`
   - Pre-commit: smoke test PASS
 
-- [ ] 14. **`tests/e2e/ac6_test_helper.{c,h}` —— gated 等 AC6 数据就位**
+- [x] 14. **`tests/e2e/ac6_test_helper.{c,h}` —— gated 等 AC6 数据就位**
 
   **What to do**：
   - 起草 AC6 helper：API 同 ER/Sekiro/NR pattern。
@@ -2645,7 +2645,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 
   **Commit**: `phase5(msbs): Sekiro e2e via mapstudio MSB`；files: `tests/e2e/test_msbs_e2e_sekiro.c`, CMakeLists.txt；Pre-commit: PASS.
 
-- [ ] 40. **MSBVI e2e via AC6**
+- [x] 40. **MSBVI e2e via AC6**
 
   **What to do**：
   - 用 T14 ac6_helper 提取 AC6 `/map/mapstudio/m??.msb.dcx`（实测时选第一个存在）。
