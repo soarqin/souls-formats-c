@@ -14,6 +14,11 @@
 - `system()` in the Windows test binary returned a raw status code, not the POSIX wait status; normalize for both `1` and `256`-style returns.
 - `SOULS_FORMATS_ROOT_DIR` is useful for tests that need repo-relative runtime paths without hardcoding `/home/...` in source.
 
+### [2026-05-11] ESD Header Surface
+- `sf_esd.h` can stay header-only with opaque top-level, state, condition, and command-call handles.
+- `ESD.Condition` evaluator and `CommandCall.Arguments` are exposed as raw byte blobs; decode later in implementation/tests, not in the public API.
+- C++ compatibility can follow the existing `_Static_assert` redefinition pattern used by `sf_msb.h`.
+
 ### Confirmed Bugs
 - `include/souls_formats/sf_param.h:14-15` has 2 absolute path includes (/home/soar/...)
 - `include/souls_formats/sf_emevd.h:25,28,35,38` has 4 absolute path includes (/home/soar/...)
@@ -47,6 +52,11 @@
 - MSBS: SoulsFormats/Formats/MSB/MSBS/MSBS.cs
 - MSBE: SoulsFormats/Formats/MSB/MSBE/MSBE.cs
 - MSBVI: SoulsFormats/Formats/MSB/MSBVI/MSBVI.cs
+
+### [2026-05-11] Nightreign E2E Helper
+- Nightreign helper mirrors ER almost exactly; the only data-path change is lowercase `data0.bhd` / `data0.bdt` under `C:/Games/ELDEN RING NIGHTREIGN/Game`.
+- A local `k_oodle_dir` constant avoids CMake string-escaping issues while keeping the build-time `SF_E2E_OODLE_DIR` define harmless.
+- Smoke coverage can stay minimal: availability probe, init idempotence, and shutdown idempotence are enough for the helper target.
 
 ### [2026-05-11] MSB Header Surface
 - `sf_msb.h` can be kept header-only with opaque forward declarations plus shared kind enums.
@@ -86,3 +96,37 @@
 - Empirical finding: with the currently shipped Sekiro RSA key (UXM `SekiroKeys["Data1"]`), all 5 shards return `SF_ERR_OUT_OF_RANGE` from `rsa_unwrap_bhd5` — chunk_size > 255 after decrypt indicates key mismatch. This matches the `bhd5_keys.c` comment ("T10 will add per-archive variants"). Helper degrades gracefully to IGNORE-everything until per-shard keys are added.
 - Compile-definition escaping is double-backslash-hell: write `\\\\\\\\wsl.localhost\\\\Ubuntu` in CMake to land `\\wsl.localhost\Ubuntu` in the C macro — same pattern ER uses.
 - `sf_free` lives in `sf_io.h`, not `sf_common.h`; both helper.c and smoke test need the include.
+
+### [2026-05-11] T8 — MSB list-of-lists skeleton
+
+#### MSB on-disk layout (confirmed by walking MSBS.cs:Read+Write)
+```
+[MSB magic 16 bytes]   "MSB " + i32(1) + i32(0x10) + bool(false) + bool(false) + u8(1) + u8(0xFF)
+[Param 0 header]
+    i32 version
+    i32 offsetCount        (== entries.Count + 1)
+    i64 nameOffset         (-> UTF-16 string, padded to 8)
+    i64 entryOffsets[offsetCount - 1]
+    i64 nextParamOffset    (absolute offset of next Param header; 0 = end)
+[Param 0 name + entries]
+[Param 1 header] ...
+```
+- The list-of-lists is a LINKED chain via nextParamOffset, NOT a table.
+- Final param's nextParamOffset must be 0; upstream MSBS:109 checks `br.Position != 0` after reading the last param.
+
+#### Skeleton API design choices
+- `msb_layout_t.data_offset` = where the entry-offsets table STARTS (right after the 16-byte param-header preamble). For 0-entry lists this equals position of nextParamOffset.
+- `msb_common_reserve_list` writes a zero-entry placeholder header AND the UTF-16 name. Reserves only the nextParamOffset slot (name_offset is filled inline).
+- Reserve names use distinct prefixes: `MsbNameOff<id>` and `MsbNextList<id>` to allow simultaneous concurrent reservations.
+- Absolute seeking on the reader uses `sf_istream_seek(sf_binary_reader_stream(r), pos)` — there's no public `seek` API on the reader itself (only step_in/step_out which is stack-based).
+
+#### Pitfalls
+- `step_in` PUSHES position; pairing with subsequent absolute jumps requires step_out to balance. For walking a chain without nesting, use stream-level seek directly.
+- `sf_binary_reader_get_utf16` reads until 0x0000 terminator, allocates from reader's allocator, caller frees via `sf_free(allocator, ptr)`.
+- For 0-entry lists, the `entry_count * 8` skip is zero — handle this trivially.
+
+#### Verification
+- `nm libsouls_formats.a | grep msb_common_ | grep " T "` → 7 symbols (≥6 required).
+- `grep -c "msb_common_reserve" src/map/msb_common.c` → 1; `grep -c "msb_common_fill"` → 1 (matched pair).
+- `ctest -R msb_common_skeleton` → 1/1 PASS (round-trip + bad-magic rejection).
+- Full suite: 56/56 PASS (no regressions).

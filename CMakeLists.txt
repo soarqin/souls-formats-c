@@ -118,6 +118,7 @@ set(SF_SOURCES
     src/script/emevd_instruction.c
     src/script/emevd_layer.c
     src/script/emevd_parameter.c
+    src/map/msb_common.c
 )
 
 if(TARGET libzstd_static)

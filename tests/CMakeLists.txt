@@ -86,6 +86,16 @@ target_sources(souls_formats_test_er_helper_smoke PRIVATE
 target_compile_definitions(souls_formats_test_er_helper_smoke PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+ 
+# Phase 5 — Nightreign e2e helper
+sf_add_test(souls_formats_test_nightreign_helper_smoke e2e/test_nightreign_helper_smoke.c "e2e_nightreign")
+target_include_directories(souls_formats_test_nightreign_helper_smoke PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_nightreign_helper_smoke PRIVATE
+    e2e/nightreign_test_helper.c)
+target_compile_definitions(souls_formats_test_nightreign_helper_smoke PRIVATE
+    SF_E2E_NIGHTREIGN_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
 
 sf_add_test(souls_formats_test_bhd5_e2e_er e2e/test_bhd5_e2e_er.c "e2e")
 target_include_directories(souls_formats_test_bhd5_e2e_er PRIVATE
@@ -176,6 +186,12 @@ target_compile_definitions(emevd_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 add_custom_target(souls_formats_test_emevd_e2e_er DEPENDS emevd_e2e_er)
+
+#-----------------------------------------------------------------------------
+# Phase 5 — Map (MSB common skeleton)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_msb_common_skeleton
+    map/test_msb_common_skeleton.c "map")
 
 #-----------------------------------------------------------------------------
 # Phase 5 — Sekiro e2e helper
