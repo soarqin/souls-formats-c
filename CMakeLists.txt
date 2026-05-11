@@ -51,6 +51,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_io.h
     include/souls_formats/sf_encoding.h
     include/souls_formats/sf_hash.h
+    include/souls_formats/sf_msb.h
     include/souls_formats/sf_path.h
     include/souls_formats/sf_dcx.h
     include/souls_formats/sf_oodle.h
@@ -60,6 +61,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_paramtdf.h
     include/souls_formats/sf_fmg.h
     include/souls_formats/sf_emevd.h
+    include/souls_formats/sf_esd.h
     include/souls_formats/sf_bhd5.h
     include/souls_formats/sf_binder.h
     include/souls_formats/sf_bnd3.h
