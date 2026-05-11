@@ -43,27 +43,6 @@ static const msbs_list_spec_t k_msbs_lists[MSBS_LIST_COUNT] = {
     [MSBS_LIST_BONE_NAMES]  = { "MAPSTUDIO_BONE_NAME_STRING", 0 },
 };
 
-struct sf_msbs_model  { uint8_t reserved; };
-struct sf_msbs_event  { uint8_t reserved; };
-struct sf_msbs_region { uint8_t reserved; };
-struct sf_msbs_part   { uint8_t reserved; };
-struct sf_msbs_route  { uint8_t reserved; };
-
-struct sf_msbs {
-    const sf_allocator_t *alloc;
-
-    sf_msbs_model_t  *models;
-    int32_t           model_count;
-    sf_msbs_event_t  *events;
-    int32_t           event_count;
-    sf_msbs_region_t *regions;
-    int32_t           region_count;
-    sf_msbs_route_t  *routes;
-    int32_t           route_count;
-    sf_msbs_part_t   *parts;
-    int32_t           part_count;
-};
-
 typedef struct msbs_read_ctx {
     sf_msbs_t            *msbs;
     const sf_allocator_t *alloc;
@@ -83,14 +62,6 @@ static sf_result_t msbs_alloc_entries(void **out, int32_t count, size_t elem_siz
     memset(entries, 0, size);
     *out = entries;
     return SF_OK;
-}
-
-sf_result_t msbs_model_param_read(sf_binary_reader_t *r, int32_t count, sf_msbs_t *out,
-                                  const sf_allocator_t *a) {
-    (void)r;
-    if (!out) return SF_ERR_INVALID_ARG;
-    out->model_count = count;
-    return msbs_alloc_entries((void **)&out->models, count, sizeof(*out->models), a);
 }
 
 sf_result_t msbs_event_param_read(sf_binary_reader_t *r, int32_t count, sf_msbs_t *out,
@@ -187,18 +158,13 @@ static sf_result_t msbs_fill_next_param(sf_binary_writer_t *w, int reserve_id, i
     return sf_binary_writer_fill_i64(w, next_name, offset);
 }
 
-static sf_result_t msbs_write_current_counts_are_empty(const sf_msbs_t *msbs) {
+static sf_result_t msbs_write_current_counts_are_supported(const sf_msbs_t *msbs) {
     if (!msbs) return SF_ERR_INVALID_ARG;
-    if (msbs->model_count != 0 || msbs->event_count != 0 || msbs->region_count != 0 ||
-        msbs->route_count != 0 || msbs->part_count != 0) {
+    if (msbs->event_count != 0 || msbs->region_count != 0 || msbs->route_count != 0 ||
+        msbs->part_count != 0) {
         return SF_ERR_UNSUPPORTED_VERSION;
     }
     return SF_OK;
-}
-
-sf_result_t msbs_model_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs) {
-    (void)w;
-    return (!msbs || msbs->model_count != 0) ? SF_ERR_UNSUPPORTED_VERSION : SF_OK;
 }
 
 sf_result_t msbs_event_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs) {
@@ -284,7 +250,7 @@ sf_result_t sf_msbs_write_to_memory(const sf_msbs_t *msbs, uint8_t **out_data,
     *out_size = 0;
     alloc = sf_alloc_or_default(alloc);
 
-    sf_result_t rc = msbs_write_current_counts_are_empty(msbs);
+    sf_result_t rc = msbs_write_current_counts_are_supported(msbs);
     if (rc != SF_OK) return rc;
 
     sf_ostream_t *stream = NULL;
@@ -308,7 +274,11 @@ sf_result_t sf_msbs_write_to_memory(const sf_msbs_t *msbs, uint8_t **out_data,
             if (rc != SF_OK) goto fail;
         }
 
-        rc = msbs_write_empty_param(writer, k_msbs_lists[i].name, k_msbs_lists[i].version, i);
+        if (i == MSBS_LIST_MODELS) {
+            rc = msbs_model_param_write(writer, msbs);
+        } else {
+            rc = msbs_write_empty_param(writer, k_msbs_lists[i].name, k_msbs_lists[i].version, i);
+        }
         if (rc != SF_OK) goto fail;
     }
 
@@ -328,6 +298,7 @@ fail:
 void sf_msbs_destroy(sf_msbs_t *msbs) {
     if (!msbs) return;
     const sf_allocator_t *alloc = msbs->alloc;
+    msbs_model_param_free(msbs->models, msbs->model_count, alloc);
     sf_xfree(alloc, msbs->models);
     sf_xfree(alloc, msbs->events);
     sf_xfree(alloc, msbs->regions);

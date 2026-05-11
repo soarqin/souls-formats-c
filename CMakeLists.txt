@@ -122,6 +122,7 @@ set(SF_SOURCES
     src/script/esd.c
     src/map/msb_common.c
     src/map/msbs/msbs.c
+    src/map/msbs/model_param.c
 )
 
 if(TARGET libzstd_static)
