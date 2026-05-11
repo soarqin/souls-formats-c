@@ -42,7 +42,7 @@
 | **加密** | AES-128-ECB（BHD5）、AES-128-CBC（SL2）、AES-256-CBC（regulation.bin）、MD5（FMG/SL2） | 通过 Windows CNG 实现 |
 | **容器** | BND3、BND4、BXF3、BXF4、BHD5、TPF、ENFL | 用户指定的容器全集 + 加载流相关 |
 | **参数与文本** | PARAM、PARAMDEF（二进制）、PARAMDEF（XML 反序列化）、PARAMTDF、FMG | 用户指定 + Paramdex 配套 |
-| **脚本** | EMEVD、ESD | 用户指定 EMEVD；ESD 是 Sekiro/ER 同时使用的状态机 |
+| **脚本** | EMEVD、ESD | 用户指定 EMEVD；ESD 是 Sekiro/ER 同时使用的状态机（已在 Phase 4 完成，2026-05-11） |
 | **地图** | MSBS（Sekiro）、MSBE（ER + Nightreign）、MSBVI（AC6）、MSB 公共骨架 | 覆盖目标四款游戏的地图格式 |
 | **几何与材质** | FLVER2、MTD、MATBIN | 所有四款目标游戏的网格 + 材质 |
 
@@ -576,16 +576,16 @@ souls-formats-c/
     - `/mnt/c/Games/ELDEN RING/Game/Data0.bhd` 或 `Data0.bdt` 缺失 → 所有 `*_e2e_er` SKIP。
     - `~/dev/oodle/oo2core_6_win64.dll` 缺失 → 所有依赖 KRAK 的 e2e（即所有 ER e2e）SKIP。
 
-### Phase 4 — 参数与文本（预估 1.5 周）
-- [ ] `sf_param.{h,c}`：行/单元 / DataVersion / 字节序自动识别。
-- [ ] `sf_paramdef.{h,c}`：二进制读 + 写，含字段类型、位偏移、单元枚举。
-- [ ] `paramdef_xml_read.c`：通过 mxml 反序列化 Paramdex 风格 XML 到 `sf_paramdef_t`。
+### Phase 4 — 参数与文本（预估 1.5 周） ✅ 完成 (2026-05-11) — 20/20 PASS across 20 test binaries
+- [x] `sf_param.{h,c}`：行/单元 / DataVersion / 字节序自动识别。
+- [x] `sf_paramdef.{h,c}`：二进制读 + 写，含字段类型、位偏移、单元枚举。
+- [x] `paramdef_xml_read.c`：通过 mxml 反序列化 Paramdex 风格 XML 到 `sf_paramdef_t`。
   - **不在 v1 内**：XML 写出（推迟到 v1.1）。
-- [ ] `sf_param_apply_paramdef(param, defs, count, careful)`：对应上游 `ApplyParamdefCarefully`。
-- [ ] `sf_paramtdf.{h,c}`：参数 enum 友好名。
-- [ ] `sf_fmg.{h,c}`：含可选 MD5 头校验。
-- [ ] 示例：`examples/sf_param_dump.c`。
-- [ ] **QA 场景**：
+- [x] `sf_param_apply_paramdef(param, defs, count, careful)`：对应上游 `ApplyParamdefCarefully`。
+- [x] `sf_paramtdf.{h,c}`：参数 enum 友好名。
+- [x] `sf_fmg.{h,c}`：含可选 MD5 头校验。
+- [x] 示例：`examples/sf_param_dump.c`。
+- [x] **QA 场景**：
   - **工具**：cmake / ninja / ctest / mxml / Paramdex（`/home/soar/dev/paramdex/`）/ ER 副本
   - **命令**：
     ```bash
@@ -605,7 +605,7 @@ souls-formats-c/
     - `/mnt/c/Games/ELDEN RING/Game/regulation.bin` 缺失 → `test_param_apply_paramdef_e2e` SKIP。
     - Phase 3 `er_extract_from_data0` 未通过 → `test_fmg_e2e_er` SKIP（依赖前置阶段）。
 
-### Phase 5 — 脚本与地图（预估 2.5 周）
+### Phase 5 — 脚本与地图（预估 3 周）
 - [ ] `sf_emevd.{h,c}`：事件脚本字节码读写（DS3/Sekiro/ER/AC6 可能略有差异，需要按 game 分支）。
 - [ ] `sf_esd.{h,c}`：状态机读写。
 - [ ] `sf_msb.h`：公共 `sf_msb_part_t / sf_msb_region_t / sf_msb_event_t / sf_msb_route_t / sf_msb_layer_t / sf_msb_model_t` 抽象。

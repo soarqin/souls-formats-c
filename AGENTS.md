@@ -31,8 +31,8 @@ result codes, and opaque pointer types.
 | 1 | Runtime (IO, encoding, math, hash) | ✅ done | 5/5 PASS across 5 binaries (verified 2026-05-10) |
 | 2 | Compression + crypto (DCX, AES, Oodle) | ✅ done | 13/13 PASS across 13 binaries (verified 2026-05-10) |
 | 3 | Archive containers (BND/BXF/BHD5/TPF/ENFL) | ✅ done | 32/32 PASS across 12 binaries (verified 2026-05-10) |
-| 4 | Param + text (PARAM/PARAMDEF/PARAMTDF/FMG) | ⏳ pending | — |
-| 5 | Script + map (EMEVD/ESD/MSB*) | ⏳ pending | — |
+| 4 | Param + text (PARAM/PARAMDEF/PARAMTDF/FMG) | ✅ done | 20/20 PASS across 20 test binaries |
+| 5 | Script + map (EMEVD/ESD/MSB*) | 🚧 in progress | — |
 | 6 | Geometry + material (FLVER2/MTD/MATBIN) | ⏳ pending | — |
 | 7 | Animation + effects (TAE/FXR3) | ⏳ optional / v1.1 | — |
 | v2 | Legacy games (DS1/DS2/DS3/BB/DeS) | ⏳ post v1 GA | — |
