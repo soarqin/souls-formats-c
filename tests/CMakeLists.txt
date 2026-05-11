@@ -134,6 +134,11 @@ target_compile_definitions(souls_formats_test_tpf_e2e_er PRIVATE
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 #-----------------------------------------------------------------------------
+# Phase 5 — script formats
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_esd_read script/test_esd_read.c "script")
+
+#-----------------------------------------------------------------------------
 # Phase 4 — PARAM/PARAMDEF
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_paramdef_bitstream param/test_paramdef_bitstream.c "param")
