@@ -50,6 +50,7 @@
 - **动画与特效**：TAE3 / TAE4、FXR3、FFXDLSE、ANI、MQB —— 单独立 Phase 7，可在 v1.1 增量交付。
 - **遗留地图**：MSB1 / MSB2 / MSB3 / MSBB / MSBD / MSBN / MSBV / MSBVD / MSBFA / MSBAC4。
 - **遗留几何**：FLVER0、MDL / MDL0 / MDL4 / SMD4 / OM2、CLM2、F2TR、GRASS。
+- **遗留几何**：FLVER0、MDL / MDL0 / MDL4 / SMD4 / OM2、CLM2、F2TR、GRASS。Edge Geometry / SPU vertex format / RSX vertex format（PS3-era console-specific 顶点压缩；v1 4 款目标游戏均不使用，推迟到 v2）。
 - **遗留容器**：BND2、DVDBND、FSDATA、LDMU、MGF、Zero3、ACE3 / AC3SL / Kuon BND。
 - **导航网格**：NVA / NVM / NGP / MCG / MCP / EDGE。
 - **照明**：BTAB / BTL / BTPB / PMDCL。
@@ -605,15 +606,15 @@ souls-formats-c/
     - `/mnt/c/Games/ELDEN RING/Game/regulation.bin` 缺失 → `test_param_apply_paramdef_e2e` SKIP。
     - Phase 3 `er_extract_from_data0` 未通过 → `test_fmg_e2e_er` SKIP（依赖前置阶段）。
 
-### Phase 5 — 脚本与地图（预估 3 周）
-- [ ] `sf_emevd.{h,c}`：事件脚本字节码读写（DS3/Sekiro/ER/AC6 可能略有差异，需要按 game 分支）。
-- [ ] `sf_esd.{h,c}`：状态机读写。
-- [ ] `sf_msb.h`：公共 `sf_msb_part_t / sf_msb_region_t / sf_msb_event_t / sf_msb_route_t / sf_msb_layer_t / sf_msb_model_t` 抽象。
-- [ ] `msb_common.c`：基类 entry list 读写骨架。
-- [ ] `sf_msbs.{h,c}` (Sekiro)。
-- [ ] `sf_msbe.{h,c}` (Elden Ring + Nightreign)。
-- [ ] `sf_msbvi.{h,c}` (AC6)。
-- [ ] **QA 场景**：
+### Phase 5 — 脚本与地图（预估 3 周） ✅ 完成 (2026-05-12) — 5/5 PASS across 32 test binaries
+- [x] `sf_emevd.{h,c}`：事件脚本字节码读写（DS3/Sekiro/ER/AC6 可能略有差异，需要按 game 分支）。
+- [x] `sf_esd.{h,c}`：状态机读写。
+- [x] `sf_msb.h`：公共 `sf_msb_part_t / sf_msb_region_t / sf_msb_event_t / sf_msb_route_t / sf_msb_layer_t / sf_msb_model_t` 抽象。
+- [x] `msb_common.c`：基类 entry list 读写骨架。
+- [x] `sf_msbs.{h,c}` (Sekiro)。
+- [x] `sf_msbe.{h,c}` (Elden Ring + Nightreign)。
+- [x] `sf_msbvi.{h,c}` (AC6)。
+- [x] **QA 场景**：
   - **工具**：cmake / ninja / ctest / WSL interop / ER 副本
   - **命令**：
     ```bash
@@ -796,6 +797,7 @@ GitHub Actions matrix：
 | Oodle 版本探测 | 不同游戏 / 补丁切换 oo2core 大版本，函数签名微变 | 加载器对每个版本 (.6/.8/.9) 维护独立 vtable；探测后选用对应版本的 op |
 | API drift over time | upstream advances, our mapping goes stale | re-audit policy in `docs/api-mapping/UPSTREAM.md` (every 50 commits, re-survey core 6 files: BinaryReaderEx, BinaryWriterEx, DCX.cs, RegulationDecryptor.cs, SL2Decryptor.cs, HashHelper.cs, Oodle.cs) |
 | FLVER2 顶点 layout 多 | Sekiro / ER / AC6 顶点格式可能上百种排列 | 维护 layout 注册表 + 真实样本回归测试；初期只支持公开样本中出现的 layout，遇未知 layout 报 `SF_ERR_UNSUPPORTED_VERSION` 并打日志 |
+| Edge geometry 字段 sneak into BHD 数据 | 文件中含 EdgeCompression flag，且会误进 v1 解析路径 | 文件中含 EdgeCompression flag 时返回 `SF_ERR_UNSUPPORTED_VERSION`，T17/T15 显式分支拒绝 |
 | MSB 跨游戏微差 | 同一概念在 MSBE / MSBS / MSBVI 字段次序、可选字段不同 | 用代码生成器从 schema 生成 entry list 解析器（v2 考虑）；v1 手写每个 |
 | PARAMDEF 数据来源 | Sekiro 之后的 PARAMDEF 不随游戏发货，需要 Paramdex | 接入 Paramdex 路径作为开发文档，e2e 测试假设其存在 |
 | Unicode 文件路径 | FromSoft 资源经常包含日文路径 | 公共 API 内部用 UTF-8，Win32 边界用 wide；提供 `sf_path_*` 帮助函数 |
