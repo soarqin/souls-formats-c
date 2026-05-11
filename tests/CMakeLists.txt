@@ -106,6 +106,25 @@ target_compile_definitions(souls_formats_test_bhd5_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
+# Phase 5 — AC6 e2e helper
+sf_add_test(souls_formats_test_ac6_helper_smoke e2e/test_ac6_helper_smoke.c "e2e_ac6")
+target_include_directories(souls_formats_test_ac6_helper_smoke PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_ac6_helper_smoke PRIVATE
+    e2e/ac6_test_helper.c)
+target_compile_definitions(souls_formats_test_ac6_helper_smoke PRIVATE
+    SF_E2E_AC6_DIR=L"C:/Games/ARMORED CORE VI FIRES OF RUBICON/Game"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+sf_add_test(souls_formats_test_msbvi_e2e_ac6 map/msbvi/test_msbvi_e2e_ac6.c "e2e_ac6")
+target_include_directories(souls_formats_test_msbvi_e2e_ac6 PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_msbvi_e2e_ac6 PRIVATE
+    e2e/ac6_test_helper.c)
+target_compile_definitions(souls_formats_test_msbvi_e2e_ac6 PRIVATE
+    SF_E2E_AC6_DIR=L"C:/Games/ARMORED CORE VI FIRES OF RUBICON/Game"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
 sf_add_test(souls_formats_test_bnd4_e2e_er e2e/test_bnd4_e2e_er.c "e2e")
 target_include_directories(souls_formats_test_bnd4_e2e_er PRIVATE
     ${CMAKE_SOURCE_DIR}/tests/e2e)

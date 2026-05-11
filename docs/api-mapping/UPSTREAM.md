@@ -24,13 +24,13 @@
 | Elden Ring | `/mnt/c/Games/ELDEN RING/Game` | `Data0.bhd` | `fbe82e31c36b` | 2026-05-11 |
 | Sekiro | `/mnt/c/Games/Sekiro` | `Data1.bhd` | `a0058f49a04e` | 2026-05-11 |
 | Nightreign | `/mnt/c/Games/ELDEN RING NIGHTREIGN/Game` | `data0.bhd` | `de0d6bc893b9` | 2026-05-11 |
-| AC6 | `/mnt/c/Games/ARMORED CORE VI FIRES OF RUBICON/Game` | `N/A` | `TBD (not installed)` | `TBD` |
+| AC6 | `/mnt/c/Games/ARMORED CORE VI FIRES OF RUBICON/Game` | `Data0.bhd` | `35c8fd511e78` | 2026-05-12 |
 
 ```text
 Elden Ring: fbe82e31c36b7a58258a9d318d0a20d8ae626beda952811106c2b0029194981a
 Sekiro: a0058f49a04e98fde61cf23f96b155b809b9c820b007c0fb181452daffb5928d
 Nightreign: de0d6bc893b98f515f5cd1f4e9b17787dd903ec865b025dd177a82799552516b
-AC6: TBD (data not yet installed, pending user download)
+AC6: 35c8fd511e78caf6998a553a54b30649af2e1c24ea4594ba5d027161d751ac05
 ```
 
 Risk note: If the user updates any game, MSB/ESD field layouts may change; e2e fixtures only guaranteed for this snapshot.
