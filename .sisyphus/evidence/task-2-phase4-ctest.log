@@ -1,0 +1,49 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+      Start 33: souls_formats_test_paramdef_bitstream
+ 1/20 Test #33: souls_formats_test_paramdef_bitstream ......   Passed    0.07 sec
+      Start 34: souls_formats_test_param_binary_read
+ 2/20 Test #34: souls_formats_test_param_binary_read .......   Passed    0.10 sec
+      Start 35: souls_formats_test_param_binary_write
+ 3/20 Test #35: souls_formats_test_param_binary_write ......   Passed    0.10 sec
+      Start 36: souls_formats_test_param_apply_paramdef
+ 4/20 Test #36: souls_formats_test_param_apply_paramdef ....   Passed    0.13 sec
+      Start 37: souls_formats_test_paramdef_binary_read
+ 5/20 Test #37: souls_formats_test_paramdef_binary_read ....   Passed    0.10 sec
+      Start 38: souls_formats_test_paramdef_binary_write
+ 6/20 Test #38: souls_formats_test_paramdef_binary_write ...   Passed    0.11 sec
+      Start 39: souls_formats_test_paramdef_xml_read
+ 7/20 Test #39: souls_formats_test_paramdef_xml_read .......   Passed    0.10 sec
+      Start 40: paramtdf_read
+ 8/20 Test #40: paramtdf_read ..............................   Passed    0.07 sec
+      Start 41: souls_formats_test_paramtdf_write
+ 9/20 Test #41: souls_formats_test_paramtdf_write ..........   Passed    0.07 sec
+      Start 42: fmg_read
+10/20 Test #42: fmg_read ...................................   Passed    0.08 sec
+      Start 43: fmg_write
+11/20 Test #43: fmg_write ..................................   Passed    0.09 sec
+      Start 44: souls_formats_test_synthetic_roundtrip
+12/20 Test #44: souls_formats_test_synthetic_roundtrip .....   Passed    0.12 sec
+      Start 45: paramdef_xml_e2e
+13/20 Test #45: paramdef_xml_e2e ...........................   Passed    0.10 sec
+      Start 46: param_apply_paramdef_e2e
+14/20 Test #46: param_apply_paramdef_e2e ...................   Passed    0.46 sec
+      Start 47: fmg_e2e_er
+15/20 Test #47: fmg_e2e_er .................................   Passed    0.39 sec
+      Start 48: souls_formats_test_emevd_read
+16/20 Test #48: souls_formats_test_emevd_read ..............   Passed    0.09 sec
+      Start 49: souls_formats_test_emevd_write
+17/20 Test #49: souls_formats_test_emevd_write .............   Passed    0.10 sec
+      Start 50: souls_formats_test_emevd_synthetic
+18/20 Test #50: souls_formats_test_emevd_synthetic .........   Passed    0.10 sec
+      Start 51: emevd_e2e_er
+19/20 Test #51: emevd_e2e_er ...............................   Passed    0.37 sec
+      Start 52: souls_formats_test_emevd_format_probe
+20/20 Test #52: souls_formats_test_emevd_format_probe ......   Passed    0.50 sec
+
+100% tests passed, 0 tests failed out of 20
+
+Label Time Summary:
+param     =   2.07 sec*proc (15 tests)
+script    =   1.16 sec*proc (5 tests)
+
+Total Test time (real) =   3.24 sec

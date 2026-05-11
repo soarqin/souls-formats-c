@@ -1,0 +1,22 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+    Start 34: souls_formats_test_esd_read
+1/7 Test #34: souls_formats_test_esd_read .............   Passed    0.12 sec
+    Start 50: souls_formats_test_emevd_read
+2/7 Test #50: souls_formats_test_emevd_read ...........   Passed    0.10 sec
+    Start 51: souls_formats_test_emevd_write
+3/7 Test #51: souls_formats_test_emevd_write ..........   Passed    0.12 sec
+    Start 52: souls_formats_test_emevd_synthetic
+4/7 Test #52: souls_formats_test_emevd_synthetic ......   Passed    0.12 sec
+    Start 53: emevd_e2e_er
+5/7 Test #53: emevd_e2e_er ............................   Passed    0.40 sec
+    Start 56: souls_formats_test_emevd_format_probe
+6/7 Test #56: souls_formats_test_emevd_format_probe ...   Passed    0.51 sec
+    Start 57: souls_formats_test_esd_bytecode
+7/7 Test #57: souls_formats_test_esd_bytecode .........   Passed    0.06 sec
+
+100% tests passed, 0 tests failed out of 7
+
+Label Time Summary:
+script    =   1.43 sec*proc (7 tests)
+
+Total Test time (real) =   1.44 sec

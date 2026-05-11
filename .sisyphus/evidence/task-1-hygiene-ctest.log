@@ -1,0 +1,10 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+    Start 9: souls_formats_test_no_absolute_paths
+1/1 Test #9: souls_formats_test_no_absolute_paths ...   Passed    0.10 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+hygiene    =   0.10 sec*proc (1 test)
+
+Total Test time (real) =   0.10 sec

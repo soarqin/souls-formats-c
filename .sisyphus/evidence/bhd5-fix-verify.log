@@ -1,0 +1,123 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+      Start  1: souls_formats_test_smoke
+ 1/53 Test  #1: souls_formats_test_smoke ...................   Passed    0.17 sec
+      Start  2: souls_formats_test_filename_hash
+ 2/53 Test  #2: souls_formats_test_filename_hash ...........   Passed    0.14 sec
+      Start  3: souls_formats_test_encoding
+ 3/53 Test  #3: souls_formats_test_encoding ................   Passed    0.15 sec
+      Start  4: souls_formats_test_binary_reader
+ 4/53 Test  #4: souls_formats_test_binary_reader ...........   Passed    0.16 sec
+      Start  5: souls_formats_test_binary_writer
+ 5/53 Test  #5: souls_formats_test_binary_writer ...........   Passed    0.17 sec
+      Start  6: souls_formats_test_path
+ 6/53 Test  #6: souls_formats_test_path ....................   Passed    0.12 sec
+      Start  7: souls_formats_test_sf_util
+ 7/53 Test  #7: souls_formats_test_sf_util .................   Passed    0.35 sec
+      Start  8: souls_formats_test_dds_header
+ 8/53 Test  #8: souls_formats_test_dds_header ..............   Passed    0.21 sec
+      Start  9: souls_formats_test_no_absolute_paths
+ 9/53 Test  #9: souls_formats_test_no_absolute_paths .......   Passed    0.17 sec
+      Start 10: souls_formats_test_dcx_dflt
+10/53 Test #10: souls_formats_test_dcx_dflt ................   Passed    0.83 sec
+      Start 11: souls_formats_test_dcx_edge
+11/53 Test #11: souls_formats_test_dcx_edge ................   Passed    0.36 sec
+      Start 12: souls_formats_test_dcx_zstd
+12/53 Test #12: souls_formats_test_dcx_zstd ................   Passed    0.61 sec
+      Start 13: souls_formats_test_dcx_krak
+13/53 Test #13: souls_formats_test_dcx_krak ................   Passed    0.65 sec
+      Start 14: souls_formats_test_dcx_sniff
+14/53 Test #14: souls_formats_test_dcx_sniff ...............   Passed    0.36 sec
+      Start 15: souls_formats_test_aes_kat
+15/53 Test #15: souls_formats_test_aes_kat .................   Passed    0.13 sec
+      Start 16: souls_formats_test_md5_kat
+16/53 Test #16: souls_formats_test_md5_kat .................   Passed    0.11 sec
+      Start 17: souls_formats_test_regulation_decrypt
+17/53 Test #17: souls_formats_test_regulation_decrypt ......   Passed    0.49 sec
+      Start 18: souls_formats_test_sl2_kat
+18/53 Test #18: souls_formats_test_sl2_kat .................   Passed    0.17 sec
+      Start 19: souls_formats_test_rsa
+19/53 Test #19: souls_formats_test_rsa .....................   Passed    0.12 sec
+      Start 20: souls_formats_test_binder_common
+20/53 Test #20: souls_formats_test_binder_common ...........   Passed    0.36 sec
+      Start 21: souls_formats_test_bhd5_synthetic
+21/53 Test #21: souls_formats_test_bhd5_synthetic ..........   Passed    0.22 sec
+      Start 22: souls_formats_test_bnd3_synthetic
+22/53 Test #22: souls_formats_test_bnd3_synthetic ..........   Passed    0.52 sec
+      Start 23: souls_formats_test_bnd4_synthetic
+23/53 Test #23: souls_formats_test_bnd4_synthetic ..........   Passed    0.46 sec
+      Start 24: souls_formats_test_bxf3_synthetic
+24/53 Test #24: souls_formats_test_bxf3_synthetic ..........   Passed    0.46 sec
+      Start 25: souls_formats_test_bxf4_synthetic
+25/53 Test #25: souls_formats_test_bxf4_synthetic ..........   Passed    0.44 sec
+      Start 26: souls_formats_test_enfl_synthetic
+26/53 Test #26: souls_formats_test_enfl_synthetic ..........   Passed    0.22 sec
+      Start 27: souls_formats_test_tpf_synthetic
+27/53 Test #27: souls_formats_test_tpf_synthetic ...........   Passed    0.36 sec
+      Start 28: souls_formats_test_er_helper_smoke
+28/53 Test #28: souls_formats_test_er_helper_smoke .........   Passed    0.66 sec
+      Start 29: souls_formats_test_bhd5_e2e_er
+29/53 Test #29: souls_formats_test_bhd5_e2e_er .............   Passed    0.59 sec
+      Start 30: souls_formats_test_bnd4_e2e_er
+30/53 Test #30: souls_formats_test_bnd4_e2e_er .............   Passed    0.67 sec
+      Start 31: souls_formats_test_bxf4_e2e_er
+31/53 Test #31: souls_formats_test_bxf4_e2e_er .............   Passed    0.55 sec
+      Start 32: souls_formats_test_tpf_e2e_er
+32/53 Test #32: souls_formats_test_tpf_e2e_er ..............   Passed    0.73 sec
+      Start 33: souls_formats_test_paramdef_bitstream
+33/53 Test #33: souls_formats_test_paramdef_bitstream ......   Passed    0.17 sec
+      Start 34: souls_formats_test_param_binary_read
+34/53 Test #34: souls_formats_test_param_binary_read .......   Passed    0.19 sec
+      Start 35: souls_formats_test_param_binary_write
+35/53 Test #35: souls_formats_test_param_binary_write ......   Passed    0.25 sec
+      Start 36: souls_formats_test_param_apply_paramdef
+36/53 Test #36: souls_formats_test_param_apply_paramdef ....   Passed    0.29 sec
+      Start 37: souls_formats_test_paramdef_binary_read
+37/53 Test #37: souls_formats_test_paramdef_binary_read ....   Passed    0.20 sec
+      Start 38: souls_formats_test_paramdef_binary_write
+38/53 Test #38: souls_formats_test_paramdef_binary_write ...   Passed    0.22 sec
+      Start 39: souls_formats_test_paramdef_xml_read
+39/53 Test #39: souls_formats_test_paramdef_xml_read .......   Passed    0.16 sec
+      Start 40: paramtdf_read
+40/53 Test #40: paramtdf_read ..............................   Passed    0.15 sec
+      Start 41: souls_formats_test_paramtdf_write
+41/53 Test #41: souls_formats_test_paramtdf_write ..........   Passed    0.23 sec
+      Start 42: fmg_read
+42/53 Test #42: fmg_read ...................................   Passed    0.25 sec
+      Start 43: fmg_write
+43/53 Test #43: fmg_write ..................................   Passed    0.19 sec
+      Start 44: souls_formats_test_synthetic_roundtrip
+44/53 Test #44: souls_formats_test_synthetic_roundtrip .....   Passed    0.24 sec
+      Start 45: paramdef_xml_e2e
+45/53 Test #45: paramdef_xml_e2e ...........................   Passed    0.21 sec
+      Start 46: param_apply_paramdef_e2e
+46/53 Test #46: param_apply_paramdef_e2e ...................   Passed    0.85 sec
+      Start 47: fmg_e2e_er
+47/53 Test #47: fmg_e2e_er .................................   Passed    0.63 sec
+      Start 48: souls_formats_test_emevd_read
+48/53 Test #48: souls_formats_test_emevd_read ..............   Passed    0.26 sec
+      Start 49: souls_formats_test_emevd_write
+49/53 Test #49: souls_formats_test_emevd_write .............   Passed    0.22 sec
+      Start 50: souls_formats_test_emevd_synthetic
+50/53 Test #50: souls_formats_test_emevd_synthetic .........   Passed    0.19 sec
+      Start 51: emevd_e2e_er
+51/53 Test #51: emevd_e2e_er ...............................   Passed    0.52 sec
+      Start 52: souls_formats_test_emevd_format_probe
+52/53 Test #52: souls_formats_test_emevd_format_probe ......   Passed    0.85 sec
+      Start 53: souls_formats_test_golden
+53/53 Test #53: souls_formats_test_golden ..................   Passed    0.39 sec
+
+100% tests passed, 0 tests failed out of 53
+
+Label Time Summary:
+archive        =   3.04 sec*proc (8 tests)
+compression    =   2.82 sec*proc (5 tests)
+core           =   1.29 sec*proc (7 tests)
+crypto         =   1.02 sec*proc (5 tests)
+e2e            =   3.18 sec*proc (5 tests)
+golden         =   0.39 sec*proc (1 test)
+hygiene        =   0.17 sec*proc (1 test)
+param          =   4.23 sec*proc (15 tests)
+script         =   2.06 sec*proc (5 tests)
+smoke          =   0.17 sec*proc (1 test)
+
+Total Test time (real) =  18.45 sec

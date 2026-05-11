@@ -1,15 +1,83 @@
 {
-  "active_plan": "/home/soar/src/souls-formats-c/.sisyphus/plans/phase-4-param-text.md",
-  "started_at": "2026-05-10T19:30:21.082Z",
-  "completed_at": "2026-05-11T00:00:00.000Z",
-  "status": "complete",
-  "session_ids": ["ses_1eca1b54affedl8U1DlB5iae2D"],
-  "plan_name": "phase-4-param-text",
+  "active_plan": "/home/soar/src/souls-formats-c/.sisyphus/plans/phase-5-script-map.md",
+  "started_at": "2026-05-11T11:32:26.876Z",
+  "session_ids": [
+    "ses_1e930abc1ffegcwbNdWbHIbXxm"
+  ],
+  "session_origins": {
+    "ses_1e930abc1ffegcwbNdWbHIbXxm": "direct"
+  },
+  "plan_name": "phase-5-script-map",
   "agent": "atlas",
-  "final_wave": {
-    "F1": "APPROVE",
-    "F2": "APPROVE",
-    "F3": "APPROVE",
-    "F4": "APPROVE"
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "**修复 Phase 4 遗留 6 处绝对路径 include + 加 grep guard**",
+      "session_id": "ses_1e92d45bcffe7Dzi1GerR7OZKi",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-05-11T11:46:17.628Z"
+    },
+    "todo:2": {
+      "task_key": "todo:2",
+      "task_label": "2",
+      "task_title": "**状态表对齐现实：AGENTS.md §2 + PLAN.md §7 + roadmap/README.md**",
+      "session_id": "ses_1e91bc387ffeWIAbxs9pIc4j4N",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-05-11T11:59:01.031Z"
+    },
+    "todo:4": {
+      "task_key": "todo:4",
+      "task_label": "4",
+      "task_title": "**Nightreign MSB ↔ MSBE empirical 兼容性 probe**",
+      "session_id": "ses_1e9187a2fffergAYO3kUbiUTdL",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-11T12:17:54.820Z"
+    },
+    "todo:7": {
+      "task_key": "todo:7",
+      "task_label": "7",
+      "task_title": "**`sf_msb.h` 公共类型 + IMsbEntry / Point3 / Shape opaque**",
+      "session_id": "ses_1e8df87d2ffeyYqea7Qo9t6rYc",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-05-11T13:04:01.910Z"
+    },
+    "todo:8": {
+      "task_key": "todo:8",
+      "task_label": "8",
+      "task_title": "**`src/map/msb_common.c` list-of-lists 骨架 reader + writer**",
+      "session_id": "ses_1e8c9ac44ffeI6j0yAiNCsKqmz",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-05-11T13:34:41.490Z"
+    },
+    "todo:10": {
+      "task_key": "todo:10",
+      "task_label": "10",
+      "task_title": "**`src/script/esd.c` 二进制 reader（含 long/short format 检测）**",
+      "session_id": "ses_1e8bfabccffeKrJn7f31DYvQNX",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-11T13:42:43.126Z"
+    },
+    "todo:11": {
+      "task_key": "todo:11",
+      "task_label": "11",
+      "task_title": "**`src/script/esd_bytecode.c` Condition bytecode 解码器**",
+      "session_id": "ses_1e8b7a11fffeZjfWROwRoWOuBJ",
+      "updated_at": "2026-05-11T14:14:39.782Z"
+    },
+    "todo:14": {
+      "task_key": "todo:14",
+      "task_label": "14",
+      "task_title": "**`tests/e2e/ac6_test_helper.{c,h}` —— gated 等 AC6 数据就位**",
+      "session_id": "ses_1e8007bc4ffeIZMmyY8HTtKLhx",
+      "agent": "oracle",
+      "updated_at": "2026-05-11T17:06:12.767Z"
+    }
   }
 }

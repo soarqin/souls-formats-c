@@ -1,0 +1,5 @@
+/home/soar/src/souls-formats-c/tests/map/msbe/test_msbe_e2e_er.c:85:test_msbe_e2e_er:IGNORE: ER MSBE not accessible from Data0 (mapstudio entries may live in another shard)
+
+-----------------------
+1 Tests 0 Failures 1 Ignored 
+OK

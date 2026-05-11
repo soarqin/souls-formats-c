@@ -1,0 +1,10 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+    Start 34: souls_formats_test_esd_read
+1/1 Test #34: souls_formats_test_esd_read ......   Passed    0.21 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+script    =   0.21 sec*proc (1 test)
+
+Total Test time (real) =   0.21 sec

@@ -1,0 +1,2 @@
+[1/2] Building C object tests/CMakeFiles/souls_formats_test_no_absolute_paths.dir/core/test_no_absolute_paths.c.obj
+[2/2] Linking C executable tests/hygiene/souls_formats_test_no_absolute_paths.exe
