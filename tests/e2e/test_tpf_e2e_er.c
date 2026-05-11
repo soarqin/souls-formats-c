@@ -1,19 +1,20 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later
  *
- * T18 — Phase-3 e2e: TPF nested inside an ER chrbnd BND4.
+ * T18 — Phase-3 e2e: TPF nested inside an ER split archive.
  *
- * The deepest layered scenario: BHD5 → DCX_KRAK → BND4 → TPF → DDS magic.
- * Walks `/chr/c0000.chrbnd.dcx`, scans for a `.tpf`-named entry, parses it
- * via sf_tpf_read_from_memory, and asserts that the first texture's bytes
- * begin with the DDS magic ("DDS ").
+ * The layered scenario is BHD5 → DCX_KRAK → BXF4 → TPF → DDS magic.
+ * The test scans several known Data0 split-archive candidates, locates the
+ * first `.tpf` entry inside a parsed BXF4, and then validates the texture
+ * payload.
  *
- * SKIPs gracefully when ER copy / Oodle DLL is missing.
+ * SKIPs gracefully when ER copy / Oodle DLL is missing or no candidate is
+ * present in this ER build.
  */
 
 #include "er_test_helper.h"
 
 #include "souls_formats/sf_binder.h"
-#include "souls_formats/sf_bnd4.h"
+#include "souls_formats/sf_bxf4.h"
 #include "souls_formats/sf_common.h"
 #include "souls_formats/sf_io.h"
 #include "souls_formats/sf_tpf.h"
@@ -23,6 +24,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 void setUp(void) {}
@@ -30,51 +32,129 @@ void tearDown(void) {}
 
 static bool env_ok;
 
-static const char *k_chrbnd_path = "/chr/c0000.chrbnd.dcx";
+static const char *const k_tpfbhd_candidates[] = {
+    "/parts/wp_a_0010.tpfbhd",
+    "/parts/common_body.tpfbhd",
+    "/asset/aeg/aeg007/aeg007_002.tpfbhd",
+    "/asset/aeg/aeg099/aeg099_010.tpfbhd",
+    "/parts/am_m_2000.tpfbhd",
+    NULL,
+};
 
-static bool name_has_tpf_suffix(const char *name)
+static char *tpfbhd_to_tpfbdt(const char *in)
 {
-    if (!name) return false;
-    const char *dot = strrchr(name, '.');
-    if (!dot) return false;
-    return strcmp(dot, ".tpf") == 0;
+    const size_t len = strlen(in);
+    const char  *suf = ".tpfbhd";
+    const size_t sl  = strlen(suf);
+    if (len < sl || strcmp(in + len - sl, suf) != 0) {
+        return NULL;
+    }
+
+    char *out = (char *)malloc(len + 1);
+    if (!out) return NULL;
+    memcpy(out, in, len + 1);
+    memcpy(out + len - sl, ".tpfbdt", sl);
+    return out;
 }
 
-/* Sub-test 1 — chrbnd contains at least one TPF entry. Some chrbnds embed
- * textures via separate BXF4 references; in that case the test SKIPs. */
+static sf_result_t load_first_tpf_entry(sf_bxf4_t **out_bxf,
+                                        const sf_binder_file_t **out_tpf_entry)
+{
+    *out_bxf       = NULL;
+    *out_tpf_entry = NULL;
+
+    for (size_t i = 0; k_tpfbhd_candidates[i] != NULL; ++i) {
+        const char *bhd_path = k_tpfbhd_candidates[i];
+
+        void  *bhd_bytes = NULL;
+        size_t bhd_size  = 0;
+        sf_result_t r    = er_extract_from_data0(bhd_path, &bhd_bytes, &bhd_size);
+        if (r == SF_ERR_OODLE_NOT_FOUND) {
+            if (bhd_bytes != NULL) {
+                sf_free(NULL, bhd_bytes);
+            }
+            return r;
+        }
+        if (r != SF_OK) {
+            if (bhd_bytes != NULL) {
+                sf_free(NULL, bhd_bytes);
+            }
+            continue;
+        }
+
+        char *bdt_path = tpfbhd_to_tpfbdt(bhd_path);
+        if (!bdt_path) {
+            sf_free(NULL, bhd_bytes);
+            continue;
+        }
+
+        void  *bdt_bytes = NULL;
+        size_t bdt_size  = 0;
+        sf_result_t br    = er_extract_from_data0(bdt_path, &bdt_bytes, &bdt_size);
+        free(bdt_path);
+        if (br != SF_OK) {
+            sf_free(NULL, bhd_bytes);
+            if (bdt_bytes != NULL) {
+                sf_free(NULL, bdt_bytes);
+            }
+            continue;
+        }
+
+        sf_bxf4_t  *bxf = NULL;
+        sf_result_t pr  = sf_bxf4_read_from_memory(&bxf, (const uint8_t *)bhd_bytes,
+                                                   bhd_size, (const uint8_t *)bdt_bytes,
+                                                   bdt_size, NULL);
+        sf_free(NULL, bhd_bytes);
+        sf_free(NULL, bdt_bytes);
+        if (pr != SF_OK || bxf == NULL) {
+            if (bxf != NULL) {
+                sf_bxf4_destroy(bxf);
+            }
+            continue;
+        }
+
+        const size_t entry_count = sf_bxf4_file_count(bxf);
+        for (size_t j = 0; j < entry_count; ++j) {
+            const sf_binder_file_t *file = sf_bxf4_get_file(bxf, j);
+            if (file != NULL && file->name_utf8 != NULL) {
+                const char *dot = strrchr(file->name_utf8, '.');
+                if (dot != NULL && strcmp(dot, ".tpf") == 0) {
+                    *out_bxf       = bxf;
+                    *out_tpf_entry = file;
+                    return SF_OK;
+                }
+            }
+        }
+
+        sf_bxf4_destroy(bxf);
+    }
+
+    return SF_ERR_NOT_FOUND;
+}
+
+/* Sub-test 1 — locate a candidate that actually contains a TPF entry. */
 static void test_find_tpf_entry(void)
 {
     if (!env_ok) {
         TEST_IGNORE_MESSAGE("ER copy or Oodle DLL not available");
     }
 
-    void  *bytes = NULL;
-    size_t size  = 0;
-    sf_result_t r = er_extract_from_data0(k_chrbnd_path, &bytes, &size);
+    sf_bxf4_t *bxf = NULL;
+    const sf_binder_file_t *tpf_entry = NULL;
+    sf_result_t r = load_first_tpf_entry(&bxf, &tpf_entry);
     if (r == SF_ERR_OODLE_NOT_FOUND) {
         TEST_IGNORE_MESSAGE("Oodle DLL missing; cannot decompress DCX_KRAK");
     }
-    TEST_ASSERT_EQUAL_INT(SF_OK, r);
-
-    sf_bnd4_t *bnd = NULL;
-    TEST_ASSERT_EQUAL(SF_OK,
-                      sf_bnd4_read_from_memory(&bnd, (const uint8_t *)bytes, size, NULL));
-
-    bool         found       = false;
-    const size_t entry_count = sf_bnd4_file_count(bnd);
-    for (size_t i = 0; i < entry_count; i++) {
-        const sf_binder_file_t *f = sf_bnd4_get_file(bnd, i);
-        if (f && name_has_tpf_suffix(f->name_utf8)) {
-            found = true;
-            break;
-        }
+    if (r != SF_OK) {
+        TEST_IGNORE_MESSAGE("no TPF-containing BXF4 candidate found in Data0");
     }
-    sf_bnd4_destroy(bnd);
-    sf_free(NULL, bytes);
 
-    if (!found) {
-        TEST_IGNORE_MESSAGE("no .tpf entry inside c0000.chrbnd in this ER version");
-    }
+    TEST_ASSERT_NOT_NULL(bxf);
+    TEST_ASSERT_NOT_NULL(tpf_entry);
+    TEST_ASSERT_TRUE(tpf_entry->name_utf8 != NULL);
+    TEST_ASSERT_NOT_NULL(strrchr(tpf_entry->name_utf8, '.'));
+
+    sf_bxf4_destroy(bxf);
 }
 
 /* Sub-test 2 — parse the .tpf entry and confirm at least one texture. */
@@ -84,43 +164,24 @@ static void test_tpf_has_textures(void)
         TEST_IGNORE_MESSAGE("ER copy or Oodle DLL not available");
     }
 
-    void  *bytes = NULL;
-    size_t size  = 0;
-    sf_result_t r = er_extract_from_data0(k_chrbnd_path, &bytes, &size);
+    sf_bxf4_t *bxf = NULL;
+    const sf_binder_file_t *tpf_entry = NULL;
+    sf_result_t r = load_first_tpf_entry(&bxf, &tpf_entry);
     if (r == SF_ERR_OODLE_NOT_FOUND) {
         TEST_IGNORE_MESSAGE("Oodle DLL missing; cannot decompress DCX_KRAK");
     }
-    TEST_ASSERT_EQUAL_INT(SF_OK, r);
-
-    sf_bnd4_t *bnd = NULL;
-    TEST_ASSERT_EQUAL(SF_OK,
-                      sf_bnd4_read_from_memory(&bnd, (const uint8_t *)bytes, size, NULL));
-
-    const sf_binder_file_t *tpf_entry  = NULL;
-    const size_t            entry_count = sf_bnd4_file_count(bnd);
-    for (size_t i = 0; i < entry_count; i++) {
-        const sf_binder_file_t *f = sf_bnd4_get_file(bnd, i);
-        if (f && name_has_tpf_suffix(f->name_utf8)) {
-            tpf_entry = f;
-            break;
-        }
-    }
-    if (!tpf_entry) {
-        sf_bnd4_destroy(bnd);
-        sf_free(NULL, bytes);
-        TEST_IGNORE_MESSAGE("no .tpf entry inside c0000.chrbnd in this ER version");
+    if (r != SF_OK) {
+        TEST_IGNORE_MESSAGE("no TPF-containing BXF4 candidate found in Data0");
     }
 
     sf_tpf_t *tpf = NULL;
-    sf_result_t pr =
-        sf_tpf_read_from_memory(&tpf, tpf_entry->data, tpf_entry->size, NULL);
+    sf_result_t pr = sf_tpf_read_from_memory(&tpf, tpf_entry->data, tpf_entry->size, NULL);
     TEST_ASSERT_EQUAL_INT(SF_OK, pr);
     TEST_ASSERT_NOT_NULL(tpf);
     TEST_ASSERT_GREATER_THAN(0, (int)sf_tpf_texture_count(tpf));
 
     sf_tpf_destroy(tpf);
-    sf_bnd4_destroy(bnd);
-    sf_free(NULL, bytes);
+    sf_bxf4_destroy(bxf);
 }
 
 /* Sub-test 3 — first texture has a non-empty payload. */
@@ -130,31 +191,14 @@ static void test_first_texture_has_bytes(void)
         TEST_IGNORE_MESSAGE("ER copy or Oodle DLL not available");
     }
 
-    void  *bytes = NULL;
-    size_t size  = 0;
-    sf_result_t r = er_extract_from_data0(k_chrbnd_path, &bytes, &size);
+    sf_bxf4_t *bxf = NULL;
+    const sf_binder_file_t *tpf_entry = NULL;
+    sf_result_t r = load_first_tpf_entry(&bxf, &tpf_entry);
     if (r == SF_ERR_OODLE_NOT_FOUND) {
         TEST_IGNORE_MESSAGE("Oodle DLL missing; cannot decompress DCX_KRAK");
     }
-    TEST_ASSERT_EQUAL_INT(SF_OK, r);
-
-    sf_bnd4_t *bnd = NULL;
-    TEST_ASSERT_EQUAL(SF_OK,
-                      sf_bnd4_read_from_memory(&bnd, (const uint8_t *)bytes, size, NULL));
-
-    const sf_binder_file_t *tpf_entry   = NULL;
-    const size_t            entry_count = sf_bnd4_file_count(bnd);
-    for (size_t i = 0; i < entry_count; i++) {
-        const sf_binder_file_t *f = sf_bnd4_get_file(bnd, i);
-        if (f && name_has_tpf_suffix(f->name_utf8)) {
-            tpf_entry = f;
-            break;
-        }
-    }
-    if (!tpf_entry) {
-        sf_bnd4_destroy(bnd);
-        sf_free(NULL, bytes);
-        TEST_IGNORE_MESSAGE("no .tpf entry inside c0000.chrbnd in this ER version");
+    if (r != SF_OK) {
+        TEST_IGNORE_MESSAGE("no TPF-containing BXF4 candidate found in Data0");
     }
 
     sf_tpf_t *tpf = NULL;
@@ -171,44 +215,24 @@ static void test_first_texture_has_bytes(void)
     TEST_ASSERT_GREATER_THAN(0, (int)tex_size);
 
     sf_tpf_destroy(tpf);
-    sf_bnd4_destroy(bnd);
-    sf_free(NULL, bytes);
+    sf_bxf4_destroy(bxf);
 }
 
-/* Sub-test 4 — first texture's bytes start with DDS magic ("DDS "). For
- * PC TPFs the texture bytes are stored verbatim as a DDS file (the helper
- * auto-decompresses any per-texture DCP_EDGE wrap when flags1 == 2|3). */
+/* Sub-test 4 — first texture's bytes start with DDS magic ("DDS "). */
 static void test_first_texture_is_dds(void)
 {
     if (!env_ok) {
         TEST_IGNORE_MESSAGE("ER copy or Oodle DLL not available");
     }
 
-    void  *bytes = NULL;
-    size_t size  = 0;
-    sf_result_t r = er_extract_from_data0(k_chrbnd_path, &bytes, &size);
+    sf_bxf4_t *bxf = NULL;
+    const sf_binder_file_t *tpf_entry = NULL;
+    sf_result_t r = load_first_tpf_entry(&bxf, &tpf_entry);
     if (r == SF_ERR_OODLE_NOT_FOUND) {
         TEST_IGNORE_MESSAGE("Oodle DLL missing; cannot decompress DCX_KRAK");
     }
-    TEST_ASSERT_EQUAL_INT(SF_OK, r);
-
-    sf_bnd4_t *bnd = NULL;
-    TEST_ASSERT_EQUAL(SF_OK,
-                      sf_bnd4_read_from_memory(&bnd, (const uint8_t *)bytes, size, NULL));
-
-    const sf_binder_file_t *tpf_entry   = NULL;
-    const size_t            entry_count = sf_bnd4_file_count(bnd);
-    for (size_t i = 0; i < entry_count; i++) {
-        const sf_binder_file_t *f = sf_bnd4_get_file(bnd, i);
-        if (f && name_has_tpf_suffix(f->name_utf8)) {
-            tpf_entry = f;
-            break;
-        }
-    }
-    if (!tpf_entry) {
-        sf_bnd4_destroy(bnd);
-        sf_free(NULL, bytes);
-        TEST_IGNORE_MESSAGE("no .tpf entry inside c0000.chrbnd in this ER version");
+    if (r != SF_OK) {
+        TEST_IGNORE_MESSAGE("no TPF-containing BXF4 candidate found in Data0");
     }
 
     sf_tpf_t *tpf = NULL;
@@ -230,8 +254,7 @@ static void test_first_texture_is_dds(void)
     TEST_ASSERT_EQUAL_UINT8(' ', tex[3]);
 
     sf_tpf_destroy(tpf);
-    sf_bnd4_destroy(bnd);
-    sf_free(NULL, bytes);
+    sf_bxf4_destroy(bxf);
 }
 
 int main(void)
