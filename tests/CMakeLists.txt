@@ -363,6 +363,7 @@ target_compile_definitions(probe_matbin_paramtypes PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 set_target_properties(probe_matbin_paramtypes PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
+include(${CMAKE_CURRENT_SOURCE_DIR}/probes/CMakeLists.txt)
 
 #-----------------------------------------------------------------------------
 # Pre-refactor SHA-256 baseline — pins deterministic byte outputs across

@@ -55,3 +55,10 @@
 - Unknown ParamTypes: none; sampled raw values stayed within `{0,4,5,8,9,10,11,12}`.
 - De-duplicated sampler types included C_Detail3Blend and OverlayBlend texture slots; smallest MATBIN found was `S[Ghost].matbin` at 425 bytes.
 - Gotcha: current `er_extract_from_data0()` 32-bit/37 hash path did not locate allmaterial in this install; the probe falls back to the BHD5 64-bit `h = c + 133*h` hash used by modern archives, then applies the same one-layer DCX unwrap.
+
+## [2026-05-12] T4 c0000 FLVER2 layout probe
+
+- `probe_flver2_layouts` must use ER Data3 for `/chr/c0000.chrbnd.dcx`; Data0 does not contain this path in the installed build.
+- ER Data3 BHD top-level header uses 32-bit bucket count/offset with 40-byte ER file records; c0000's BHD record has `unpadded_size == 0`, so extraction must use `padded_size`.
+- ER 64-bit BHD path hash is the `h = c + 133*h` algorithm, not the public 32-bit `sf_path_hash_64` shim.
+- Actual `N:\GR\data\INTERROOT_win64\chr\c0000\c0000.flver` evidence: version `0x2001A`, little-endian, `dummy_count=510`, `bone_count=488`, `mesh_count=0`, `buffer_layout_count=0`; no `(LayoutType, LayoutSemantic, Index)` triples exist for this c0000 skeleton FLVER in the current ER install.

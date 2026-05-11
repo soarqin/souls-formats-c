@@ -3,8 +3,9 @@
 
 add_executable(probe_flver2_layouts
     ${CMAKE_SOURCE_DIR}/tests/probes/probe_flver2_layouts.c
-    ${CMAKE_SOURCE_DIR}/tests/e2e/er_test_helper.c)
-target_link_libraries(probe_flver2_layouts PRIVATE souls_formats_static bcrypt)
+    ${CMAKE_SOURCE_DIR}/src/crypto/aes_cng.c
+    ${CMAKE_SOURCE_DIR}/src/crypto/rsa_cng.c)
+target_link_libraries(probe_flver2_layouts PRIVATE souls_formats_static bcrypt crypt32)
 target_include_directories(probe_flver2_layouts PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/tests/e2e)
