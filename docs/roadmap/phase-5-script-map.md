@@ -1,35 +1,37 @@
-# Phase 5 — Script + Map
+# Phase 5: Script + Map
 
-> **Status**: ⏳ Pending · **Estimate**: ~2.5 weeks · **Depends on**: Phase 3
+> **Status**: 🚧 In Progress · **Estimate**: ~3 weeks · **Depends on**: Phase 3
 
-Strict upstream alignment policy applies — see [AGENTS.md](../../AGENTS.md) §5.x.
+Strict upstream alignment policy applies. See [AGENTS.md](../../AGENTS.md) §5.x.
 
 ## Goal
 
-Implement EMEVD (event scripts), ESD (state machines), and the MSB family
-for Sekiro (MSBS), Elden Ring + Nightreign (MSBE), and Armored Core VI
-(MSBVI). Together these cover every gameplay-logic surface of the four
-target games.
+Implement ESD (state machines) and the MSB family for Sekiro (MSBS), Elden
+Ring + Nightreign (MSBE), and Armored Core VI (MSBVI). Together these cover
+every gameplay-logic surface of the four target games.
 
-This is the longest single phase because MSB has many sub-record types
-and varies between games.
+Note: EMEVD was completed ahead of schedule in Phase 4 (commit 4ab075e).
+Phase 5 covers ESD + MSB family only.
+
+This is the longest single phase because MSB has many sub-record types and
+varies between games.
+
+## Wave Overview
+
+- Wave 0 (Preflight): Fix Phase 4 debt + docs alignment
+- Wave 1 (Foundation): sf_msb.h + msb_common skeleton + sf_esd.h + esd reader + 3 game helpers + 3 variant dispatchers
+- Wave 2 (Sub-params): MSBS/MSBE/MSBVI sub-param implementations (16 parallel tasks)
+- Wave 3 (Integration + e2e): Round-trip tests + 4 game e2e
+- Wave 4 (Docs): API mapping refresh + status table
 
 ---
 
 ## Deliverables
 
-### 1. EMEVD (Event Scripts)
-Implement the event-script bytecode format.
+### 1. EMEVD (Event Scripts): MOVED TO PHASE 4
 
-*   **Upstream references**:
-    *   `SoulsFormats/Formats/EMEVD/EMEVD.cs`
-    *   `SoulsFormats/Formats/EMEVD/EMEVD.Event.cs`
-    *   `SoulsFormats/Formats/EMEVD/EMEVD.Instruction.cs`
-    *   Mapping: [format-emevd.md](../api-mapping/format-emevd.md)
-*   **API alignment checklist**:
-    *   `sf_emevd_t` must mirror `EMEVD` class (Format, Events, LinkedFileOffsets).
-    *   `sf_emevd_event_t` must mirror `Event` class (ID, Instructions, Parameters).
-    *   `sf_emevd_instruction_t` must mirror `Instruction` class (Bank, ID, ArgData).
+EMEVD implementation was moved to Phase 4 for early integration with
+regulation.bin testing. See commit 4ab075e.
 
 ### 2. ESD (State Machines)
 Implement the state machine format.
@@ -78,31 +80,55 @@ Implement the Armored Core VI MSB variant.
 
 ```
 include/souls_formats/
-├── sf_emevd.h
 ├── sf_esd.h
-├── sf_msb.h              ← shared types
+├── sf_msb.h
 ├── sf_msbs.h
 ├── sf_msbe.h
 └── sf_msbvi.h
 src/script/
-├── emevd.c
-└── esd.c
+├── esd.c
+├── esd_bytecode.c
+└── esd_write.c
 src/map/
-├── msb_common.c          ← shared entry-list / list-of-list parser
-├── msbs.c
-├── msbe.c
-└── msbvi.c
+├── msb_common.c
+├── msbs/
+│   ├── model_param.c
+│   ├── event_param.c
+│   ├── point_param.c
+│   ├── parts_param.c
+│   ├── route_param.c
+│   └── msbs.c
+├── msbe/
+│   ├── model_param.c
+│   ├── event_param.c
+│   ├── point_param.c
+│   ├── parts_param.c
+│   ├── route_param.c
+│   └── msbe.c
+└── msbvi/
+    ├── model_param.c
+    ├── event_param.c
+    ├── point_param.c
+    ├── parts_param.c
+    ├── route_param.c
+    ├── layer_param.c
+    └── msbvi.c
 tests/
 ├── script/
-│   ├── test_emevd_synthetic.c
 │   ├── test_esd_synthetic.c
-│   ├── test_emevd_e2e_er.c
 │   └── test_esd_e2e_er.c
-└── map/
-    ├── test_msbs_synthetic.c
-    ├── test_msbe_synthetic.c
-    ├── test_msbvi_synthetic.c
-    └── test_msbe_e2e_er.c
+├── map/
+│   ├── test_msbs_synthetic.c
+│   ├── test_msbe_synthetic.c
+│   ├── test_msbvi_synthetic.c
+│   └── test_msbe_e2e_er.c
+└── e2e/
+    ├── sekiro_test_helper.c
+    ├── sekiro_test_helper.h
+    ├── nightreign_test_helper.c
+    ├── nightreign_test_helper.h
+    ├── ac6_test_helper.c
+    └── ac6_test_helper.h
 ```
 
 ---
@@ -110,7 +136,7 @@ tests/
 ## Public API sketch
 
 ```c
-/* sf_msb.h — shared types */
+/* sf_msb.h: shared types */
 typedef enum sf_msb_part_kind {
     SF_MSB_PART_MAP_PIECE = 0,
     SF_MSB_PART_OBJECT,
@@ -133,7 +159,7 @@ typedef struct sf_msb_part {
     /* … per-game extension fields hang off via tagged union */
 } sf_msb_part_t;
 
-/* sf_msbe.h — Elden Ring */
+/* sf_msbe.h: Elden Ring */
 typedef struct sf_msbe sf_msbe_t;
 SF_API sf_result_t sf_msbe_read_from_memory(sf_msbe_t **out,
                                             const void *bytes, size_t size,
@@ -159,12 +185,7 @@ SF_API void sf_msbe_destroy(sf_msbe_t *m);
   union (`sf_msb_part_t::kind` + an embedded anonymous union per kind) or
   a per-kind subtype (`sf_msb_part_map_piece_t`) accessed via cast. Pick
   one and stay consistent across all three MSB modules.
-* **EMEVD instruction encoding** has per-instruction parameter blobs
-  whose length depends on a separate "instruction definition" table that
-  ships *with* the EMEVD file. The parameter blob bytes are kept opaque
-  for v1 — we read them as raw bytes and let consumers interpret. This
-  matches upstream's `Instruction.Bytes` field.
-* **ESD bytecode** is compact and well-documented in upstream — port
+* **ESD bytecode** is compact and well-documented in upstream. Port
   verbatim.
 * **Per-game branch macro**: pull endian, varint-long, and table layout
   defaults from a small header table indexed by an `sf_msb_game_t` enum.
@@ -181,28 +202,23 @@ ctest --test-dir build-mingw -L 'script|map' --output-on-failure
 ```
 
 ### Synthetic fixtures
-* `test_emevd_synthetic` — 1 event × 1 instruction round-trip.
-* `test_esd_synthetic` — 2 states × 1 transition round-trip.
-* `test_msbs_synthetic`, `test_msbe_synthetic`, `test_msbvi_synthetic` —
+* `test_esd_synthetic`: 2 states × 1 transition round-trip.
+* `test_msbs_synthetic`, `test_msbe_synthetic`, `test_msbvi_synthetic`:
   each a 1 Part + 1 Region + 1 Event + 1 Model minimal MSB, byte-equal.
 
-### ER e2e (every test goes through `er_extract_from_data0`)
-* `test_emevd_e2e_er` — `er_extract_from_data0("/event/m60_42_36_00.emevd.dcx")`
-  (Limgrave central event file), parse, event count > 50, well-known
-  event id (e.g., 4234) findable.
-* `test_msbe_e2e_er` — `er_extract_from_data0("/map/mapstudio/m60_42_36_00.msb.dcx")`,
-  parse, Part count > 0, Region count > 0, Event count > 0, any Part's
-  bounding box non-zero.
-* `test_esd_e2e_er` — `er_extract_from_data0("/script/talk/m10_00_00_00.talkesdbnd.dcx")`,
-  open BND4, find any `.esd`, state count > 0.
+### Game e2e matrix
+| Game | Format | Source | Validation |
+|---|---|---|---|
+| Elden Ring | MSBE | `/map/mapstudio/m60_42_36_00.msb.dcx` | Part count > 0, Region count > 0 |
+| Elden Ring | ESD | `/script/talk/m10_00_00_00.talkesdbnd.dcx` | State count > 0 |
+| Sekiro | MSBS | `/map/mapstudio/m11_00_00_00.msb.dcx` | Part count > 0 |
+| Nightreign | MSBE | `/map/mapstudio/m10_00_00_00.msb.dcx` | Part count > 0 |
+| AC6 | MSBVI | `/map/mapstudio/m01_00_00_00.msb.dcx` | Layer count > 0 |
 
 ### Mapping Coverage Check
-* [ ] Verify all `未实现` rows in `format-emevd.md` are addressed.
 * [ ] Verify all `未实现` rows in `format-esd.md` are addressed.
 * [ ] Verify all `未实现` rows in `format-msb-common.md` are addressed.
 * [ ] Verify all `未实现` rows in `format-msbs.md`, `format-msbe.md`, and `format-msbvi.md` are addressed.
-
----
 
 ## Risks
 
@@ -215,10 +231,14 @@ ctest --test-dir build-mingw -L 'script|map' --output-on-failure
 
 ---
 
-## Exit criteria
+## Exit Criteria
 
-- [ ] All deliverables checked off above.
-- [ ] `ctest -L 'script|map'` green on dev machine for ER subset; Sekiro / AC6 / Nightreign tests SKIP cleanly.
-- [ ] `PLAN.md` Phase 5 boxes ticked.
+1. All ESD and MSB (MSBS/MSBE/MSBVI) unit tests pass.
+2. Round-trip byte-equality achieved for all synthetic fixtures.
+3. E2E tests for Elden Ring, Sekiro, Nightreign, and AC6 pass.
+4. API mapping documentation updated to reflect 100% coverage.
+5. No new `sf_` symbols without `SF_API` decoration.
+6. `lsp_diagnostics` clean across all new files.
+7. `PLAN.md` Phase 5 boxes ticked.
 
 When green, proceed to [Phase 6](phase-6-geometry-material.md).
