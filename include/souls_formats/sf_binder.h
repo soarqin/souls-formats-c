@@ -43,10 +43,13 @@ extern "C" {
  * a TU including only <souls_formats/sf_binder.h> can already work with
  * sf_binder_file_t pointers on either side of a binder boundary.
  *===========================================================================*/
+typedef struct sf_bnd         sf_bnd_t;
+typedef struct sf_bnd2        sf_bnd2_t;
 typedef struct sf_bnd3        sf_bnd3_t;
 typedef struct sf_bnd4        sf_bnd4_t;
 typedef struct sf_bxf3        sf_bxf3_t;
 typedef struct sf_bxf4        sf_bxf4_t;
+typedef struct sf_bnd2_reader sf_bnd2_reader_t;
 typedef struct sf_bnd3_reader sf_bnd3_reader_t;
 typedef struct sf_bnd4_reader sf_bnd4_reader_t;
 typedef struct sf_bxf3_reader sf_bxf3_reader_t;
