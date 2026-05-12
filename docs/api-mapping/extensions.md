@@ -25,6 +25,7 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 | `SF_EMEVD_FORMAT_ELDEN_RING/ARMORED_CORE_VI/NIGHTREIGN` | `sf_emevd.h` | Sekiro aliases for ER/AC6/Nightreign (pending probe confirmation) | stable | `include/souls_formats/sf_emevd.h` |
 | `sf_paramdef_get_index` | `sf_paramdef.h` | Paramdex XML `<Index>` element; binary returns -1 | stable | `include/souls_formats/sf_paramdef.h` |
 | `sf_paramdef_field_get_sort_id` | `sf_paramdef.h` | Paramdex XML `<SortID>` element; binary returns 0 | stable | `include/souls_formats/sf_paramdef.h` |
+| BND3/BND4 name pool | archive | Name strings bulk-allocated in one contiguous block per archive; `_destroy` frees the pool. Upstream C# uses GC. | + extension | `src/archive/bnd3.c`; `src/archive/bnd4.c` |
 
 ## Phase 6: Geometry + Material
 

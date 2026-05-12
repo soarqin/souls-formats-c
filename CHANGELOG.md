@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Performance
+- BND3/BND4 read paths now bulk-allocate file name strings into one per-archive
+  pool instead of duplicating each entry individually, reducing archive-name
+  allocation count by roughly `N - 1` for `N` named entries while preserving the
+  public `const char *name_utf8` surface.
+
 ### Internal
 - E2E helper consolidation (T2.4): introduced `souls_formats_e2e_helpers`
   static lib in `tests/CMakeLists.txt`. Previously the four per-game helpers

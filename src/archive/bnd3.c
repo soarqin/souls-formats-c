@@ -44,6 +44,8 @@ struct sf_bnd3 {
     sf_binder_file_t *files;
     size_t            file_count;
     size_t            file_capacity;
+    char             *name_pool;
+    size_t            name_pool_size;
 
     char             *version;
     sf_binder_format_t format;
@@ -59,6 +61,8 @@ struct sf_bnd3_reader {
     sf_binder_file_t          *files;
     sfi_binder_file_header_t  *headers;
     size_t                     file_count;
+    char                      *name_pool;
+    size_t                     name_pool_size;
 
     /* Owns its decompressed buffer; destroying frees the data + istream. */
     sf_binary_reader_t        *br;
@@ -135,13 +139,62 @@ static sf_result_t bnd3_file_dup(sf_binder_file_t *dst, const sf_binder_file_t *
     return SF_OK;
 }
 
-static void bnd3_file_free(sf_binder_file_t *f, const sf_allocator_t *a) {
+static bool bnd3_name_in_pool(const char *name, const char *pool, size_t pool_size) {
+    if (!name || !pool || pool_size == 0) return false;
+    uintptr_t n     = (uintptr_t)name;
+    uintptr_t start = (uintptr_t)pool;
+    return n >= start && n < start + pool_size;
+}
+
+static void bnd3_file_free_with_name_pool(sf_binder_file_t *f, const sf_allocator_t *a,
+                                          const char *pool, size_t pool_size) {
     if (!f) return;
-    sf_xfree(a, (void *)f->name_utf8);
+    if (!bnd3_name_in_pool(f->name_utf8, pool, pool_size)) {
+        sf_xfree(a, (void *)f->name_utf8);
+    }
     sf_xfree(a, (void *)f->data);
     f->name_utf8 = NULL;
     f->data = NULL;
     f->size = 0;
+}
+
+static sf_result_t bnd3_bulk_copy_names(sf_binder_file_t *files,
+                                        const sfi_binder_file_header_t *headers,
+                                        size_t n, char **out_pool,
+                                        size_t *out_pool_size,
+                                        const sf_allocator_t *a) {
+    SF_CHECK_ARG(files != NULL || n == 0);
+    SF_CHECK_ARG(headers != NULL || n == 0);
+    SF_CHECK_ARG(out_pool != NULL);
+    SF_CHECK_ARG(out_pool_size != NULL);
+
+    *out_pool = NULL;
+    *out_pool_size = 0;
+
+    size_t pool_size = 0;
+    for (size_t i = 0; i < n; i++) {
+        if (!headers[i].name_utf8) continue;
+        size_t len = strlen(headers[i].name_utf8);
+        if (pool_size > SIZE_MAX - len - 1) return SF_ERR_OUT_OF_RANGE;
+        pool_size += len + 1;
+    }
+
+    if (pool_size == 0) return SF_OK;
+
+    char *pool = (char *)sf_xalloc(a, pool_size);
+    if (!pool) return SF_ERR_OOM;
+
+    char *p = pool;
+    for (size_t i = 0; i < n; i++) {
+        if (!headers[i].name_utf8) continue;
+        strcpy(p, headers[i].name_utf8);
+        files[i].name_utf8 = p;
+        p += strlen(p) + 1;
+    }
+
+    *out_pool = pool;
+    *out_pool_size = pool_size;
+    return SF_OK;
 }
 
 /*===========================================================================
@@ -181,8 +234,9 @@ void sf_bnd3_destroy(sf_bnd3_t *b) {
     if (!b) return;
     const sf_allocator_t *a = b->alloc;
     for (size_t i = 0; i < b->file_count; i++) {
-        bnd3_file_free(&b->files[i], a);
+        bnd3_file_free_with_name_pool(&b->files[i], a, b->name_pool, b->name_pool_size);
     }
+    sf_xfree(a, b->name_pool);
     sf_xfree(a, b->files);
     sf_xfree(a, b->version);
     sf_xfree(a, b);
@@ -374,6 +428,10 @@ static sf_result_t bnd3_populate_from_reader(sf_bnd3_t *b, sf_binary_reader_t *b
         }
         memset(b->files, 0, n * sizeof(*b->files));
         b->file_capacity = n;
+
+        r = bnd3_bulk_copy_names(b->files, headers, n, &b->name_pool,
+                                 &b->name_pool_size, b->alloc);
+        if (r != SF_OK) goto cleanup_files;
     }
 
     for (size_t i = 0; i < n; i++) {
@@ -392,18 +450,6 @@ static sf_result_t bnd3_populate_from_reader(sf_bnd3_t *b, sf_binary_reader_t *b
         out_f->size             = dsize;
         out_f->data             = data;
 
-        if (headers[i].name_utf8) {
-            char *name_copy = sf_strdup(b->alloc, headers[i].name_utf8);
-            if (!name_copy) {
-                sf_xfree(b->alloc, data);
-                out_f->data = NULL;
-                out_f->size = 0;
-                r = SF_ERR_OOM;
-                goto cleanup_files;
-            }
-            out_f->name_utf8 = name_copy;
-        }
-
         b->file_count++;
     }
 
@@ -412,7 +458,13 @@ static sf_result_t bnd3_populate_from_reader(sf_bnd3_t *b, sf_binary_reader_t *b
     return SF_OK;
 
 cleanup_files:
-    for (size_t i = 0; i < b->file_count; i++) bnd3_file_free(&b->files[i], b->alloc);
+    for (size_t i = 0; i < b->file_count; i++) {
+        bnd3_file_free_with_name_pool(&b->files[i], b->alloc, b->name_pool,
+                                      b->name_pool_size);
+    }
+    sf_xfree(b->alloc, b->name_pool);
+    b->name_pool = NULL;
+    b->name_pool_size = 0;
     sf_xfree(b->alloc, b->files);
     b->files = NULL;
     b->file_count = 0;
@@ -679,7 +731,8 @@ sf_result_t sf_bnd3_add_file(sf_bnd3_t *b, const sf_binder_file_t *file) {
 sf_result_t sf_bnd3_remove_file(sf_bnd3_t *b, size_t index) {
     SF_CHECK_ARG(b != NULL);
     if (index >= b->file_count) return SF_ERR_OUT_OF_RANGE;
-    bnd3_file_free(&b->files[index], b->alloc);
+    bnd3_file_free_with_name_pool(&b->files[index], b->alloc, b->name_pool,
+                                  b->name_pool_size);
     for (size_t i = index + 1; i < b->file_count; i++) {
         b->files[i - 1] = b->files[i];
     }
@@ -706,11 +759,9 @@ static void bnd3_reader_free(sf_bnd3_reader_t *r) {
         sf_xfree(a, r->headers);
     }
     if (r->files) {
-        for (size_t i = 0; i < r->file_count; i++) {
-            sf_xfree(a, (void *)r->files[i].name_utf8);
-        }
         sf_xfree(a, r->files);
     }
+    sf_xfree(a, r->name_pool);
     sf_xfree(a, r->version);
     if (r->br) sf_binary_reader_destroy(r->br);
     sf_xfree(a, r);
@@ -787,16 +838,14 @@ sf_result_t sf_bnd3_reader_open(sf_bnd3_reader_t **out, const wchar_t *path,
             goto cleanup_rd;
         }
         memset(rd->files, 0, n * sizeof(*rd->files));
+        r = bnd3_bulk_copy_names(rd->files, headers, n, &rd->name_pool,
+                                 &rd->name_pool_size, a);
+        if (r != SF_OK) goto cleanup_rd;
         for (size_t i = 0; i < n; i++) {
             rd->files[i].id               = headers[i].id;
             rd->files[i].flags            = headers[i].flags;
             rd->files[i].size             = (size_t)headers[i].uncompressed_size;
             rd->files[i].compression_info = headers[i].compression_info;
-            if (headers[i].name_utf8) {
-                char *nc = sf_strdup(a, headers[i].name_utf8);
-                if (!nc) { r = SF_ERR_OOM; goto cleanup_rd; }
-                rd->files[i].name_utf8 = nc;
-            }
         }
     }
 
