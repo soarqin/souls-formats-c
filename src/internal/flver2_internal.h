@@ -87,13 +87,27 @@ struct sf_flver2_face_set {
     uint8_t              index_size;
 };
 
-struct sf_flver2_vertex_buffer {
-    int32_t buffer_index;
-    int32_t layout_index;
-};
+typedef struct sf_flver2_layout_member {
+    int32_t                    stream;
+    int32_t                    struct_offset;
+    sf_flver_layout_type_t     type;
+    sf_flver_layout_semantic_t semantic;
+    int32_t                    index;
+    int16_t                    special_modifier; /* -32768 = SpeedTree sentinel (zero bytes) */
+} sf_flver2_layout_member_t;
 
 struct sf_flver2_buffer_layout {
-    size_t member_count;
+    sf_flver2_layout_member_t *members;
+    size_t                     member_count;
+};
+
+struct sf_flver2_vertex_buffer {
+    int32_t  buffer_index;
+    int32_t  layout_index;
+    int32_t  vertex_size;
+    int32_t  vertex_count;
+    uint8_t *vertex_bytes; /* raw bytes, opaque */
+    size_t   vertex_bytes_size;
 };
 
 struct sf_flver2_mesh {
@@ -164,11 +178,10 @@ sf_result_t sfi_flver2_face_set_read(sf_binary_reader_t *br,
                                      sf_flver2_face_set_t *out,
                                      const sf_allocator_t *a);
 sf_result_t sfi_flver2_face_set_write(sf_binary_writer_t *bw,
-                                      const sf_flver2_header_t *hdr,
-                                      const sf_flver2_face_set_t *fs,
-                                      int32_t vertex_indices_size,
-                                      size_t index);
-
+                                       const sf_flver2_header_t *hdr,
+                                       const sf_flver2_face_set_t *fs,
+                                       int32_t vertex_indices_size,
+                                       size_t index);
 sf_result_t sfi_flver2_face_set_write_indices(sf_binary_writer_t *bw,
                                               const sf_flver2_face_set_t *fs,
                                               size_t index,
@@ -186,18 +199,31 @@ sf_result_t sfi_flver2_vertex_buffer_read(sf_binary_reader_t *br,
                                           sf_flver2_vertex_buffer_t *out,
                                           const sf_allocator_t *a);
 sf_result_t sfi_flver2_vertex_buffer_write(sf_binary_writer_t *bw,
-                                           const sf_flver2_header_t *hdr,
-                                           const sf_flver2_vertex_buffer_t *vb,
-                                           size_t index);
+                                            const sf_flver2_header_t *hdr,
+                                            const sf_flver2_vertex_buffer_t *vb,
+                                            size_t index);
+sf_result_t sfi_flver2_vertex_buffer_write_data(sf_binary_writer_t *bw,
+                                                const sf_flver2_vertex_buffer_t *vb,
+                                                size_t index,
+                                                int32_t data_start);
+void sfi_flver2_vertex_buffer_destroy_inplace(sf_flver2_vertex_buffer_t *vb,
+                                              const sf_allocator_t *a);
 
 sf_result_t sfi_flver2_buffer_layout_read(sf_binary_reader_t *br,
                                           const sf_flver2_header_t *hdr,
                                           sf_flver2_buffer_layout_t *out,
                                           const sf_allocator_t *a);
 sf_result_t sfi_flver2_buffer_layout_write(sf_binary_writer_t *bw,
-                                           const sf_flver2_header_t *hdr,
-                                           const sf_flver2_buffer_layout_t *bl,
-                                           size_t index);
+                                            const sf_flver2_header_t *hdr,
+                                            const sf_flver2_buffer_layout_t *bl,
+                                            size_t index);
+sf_result_t sfi_flver2_buffer_layout_write_members(sf_binary_writer_t *bw,
+                                                   const sf_flver2_header_t *hdr,
+                                                   const sf_flver2_buffer_layout_t *bl,
+                                                   size_t index);
+void sfi_flver2_buffer_layout_destroy_inplace(sf_flver2_buffer_layout_t *bl,
+                                              const sf_allocator_t *a);
+uint32_t sfi_flver2_buffer_layout_size(const sf_flver2_buffer_layout_t *bl);
 
 sf_result_t sfi_flver2_texture_read(sf_binary_reader_t *br,
                                     const sf_flver2_header_t *hdr,

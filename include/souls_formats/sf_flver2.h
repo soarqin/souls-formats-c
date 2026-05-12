@@ -220,6 +220,32 @@ SF_API uint32_t             sf_flver2_face_set_index(const sf_flver2_face_set_t 
                                                      size_t i);
 
 /*===========================================================================
+ * BufferLayout / VertexBuffer accessors
+ *===========================================================================*/
+
+SF_API size_t   sf_flver2_buffer_layout_member_count(const sf_flver2_buffer_layout_t *bl);
+SF_API uint32_t sf_flver2_buffer_layout_size(const sf_flver2_buffer_layout_t *bl);
+SF_API int32_t  sf_flver2_buffer_layout_member_stream(const sf_flver2_buffer_layout_t *bl,
+                                                      size_t i);
+SF_API int32_t  sf_flver2_buffer_layout_member_struct_offset(const sf_flver2_buffer_layout_t *bl,
+                                                             size_t i);
+SF_API sf_flver_layout_type_t sf_flver2_buffer_layout_member_type(
+    const sf_flver2_buffer_layout_t *bl, size_t i);
+SF_API sf_flver_layout_semantic_t sf_flver2_buffer_layout_member_semantic(
+    const sf_flver2_buffer_layout_t *bl, size_t i);
+SF_API int32_t sf_flver2_buffer_layout_member_index(const sf_flver2_buffer_layout_t *bl,
+                                                    size_t i);
+SF_API int16_t sf_flver2_buffer_layout_member_special_modifier(
+    const sf_flver2_buffer_layout_t *bl, size_t i);
+
+SF_API int32_t sf_flver2_vertex_buffer_buffer_index(const sf_flver2_vertex_buffer_t *vb);
+SF_API int32_t sf_flver2_vertex_buffer_layout_index(const sf_flver2_vertex_buffer_t *vb);
+SF_API int32_t sf_flver2_vertex_buffer_vertex_size(const sf_flver2_vertex_buffer_t *vb);
+SF_API int32_t sf_flver2_vertex_buffer_vertex_count(const sf_flver2_vertex_buffer_t *vb);
+SF_API const uint8_t *sf_flver2_vertex_buffer_bytes(const sf_flver2_vertex_buffer_t *vb,
+                                                    size_t *out_size);
+
+/*===========================================================================
  * GXList — opaque transit
  *
  * Upstream `GXItem.Data` is an opaque `byte[]`; we mirror that with a

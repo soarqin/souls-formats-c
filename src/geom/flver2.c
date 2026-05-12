@@ -364,6 +364,13 @@ static sf_result_t flver2_write_to_writer(const sf_flver2_t *f, sf_binary_writer
     }
 
     r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
+    for (int32_t i = 0; i < f->header.buffer_layout_count; i++) {
+        r = sfi_flver2_buffer_layout_write_members(bw, &f->header, &f->buffer_layouts[i],
+                                                   (size_t)i);
+        if (r != SF_OK) return r;
+    }
+
+    r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
     for (size_t i = 0; i < f->gx_list_count; i++) {
         r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
         for (size_t j = 0; j < f->gx_lists[i].count; j++) {
@@ -396,6 +403,12 @@ static sf_result_t flver2_write_to_writer(const sf_flver2_t *f, sf_binary_writer
     r = sf_binary_writer_fill_i32(bw, "DataOffset", data_start); if (r != SF_OK) return r;
     for (int32_t i = 0; i < f->header.face_set_count; i++) {
         r = sfi_flver2_face_set_write_indices(bw, &f->face_sets[i], (size_t)i, data_start);
+        if (r != SF_OK) return r;
+    }
+    for (int32_t i = 0; i < f->header.vertex_buffer_count; i++) {
+        r = sf_binary_writer_pad(bw, align); if (r != SF_OK) return r;
+        r = sfi_flver2_vertex_buffer_write_data(bw, &f->vertex_buffers[i], (size_t)i,
+                                                data_start);
         if (r != SF_OK) return r;
     }
     r = sf_binary_writer_pad(bw, align); if (r != SF_OK) return r;
@@ -470,6 +483,16 @@ void sf_flver2_destroy(sf_flver2_t *f) {
     if (f->textures) {
         for (int32_t i = 0; i < f->header.texture_count; i++) {
             sfi_flver2_texture_destroy_inplace(&f->textures[i], a);
+        }
+    }
+    if (f->vertex_buffers) {
+        for (int32_t i = 0; i < f->header.vertex_buffer_count; i++) {
+            sfi_flver2_vertex_buffer_destroy_inplace(&f->vertex_buffers[i], a);
+        }
+    }
+    if (f->buffer_layouts) {
+        for (int32_t i = 0; i < f->header.buffer_layout_count; i++) {
+            sfi_flver2_buffer_layout_destroy_inplace(&f->buffer_layouts[i], a);
         }
     }
     for (size_t i = 0; i < f->gx_list_count; i++) {
@@ -680,35 +703,6 @@ void sfi_flver2_mesh_destroy_inplace(sf_flver2_mesh_t *m, const sf_allocator_t *
     sf_xfree(a, m->vertex_buffer_indices);
 }
 
-/* Stub — T16 will implement. */
-sf_result_t sfi_flver2_vertex_buffer_read(sf_binary_reader_t *br, const sf_flver2_header_t *hdr,
-                                          sf_flver2_vertex_buffer_t *out,
-                                          const sf_allocator_t *a) {
-    (void)br; (void)hdr; (void)out; (void)a;
-    return SF_OK;
-}
-sf_result_t sfi_flver2_vertex_buffer_write(sf_binary_writer_t *bw,
-                                           const sf_flver2_header_t *hdr,
-                                           const sf_flver2_vertex_buffer_t *vb,
-                                           size_t index) {
-    (void)bw; (void)hdr; (void)vb; (void)index;
-    return SF_OK;
-}
-sf_result_t sfi_flver2_buffer_layout_read(sf_binary_reader_t *br,
-                                          const sf_flver2_header_t *hdr,
-                                          sf_flver2_buffer_layout_t *out,
-                                          const sf_allocator_t *a) {
-    (void)br; (void)hdr; (void)out; (void)a;
-    return SF_OK;
-}
-sf_result_t sfi_flver2_buffer_layout_write(sf_binary_writer_t *bw,
-                                           const sf_flver2_header_t *hdr,
-                                           const sf_flver2_buffer_layout_t *bl,
-                                           size_t index) {
-    (void)bw; (void)hdr; (void)bl; (void)index;
-    return SF_OK;
-}
-
 /* Stub — T13 will implement. */
 sf_result_t sfi_flver2_texture_read(sf_binary_reader_t *br, const sf_flver2_header_t *hdr,
                                     sf_flver2_texture_t *out, const sf_allocator_t *a) {
@@ -726,27 +720,4 @@ void sfi_flver2_texture_destroy_inplace(sf_flver2_texture_t *t, const sf_allocat
     sf_xfree(a, t->path);
 }
 
-/* Stub — T18 will implement. */
-sf_result_t sfi_flver2_skeleton_set_read(sf_binary_reader_t *br,
-                                         const sf_flver2_header_t *hdr,
-                                         sf_flver2_skeleton_set_t **out,
-                                         const sf_allocator_t *a) {
-    (void)br; (void)hdr;
-    if (!out) return SF_ERR_INVALID_ARG;
-    *out = (sf_flver2_skeleton_set_t *)sf_xalloc(a, sizeof(**out));
-    if (!*out) return SF_ERR_OOM;
-    memset(*out, 0, sizeof(**out));
-    return SF_OK;
-}
-sf_result_t sfi_flver2_skeleton_set_write(sf_binary_writer_t *bw,
-                                          const sf_flver2_header_t *hdr,
-                                          const sf_flver2_skeleton_set_t *set) {
-    (void)bw; (void)hdr; (void)set;
-    return SF_OK;
-}
-void sfi_flver2_skeleton_set_destroy(sf_flver2_skeleton_set_t *set, const sf_allocator_t *a) {
-    if (!set) return;
-    sf_xfree(a, set->base_bones);
-    sf_xfree(a, set->all_bones);
-    sf_xfree(a, set);
-}
+/* SkeletonSet / Bone — implemented in src/geom/flver2_skeleton.c (T18). */
