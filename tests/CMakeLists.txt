@@ -274,6 +274,12 @@ sf_add_test(souls_formats_test_flver2_top_level
     geom/test_flver2_top_level.c "geom")
 sf_add_test(souls_formats_test_flver2_faceset
     geom/test_flver2_faceset.c "geom")
+sf_add_test(souls_formats_test_flver2_synthetic
+    geom/test_flver2_synthetic.c "geom")
+sf_add_test(souls_formats_test_mtd_synthetic
+    geom/test_mtd_synthetic.c "geom")
+sf_add_test(souls_formats_test_matbin_synthetic
+    geom/test_matbin_synthetic.c "geom")
 
 #-----------------------------------------------------------------------------
 # Phase 5 — Sekiro e2e helper
@@ -350,6 +356,29 @@ target_include_directories(souls_formats_test_msbs_e2e_sekiro PRIVATE
 target_sources(souls_formats_test_msbs_e2e_sekiro PRIVATE
     e2e/sekiro_test_helper.c)
 target_compile_definitions(souls_formats_test_msbs_e2e_sekiro PRIVATE
+    SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+#-----------------------------------------------------------------------------
+# Phase 6 — MATBIN / MTD e2e (T27, T27b)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_matbin_e2e_er
+    geom/test_matbin_e2e_er.c "e2e_er")
+target_include_directories(souls_formats_test_matbin_e2e_er PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_matbin_e2e_er PRIVATE
+    e2e/er_test_helper.c)
+target_compile_definitions(souls_formats_test_matbin_e2e_er PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+sf_add_test(souls_formats_test_mtd_e2e_sekiro
+    geom/test_mtd_e2e_sekiro.c "e2e_sekiro")
+target_include_directories(souls_formats_test_mtd_e2e_sekiro PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_mtd_e2e_sekiro PRIVATE
+    e2e/sekiro_test_helper.c)
+target_compile_definitions(souls_formats_test_mtd_e2e_sekiro PRIVATE
     SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
