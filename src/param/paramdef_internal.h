@@ -12,6 +12,7 @@
 #define SF_PARAMDEF_INTERNAL_H
 
 #include "souls_formats/sf_paramdef.h"
+#include "souls_formats/sf_param.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -38,6 +39,28 @@ struct sf_paramdef_field {
     uint64_t removed_regulation_version;
 };
 
+typedef struct sf_paramdef_field_layout_entry {
+    const sf_paramdef_field_t *field;
+    size_t byte_offset;
+    size_t byte_count;
+    size_t bit_offset;
+    size_t bit_size;
+    size_t bit_limit;
+    sf_paramdef_def_type_t display_type;
+    sf_param_cell_kind_t cell_kind;
+    int32_t array_length;
+    int32_t declared_byte_count;
+    int32_t declared_bit_size;
+    bool is_bit_field;
+    bool check_orphaned_bits_after;
+} sf_paramdef_field_layout_entry_t;
+
+typedef struct sf_paramdef_field_layout {
+    sf_paramdef_field_layout_entry_t *entries;
+    size_t entry_count;
+    size_t row_data_size;
+} sf_paramdef_field_layout_t;
+
 struct sf_paramdef {
     const sf_allocator_t *alloc;
     sf_paramdef_field_t *fields;
@@ -52,6 +75,7 @@ struct sf_paramdef {
     bool unicode;
     bool version_aware;
     bool basic_fields;
+    sf_paramdef_field_layout_t *layout_cache;
 };
 
 #endif /* SF_PARAMDEF_INTERNAL_H */

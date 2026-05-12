@@ -117,6 +117,7 @@ static bool detect_orphaned_bits(uint64_t bit_value, size_t bit_offset) {
 #ifndef SF_PARAMDEF_APPLY_BITSTREAM_ONLY
 
 #include "param/param_internal.h"
+#include "param/paramdef_internal.h"
 
 #include "internal/sf_internal.h"
 
@@ -262,19 +263,19 @@ static bool field_valid_for_unversioned_apply(const sf_paramdef_t *def,
     return sf_paramdef_field_get_removed_regulation_version(field) == 0;
 }
 
-static sf_result_t init_cell(sf_param_cell_t *cell, const sf_paramdef_field_t *field,
-                             const sf_allocator_t *alloc) {
+static sf_result_t init_cell_from_layout(sf_param_cell_t *cell,
+                                         const sf_paramdef_field_layout_entry_t *entry,
+                                         const sf_allocator_t *alloc) {
     memset(cell, 0, sizeof(*cell));
-    const char *name = sf_paramdef_field_get_internal_name(field);
-    cell->internal_name = sf_strdup(alloc, name ? name : "");
-    if (!cell->internal_name) return SF_ERR_OOM;
+    const char *name = entry->field->internal_name ? entry->field->internal_name : "";
+    cell->internal_name = (char *)name;
+    cell->owns_internal_name = false;
 
-    cell->display_type = sf_paramdef_field_get_display_type(field);
-    cell->bit_size = sf_paramdef_field_get_bit_size(field);
-    cell->array_length = sf_paramdef_field_get_array_length(field);
-    cell->byte_count = sf_paramdef_field_get_byte_count(field);
-    cell->value.kind = cell_kind_for_field(cell->display_type, cell->bit_size,
-                                           cell->array_length);
+    cell->display_type = entry->display_type;
+    cell->bit_size = entry->declared_bit_size;
+    cell->array_length = entry->array_length;
+    cell->byte_count = entry->declared_byte_count;
+    cell->value.kind = entry->cell_kind;
     return SF_OK;
 }
 
@@ -353,21 +354,161 @@ static sf_result_t check_range(size_t offset, size_t need, size_t size) {
     return SF_OK;
 }
 
+static sf_result_t layout_flush_bits(sf_paramdef_field_layout_entry_t *entries,
+                                     size_t last_bit_index, bool *bits_active,
+                                     size_t *offset, size_t bit_limit) {
+    if (!*bits_active) return SF_OK;
+    if (last_bit_index == SIZE_MAX) return SF_ERR_INTERNAL;
+    entries[last_bit_index].check_orphaned_bits_after = true;
+    size_t byte_count = bit_limit / 8;
+    if (*offset > SIZE_MAX - byte_count) return SF_ERR_OUT_OF_RANGE;
+    *offset += byte_count;
+    *bits_active = false;
+    return SF_OK;
+}
+
+static sf_result_t build_field_layout(const sf_paramdef_t *def,
+                                      sf_paramdef_field_layout_t **out) {
+    SF_CHECK_ARG(def != NULL && out != NULL);
+    *out = NULL;
+
+    const sf_allocator_t *alloc = def->alloc;
+    size_t field_count = def->field_count;
+    sf_paramdef_field_layout_t *layout =
+        (sf_paramdef_field_layout_t *)sf_xalloc(alloc, sizeof(*layout));
+    if (!layout) return SF_ERR_OOM;
+    memset(layout, 0, sizeof(*layout));
+
+    if (field_count > 0) {
+        if (field_count > SIZE_MAX / sizeof(*layout->entries)) {
+            sf_xfree(alloc, layout);
+            return SF_ERR_OUT_OF_RANGE;
+        }
+        layout->entries = (sf_paramdef_field_layout_entry_t *)sf_xalloc(
+            alloc, field_count * sizeof(*layout->entries));
+        if (!layout->entries) {
+            sf_xfree(alloc, layout);
+            return SF_ERR_OOM;
+        }
+        memset(layout->entries, 0, field_count * sizeof(*layout->entries));
+    }
+
+    size_t offset = 0;
+    bool bits_active = false;
+    size_t bit_offset = 0;
+    size_t bit_limit = 0;
+    size_t last_bit_index = SIZE_MAX;
+    sf_result_t fail_result = SF_OK;
+
+    for (size_t i = 0; i < field_count; i++) {
+        const sf_paramdef_field_t *field = &def->fields[i];
+        if (!field_valid_for_unversioned_apply(def, field)) continue;
+
+        sf_paramdef_def_type_t type = field->display_type;
+        int32_t bit_size_i32 = field->bit_size;
+        bool is_bit = sf_param_util_is_bit_type(type) && bit_size_i32 != -1;
+
+        if (is_bit) {
+            if (bit_size_i32 <= 0) goto bad_magic;
+            size_t field_bit_size = (size_t)bit_size_i32;
+            size_t field_bit_limit = (size_t)sf_param_util_get_bit_limit(type);
+            if (field_bit_limit == 0 || field_bit_size > field_bit_limit) goto bad_magic;
+
+            if (!bits_active || bit_limit != field_bit_limit ||
+                bit_offset + field_bit_size > bit_limit) {
+                sf_result_t r = layout_flush_bits(layout->entries, last_bit_index,
+                                                  &bits_active, &offset, bit_limit);
+                if (r != SF_OK) { fail_result = r; goto fail; }
+                bits_active = true;
+                bit_offset = 0;
+                bit_limit = field_bit_limit;
+                last_bit_index = SIZE_MAX;
+            }
+
+            sf_paramdef_field_layout_entry_t *entry =
+                &layout->entries[layout->entry_count];
+            entry->field = field;
+            entry->byte_offset = offset;
+            entry->bit_offset = bit_offset;
+            entry->bit_size = field_bit_size;
+            entry->bit_limit = bit_limit;
+            entry->display_type = type;
+            entry->cell_kind = cell_kind_for_field(type, bit_size_i32, field->array_length);
+            entry->array_length = field->array_length;
+            entry->declared_byte_count = field->byte_count;
+            entry->declared_bit_size = bit_size_i32;
+            entry->is_bit_field = true;
+            last_bit_index = layout->entry_count;
+            layout->entry_count++;
+            bit_offset += field_bit_size;
+        } else {
+            sf_result_t r = layout_flush_bits(layout->entries, last_bit_index,
+                                              &bits_active, &offset, bit_limit);
+            if (r != SF_OK) { fail_result = r; goto fail; }
+
+            size_t byte_count = field_byte_count(type, field->byte_count,
+                                                 field->array_length);
+            if (byte_count == 0) goto bad_magic;
+            if (offset > SIZE_MAX - byte_count) goto out_of_range;
+
+            sf_paramdef_field_layout_entry_t *entry =
+                &layout->entries[layout->entry_count];
+            entry->field = field;
+            entry->byte_offset = offset;
+            entry->byte_count = byte_count;
+            entry->display_type = type;
+            entry->cell_kind = cell_kind_for_field(type, bit_size_i32, field->array_length);
+            entry->array_length = field->array_length;
+            entry->declared_byte_count = field->byte_count;
+            entry->declared_bit_size = bit_size_i32;
+            layout->entry_count++;
+            offset += byte_count;
+        }
+    }
+
+    {
+        sf_result_t r = layout_flush_bits(layout->entries, last_bit_index,
+                                          &bits_active, &offset, bit_limit);
+        if (r != SF_OK) { fail_result = r; goto fail; }
+    }
+
+    layout->row_data_size = def->row_size > 0 ? (size_t)def->row_size : offset;
+    *out = layout;
+    return SF_OK;
+
+bad_magic:
+    fail_result = SF_ERR_BAD_MAGIC;
+    goto fail;
+out_of_range:
+    fail_result = SF_ERR_OUT_OF_RANGE;
+fail:
+    sf_xfree(alloc, layout->entries);
+    sf_xfree(alloc, layout);
+    return fail_result;
+}
+
+static sf_result_t get_field_layout(const sf_paramdef_t *def,
+                                    const sf_paramdef_field_layout_t **out) {
+    SF_CHECK_ARG(def != NULL && out != NULL);
+    sf_paramdef_t *mutable_def = (sf_paramdef_t *)def;
+    if (!mutable_def->layout_cache) {
+        sf_paramdef_field_layout_t *layout = NULL;
+        sf_result_t r = build_field_layout(def, &layout);
+        if (r != SF_OK) return r;
+        mutable_def->layout_cache = layout;
+    }
+    *out = mutable_def->layout_cache;
+    return SF_OK;
+}
+
 typedef struct bit_read_state {
     bool active;
+    size_t byte_offset;
     size_t bit_offset;
     size_t bit_limit;
     uint64_t bit_value;
     uint8_t window[8];
 } bit_read_state_t;
-
-static sf_result_t finish_read_bits(bit_read_state_t *state, size_t *offset) {
-    if (!state->active) return SF_OK;
-    if (detect_orphaned_bits(state->bit_value, state->bit_offset)) return SF_ERR_BAD_MAGIC;
-    *offset += state->bit_limit / 8;
-    memset(state, 0, sizeof(*state));
-    return SF_OK;
-}
 
 static sf_result_t start_read_bits(bit_read_state_t *state, const uint8_t *data,
                                    size_t data_size, size_t offset,
@@ -379,49 +520,47 @@ static sf_result_t start_read_bits(bit_read_state_t *state, const uint8_t *data,
     memset(state->window, 0, sizeof(state->window));
     state->bit_value = load_bit_window(data + offset, byte_count, big_endian);
     store_u64_le(state->window, state->bit_value);
+    state->byte_offset = offset;
     state->bit_offset = 0;
     state->bit_limit = bit_limit;
     state->active = true;
     return SF_OK;
 }
 
-static sf_result_t read_bit_cell(sf_param_cell_t *cell, const uint8_t *data,
-                                 size_t data_size, size_t *offset,
-                                 bool big_endian, bit_read_state_t *bits) {
-    int32_t bit_size_i32 = cell->bit_size;
-    if (bit_size_i32 <= 0) return SF_ERR_BAD_MAGIC;
-    size_t bit_size = (size_t)bit_size_i32;
-    size_t bit_limit = (size_t)sf_param_util_get_bit_limit(cell->display_type);
-    if (bit_limit == 0 || bit_size > bit_limit) return SF_ERR_BAD_MAGIC;
-
-    if (!bits->active || bits->bit_limit != bit_limit ||
-        bits->bit_offset + bit_size > bit_limit) {
-        sf_result_t r = finish_read_bits(bits, offset);
-        if (r != SF_OK) return r;
-        r = start_read_bits(bits, data, data_size, *offset, bit_limit, big_endian);
+static sf_result_t read_layout_bit_cell(sf_param_cell_t *cell,
+                                        const sf_paramdef_field_layout_entry_t *entry,
+                                        const uint8_t *data, size_t data_size,
+                                        bool big_endian, bit_read_state_t *bits) {
+    if (!bits->active || bits->byte_offset != entry->byte_offset ||
+        bits->bit_limit != entry->bit_limit) {
+        sf_result_t r = start_read_bits(bits, data, data_size, entry->byte_offset,
+                                        entry->bit_limit, big_endian);
         if (r != SF_OK) return r;
     }
 
     uint64_t raw = 0;
     int64_t signed_raw = 0;
-    if (is_signed_bit_type(cell->display_type)) {
-        signed_raw = extract_bits_signed(bits->window, bits->bit_offset, bit_size);
+    if (is_signed_bit_type(entry->display_type)) {
+        signed_raw = extract_bits_signed(bits->window, entry->bit_offset, entry->bit_size);
         raw = (uint64_t)signed_raw;
     } else {
-        raw = extract_bits_unsigned(bits->window, bits->bit_offset, bit_size);
+        raw = extract_bits_unsigned(bits->window, entry->bit_offset, entry->bit_size);
         signed_raw = (int64_t)raw;
     }
-    bits->bit_offset += bit_size;
 
-    return assign_integral_cell(cell, signed_raw, raw);
+    sf_result_t r = assign_integral_cell(cell, signed_raw, raw);
+    if (r != SF_OK) return r;
+    if (entry->check_orphaned_bits_after &&
+        detect_orphaned_bits(bits->bit_value, entry->bit_offset + entry->bit_size)) {
+        return SF_ERR_BAD_MAGIC;
+    }
+    return SF_OK;
 }
 
 static sf_result_t read_nonbit_cell(sf_param_cell_t *cell, const uint8_t *data,
                                     size_t data_size, size_t *offset,
-                                    bool big_endian,
+                                    size_t count, bool big_endian,
                                     const sf_allocator_t *alloc) {
-    size_t count = field_byte_count(cell->display_type, cell->byte_count,
-                                    cell->array_length);
     if (count == 0) return SF_ERR_BAD_MAGIC;
     sf_result_t r = check_range(*offset, count, data_size);
     if (r != SF_OK) return r;
@@ -495,9 +634,13 @@ static sf_result_t populate_row_cells(sf_param_row_t *row, const sf_param_t *par
     if (row->data_offset == 0) return SF_OK;
     if (row->data_size > 0 && !row->data) return SF_ERR_INVALID_ARG;
 
+    const sf_paramdef_field_layout_t *layout = NULL;
+    sf_result_t r = get_field_layout(def, &layout);
+    if (r != SF_OK) return r;
+
     sfi_param_row_clear_cells(row, param->alloc);
 
-    size_t field_count = sf_paramdef_get_field_count(def);
+    size_t field_count = layout->entry_count;
     sf_param_cell_t *cells = NULL;
     if (field_count > 0) {
         cells = (sf_param_cell_t *)sf_xalloc(param->alloc, field_count * sizeof(*cells));
@@ -505,43 +648,32 @@ static sf_result_t populate_row_cells(sf_param_row_t *row, const sf_param_t *par
         memset(cells, 0, field_count * sizeof(*cells));
     }
 
-    size_t offset = 0;
     size_t cell_count = 0;
     bit_read_state_t bits;
     memset(&bits, 0, sizeof(bits));
 
-    sf_result_t r = SF_OK;
-    for (size_t i = 0; i < field_count; i++) {
-        const sf_paramdef_field_t *field = sf_paramdef_get_field(def, i);
-        if (!field) { r = SF_ERR_INTERNAL; goto fail; }
-        if (!field_valid_for_unversioned_apply(def, field)) continue;
-
+    for (size_t i = 0; i < layout->entry_count; i++) {
+        const sf_paramdef_field_layout_entry_t *entry = &layout->entries[i];
         sf_param_cell_t *cell = &cells[cell_count];
-        r = init_cell(cell, field, param->alloc);
+        r = init_cell_from_layout(cell, entry, param->alloc);
         if (r != SF_OK) goto fail;
 
-        if (sf_param_util_is_bit_type(cell->display_type) && cell->bit_size != -1) {
-            r = read_bit_cell(cell, row->data, row->data_size, &offset, param->big_endian,
-                              &bits);
+        if (entry->is_bit_field) {
+            r = read_layout_bit_cell(cell, entry, row->data, row->data_size,
+                                     param->big_endian, &bits);
         } else {
-            r = finish_read_bits(&bits, &offset);
-            if (r == SF_OK) {
-                r = read_nonbit_cell(cell, row->data, row->data_size, &offset,
-                                     param->big_endian, param->alloc);
-            }
+            size_t offset = entry->byte_offset;
+            r = read_nonbit_cell(cell, row->data, row->data_size, &offset,
+                                 entry->byte_count, param->big_endian,
+                                 param->alloc);
         }
         if (r != SF_OK) goto fail;
         cell_count++;
     }
 
-    r = finish_read_bits(&bits, &offset);
-    if (r != SF_OK) goto fail;
-
     row->cells = cells;
     row->cell_count = cell_count;
-    int32_t def_row_size = sf_paramdef_get_row_size(def);
-    if (def_row_size > 0) row->cell_data_size = (size_t)def_row_size;
-    else row->cell_data_size = offset;
+    row->cell_data_size = layout->row_data_size;
     row->cells_applied = true;
     return SF_OK;
 

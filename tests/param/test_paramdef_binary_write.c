@@ -45,6 +45,7 @@ struct sf_paramdef {
     bool unicode;
     bool version_aware;
     bool basic_fields;
+    void *layout_cache;
 };
 
 void setUp(void) {}

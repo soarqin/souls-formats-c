@@ -23,6 +23,7 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 | `er_load_param` | test helper | Decrypt regulation.bin → BND4 → extract param by suffix match | stable | `tests/param/test_param_er.c` |
 | `er_load_msgbnd_entry` | test helper | Extract msgbnd entry from Data0 → BND4 | stable | `tests/fmg/test_fmg_er.c` |
 | `sf_param_apply_mode_t` | `sf_param.h` | 3-mode apply (UNCONDITIONAL/SOMEWHAT_CAREFUL/CAREFUL) folds 8 upstream Apply variants | stable | `include/souls_formats/sf_param.h` |
+| PARAMDEF apply field-layout cache | param | Internal lazy cache on `sf_paramdef_t` precomputes valid fields, byte offsets, bit offsets, bit limits, byte sizes, and cell kinds once per def. Public API and upstream semantics are unchanged; C-side avoids reinterpreting field layout for every row. Synthetic 10000-row/128-field apply benchmark: 10.940→3.140 µs/row (-71.3%). | internal | `src/param/paramdef_apply.c`; `src/param/paramdef_internal.h` |
 | `SF_EMEVD_FORMAT_ELDEN_RING/ARMORED_CORE_VI/NIGHTREIGN` | `sf_emevd.h` | Sekiro aliases for ER/AC6/Nightreign (pending probe confirmation) | stable | `include/souls_formats/sf_emevd.h` |
 | `sf_paramdef_get_index` | `sf_paramdef.h` | Paramdex XML `<Index>` element; binary returns -1 | stable | `include/souls_formats/sf_paramdef.h` |
 | `sf_paramdef_field_get_sort_id` | `sf_paramdef.h` | Paramdex XML `<SortID>` element; binary returns 0 | stable | `include/souls_formats/sf_paramdef.h` |

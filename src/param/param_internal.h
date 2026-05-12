@@ -15,6 +15,7 @@
 
 struct sf_param_cell {
     char *internal_name;
+    bool owns_internal_name;
 
     sf_paramdef_def_type_t display_type;
     int32_t bit_size;

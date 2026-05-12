@@ -30,9 +30,17 @@ static void field_free(sf_paramdef_field_t *f, const sf_allocator_t *a) {
     memset(f, 0, sizeof(*f));
 }
 
+static void field_layout_free(sf_paramdef_field_layout_t *layout,
+                              const sf_allocator_t *a) {
+    if (!layout) return;
+    sf_xfree(a, layout->entries);
+    sf_xfree(a, layout);
+}
+
 void sf_paramdef_destroy(sf_paramdef_t *paramdef) {
     if (!paramdef) return;
     const sf_allocator_t *a = paramdef->alloc;
+    field_layout_free(paramdef->layout_cache, a);
     for (size_t i = 0; i < paramdef->field_count; i++) field_free(&paramdef->fields[i], a);
     sf_xfree(a, paramdef->fields);
     sf_xfree(a, paramdef->param_type);

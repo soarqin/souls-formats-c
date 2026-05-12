@@ -8,6 +8,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Performance
+- PARAMDEF apply now caches an internal field layout on `sf_paramdef_t`,
+  precomputing valid-field byte offsets, bit offsets, sizes, and cell kinds once
+  per def. The 10000-row/128-field synthetic apply benchmark dropped from
+  10.940 µs/row to 3.140 µs/row (-71.3%); public API and serialized output are
+  unchanged.
 - BXF3/BXF4 read paths now mirror BND3/BND4 bulk file-name allocation by
   storing per-archive and streaming-reader names in one contiguous pool instead
   of duplicating each entry individually. Public `const char *name_utf8` access

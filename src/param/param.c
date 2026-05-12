@@ -27,7 +27,7 @@ static bool has_flag2(sf_param_format_flags2_t flags, sf_param_format_flags2_t f
 
 static void cell_free(sf_param_cell_t *cell, const sf_allocator_t *alloc) {
     if (!cell) return;
-    sf_xfree(alloc, cell->internal_name);
+    if (cell->owns_internal_name) sf_xfree(alloc, cell->internal_name);
     switch (cell->value.kind) {
     case SF_PARAM_CELL_KIND_U8_ARRAY:
     case SF_PARAM_CELL_KIND_DUMMY8_ARRAY:
