@@ -170,6 +170,48 @@ sf_result_t msb_common_write_header(sf_binary_writer_t *w) {
     return SF_OK;
 }
 
+sf_result_t msb_entry_list_write(sf_binary_writer_t *w,
+                                 int32_t             version,
+                                 const char         *type_name,
+                                 const char         *next_list_key,
+                                 const void         *entries,
+                                 size_t              entry_count,
+                                 size_t              entry_size,
+                                 msb_entry_write_fn  write_fn,
+                                 void               *ctx) {
+    if (!w || !type_name || !next_list_key || !write_fn) return SF_ERR_INVALID_ARG;
+    if (entry_count > 0 && (!entries || entry_size == 0)) return SF_ERR_INVALID_ARG;
+    if (entry_count > (size_t)(INT32_MAX - 1)) return SF_ERR_OUT_OF_RANGE;
+
+    sf_result_t rc;
+    char name_key[MSB_RESERVE_NAME_MAX * 2];
+    snprintf(name_key, sizeof name_key, "%sName", next_list_key);
+
+    rc = sf_binary_writer_write_i32(w, version); if (rc != SF_OK) return rc;
+    rc = sf_binary_writer_write_i32(w, (int32_t)entry_count + 1); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_key), return rc);
+    for (size_t i = 0; i < entry_count; i++) {
+        char entry_key[MSB_RESERVE_NAME_MAX * 2];
+        snprintf(entry_key, sizeof entry_key, "%sEntry%zu", next_list_key, i);
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entry_key), return rc);
+    }
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, next_list_key), return rc);
+
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w)), return rc);
+    rc = sf_binary_writer_write_utf16(w, type_name, true); if (rc != SF_OK) return rc;
+    rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
+
+    const unsigned char *entry_bytes = (const unsigned char *)entries;
+    for (size_t i = 0; i < entry_count; i++) {
+        char entry_key[MSB_RESERVE_NAME_MAX * 2];
+        snprintf(entry_key, sizeof entry_key, "%sEntry%zu", next_list_key, i);
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)), return rc);
+        rc = write_fn(w, entry_bytes + (i * entry_size), i, ctx);
+        if (rc != SF_OK) return rc;
+    }
+    return SF_OK;
+}
+
 sf_result_t msb_common_reserve_list(sf_binary_writer_t *w,
                                     const char         *name,
                                     int                 reserve_id) {

@@ -122,6 +122,21 @@ sf_result_t msb_common_iter_lists(sf_binary_reader_t   *r,
 /* Writes the 16-byte MSB magic header. Mirrors MSB.WriteHeader. */
 sf_result_t msb_common_write_header(sf_binary_writer_t *w);
 
+typedef sf_result_t (*msb_entry_write_fn)(sf_binary_writer_t *w,
+                                         const void         *entry,
+                                         size_t              index,
+                                         void               *ctx);
+
+sf_result_t msb_entry_list_write(sf_binary_writer_t *w,
+                                 int32_t             version,
+                                 const char         *type_name,
+                                 const char         *next_list_key,
+                                 const void         *entries,
+                                 size_t              entry_count,
+                                 size_t              entry_size,
+                                 msb_entry_write_fn  write_fn,
+                                 void               *ctx);
+
 /* Writes a placeholder param/list header for a zero-entry list with the
  * given UTF-16 name. The internal layout written is:
  *
