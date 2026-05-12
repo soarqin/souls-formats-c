@@ -60,3 +60,14 @@ When upstream advances past 50 commits on the recorded branch, re-survey
 BinaryReaderEx, BinaryWriterEx, DCX.cs, RegulationDecryptor.cs,
 SL2Decryptor.cs, HashHelper.cs, Oodle.cs only. Other files re-audited on
 next phase mapping.
+
+### Phase 7 e2e File Snapshots (Elden Ring)
+
+| File | BHD5 Path | Archive | sha256 (decompressed BND4 content) | Size (bytes) | Snapped |
+|------|-----------|---------|-------------------------------------|--------------|---------|
+| `c0000.anibnd.dcx` | `/chr/c0000.anibnd.dcx` | `Data3.bhd` | `1e9ccff8d91ae07f57faa8a94a2f3a9cc10a5f38bb0d8b1db2c05facd82424aa` | 67960282 | 2026-05-12 |
+| `sfxbnd_commoneffects.ffxbnd.dcx` | `/sfx/sfxbnd_commoneffects.ffxbnd.dcx` | `Data0.bhd` | `37961be77860a712456460f7a82f93ab9c4636c0b0b6b9f165cfd660c8056ca4` | 374167382 | 2026-05-12 |
+
+Note: sha256 values are of the decompressed BND4 content (after DCX decompression).
+Phase 7 e2e tests will verify sha256 as a sanity check; if the game is patched and sha256 mismatches, tests SKIP with a log message rather than failing.
+Risk: Phase 7 e2e tests lock to this snapshot; game patch may change field layouts.

@@ -47,3 +47,17 @@ set_target_properties(probe_tae_format PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
 sf_apply_warnings(probe_tae_format)
 sf_apply_sanitizers(probe_tae_format)
+
+add_executable(probe_sha256_phase7
+    ${CMAKE_SOURCE_DIR}/tests/probes/probe_sha256_phase7.c)
+target_link_libraries(probe_sha256_phase7 PRIVATE souls_formats_static bcrypt crypt32)
+target_include_directories(probe_sha256_phase7 PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_compile_definitions(probe_sha256_phase7 PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+set_target_properties(probe_sha256_phase7 PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
+sf_apply_warnings(probe_sha256_phase7)
+sf_apply_sanitizers(probe_sha256_phase7)

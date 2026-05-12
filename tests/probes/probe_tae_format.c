@@ -18,6 +18,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <windows.h>
+#include <bcrypt.h>
 
 #ifndef SF_E2E_ELDEN_RING_DIR
 #define SF_E2E_ELDEN_RING_DIR L"C:/Games/ELDEN RING"
@@ -140,6 +142,25 @@ static bool checked_span(size_t size, size_t offset, size_t count, size_t elem_s
     }
     const size_t bytes = count * elem_size;
     return offset <= size && bytes <= size - offset;
+}
+
+static void sha256_print(const void *data, size_t size, const char *label)
+{
+    BCRYPT_ALG_HANDLE alg = NULL;
+    BCRYPT_HASH_HANDLE hash_h = NULL;
+    uint8_t digest[32];
+    NTSTATUS st = BCryptOpenAlgorithmProvider(&alg, BCRYPT_SHA256_ALGORITHM, NULL, 0);
+    if (!BCRYPT_SUCCESS(st)) { printf("%s_SHA256: FAILED\n", label); return; }
+    st = BCryptCreateHash(alg, &hash_h, NULL, 0, NULL, 0, 0);
+    if (!BCRYPT_SUCCESS(st)) { BCryptCloseAlgorithmProvider(alg, 0); printf("%s_SHA256: FAILED\n", label); return; }
+    BCryptHashData(hash_h, (PUCHAR)(uintptr_t)data, (ULONG)size, 0);
+    st = BCryptFinishHash(hash_h, digest, 32, 0);
+    BCryptDestroyHash(hash_h);
+    BCryptCloseAlgorithmProvider(alg, 0);
+    if (!BCRYPT_SUCCESS(st)) { printf("%s_SHA256: FAILED\n", label); return; }
+    printf("%s_SHA256: ", label);
+    for (int i = 0; i < 32; i++) printf("%02x", digest[i]);
+    printf("\n");
 }
 
 static uint32_t read_u32_le(const uint8_t *p)
@@ -624,6 +645,7 @@ int main(void)
     printf("FOUND_ARCHIVE: %s\n", extracted.archive_label);
     printf("FOUND_PATH: %s\n", extracted.path);
     printf("BND4_SIZE: %zu\n", extracted.size);
+    sha256_print(extracted.bytes, extracted.size, "BND4");
 
     sf_bnd4_t *bnd = NULL;
     r = sf_bnd4_read_from_memory(&bnd, (const uint8_t *)extracted.bytes,
