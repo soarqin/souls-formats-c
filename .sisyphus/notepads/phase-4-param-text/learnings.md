@@ -45,3 +45,12 @@
 - Using `✓ aligned`, `+ extension`, and `_skipped_` statuses provides a clear picture of implementation coverage.
 - Folding multiple upstream variants into a single C enum (e.g., `sf_param_apply_mode_t`) is a useful pattern for C-idiomatic APIs.
 - Grep verification is an effective way to ensure no "未实现" entries are missed.
+
+## T3.5 — PARAM row arena (2026-05-12)
+
+- T0.6 confirmed `src/param/param.c::capture_row_data` allocated each row's
+  `data` separately. Keep the optimization thresholded (`row_count >= 1000`) so
+  small synthetic PARAMs retain the simpler per-row ownership path.
+- Store the arena on `sf_param_t` internals, not on public row API. During
+  destroy, rows still clear cells/names individually, but raw row bytes are
+  freed once from `param->row_data_arena` when present.
