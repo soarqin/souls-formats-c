@@ -149,6 +149,7 @@ set(SF_SOURCES
     src/map/msbvi/point_param.c
     src/map/msbvi/route_param.c
     src/geom/flver_common.c
+    src/geom/flver2.c
     src/geom/matbin.c
 )
 
