@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [Unreleased]
+## [0.4.1] - 2026-05-12
 
 ### Performance
 - PARAMDEF apply now caches an internal field layout on `sf_paramdef_t`,
