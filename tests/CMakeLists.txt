@@ -3,6 +3,17 @@
 include(${CMAKE_SOURCE_DIR}/cmake/deps/unity.cmake)
 
 # Helper: register a test executable + ctest entry.
+#
+# Tests link souls_formats_STATIC so they do not depend on the DLL at
+# runtime.  However, Windows DLL search also scans the directory that
+# contains the .exe, and the shared library (libsouls_formats.dll) is
+# built into CMAKE_BINARY_DIR.  If a user double-clicks a test .exe from
+# Explorer the OS may still complain about a missing DLL.  We therefore:
+#   1. Copy libsouls_formats.dll into every test output directory after
+#      each build so that direct execution works without PATH changes.
+#   2. Set the ctest ENVIRONMENT to prepend CMAKE_BINARY_DIR to PATH so
+#      that ctest-driven runs also find any other runtime DLLs (e.g. the
+#      Oodle DLL loaded at runtime by sf_oodle_set_search_path).
 function(sf_add_test name source label)
     add_executable(${name} ${source})
     target_link_libraries(${name} PRIVATE souls_formats_static unity bcrypt)
@@ -10,8 +21,21 @@ function(sf_add_test name source label)
     set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/${label}")
     sf_apply_warnings(${name})
     sf_apply_sanitizers(${name})
+
+    # Copy the shared DLL alongside the test .exe so direct execution works.
+    add_custom_command(TARGET ${name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:souls_formats_shared>"
+            "${CMAKE_BINARY_DIR}/tests/${label}/$<TARGET_FILE_NAME:souls_formats_shared>"
+        COMMENT "Copying souls_formats DLL to tests/${label}/"
+    )
+
     add_test(NAME ${name} COMMAND ${name})
-    set_tests_properties(${name} PROPERTIES LABELS "${label}" TIMEOUT 60)
+    set_tests_properties(${name} PROPERTIES
+        LABELS "${label}"
+        TIMEOUT 60
+        ENVIRONMENT "PATH=${CMAKE_BINARY_DIR};$ENV{PATH}"
+    )
 endfunction()
 
 #-----------------------------------------------------------------------------
@@ -418,6 +442,9 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/probes/CMakeLists.txt)
 # Phase 7 — animation / effects (synthetic round-trips)
 #-----------------------------------------------------------------------------
 if(SF_ENABLE_PHASE7)
+    sf_add_test(souls_formats_test_fxr3_xml
+        anim/test_fxr3_xml.c "anim")
+
     sf_add_test(souls_formats_test_fxr3_synthetic
         anim/test_fxr3_synthetic.c "anim")
 endif()
