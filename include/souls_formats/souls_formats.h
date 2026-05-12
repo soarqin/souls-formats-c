@@ -33,6 +33,7 @@
 #include "souls_formats/sf_tpf.h"
 #include "souls_formats/sf_paramtdf.h"
 #include "souls_formats/sf_flver.h"
+#include "souls_formats/sf_mtd.h"
 
 /* Format headers will be added here as each Phase lands.
  * Phase 1: io, math, encoding, hash  (DONE)
