@@ -542,6 +542,10 @@ set_tests_properties(
     souls_formats_test_matbin_e2e_er
     souls_formats_test_tae_e2e_er
     souls_formats_test_fxr3_e2e_er
+    paramdef_xml_e2e
+    param_apply_paramdef_e2e
+    fmg_e2e_er
+    emevd_e2e_er
     PROPERTIES LABELS "e2e;e2e_er")
 set_tests_properties(
     souls_formats_test_ac6_helper_smoke
