@@ -1838,7 +1838,7 @@ Parallel-execution metrics:
 
 > Three high-risk perf changes. Each task is GO/NO-GO based on its Wave 0 audit.
 
-- [ ] 4.1 **klib khash adoption in `src/archive/bhd5.c` entry lookup** (gated by T0.1 GO)
+- [x] 4.1 **klib khash adoption in `src/archive/bhd5.c` entry lookup** (gated by T0.1 GO)
 
   **What to do**:
   1. If T0.1 verdict is NO-GO → skip task with CHANGELOG note explaining why.
@@ -1880,7 +1880,7 @@ Parallel-execution metrics:
 
   **Commit**: `perf(archive): adopt klib khash for BHD5 entry lookup (O(1) worst-case)` — `src/archive/bhd5.c cmake/deps/klib.cmake docs/api-mapping/extensions.md tests/archive/test_bhd5_lookup_perf.c` — pre-commit: full archive + golden + asan ctest.
 
-- [ ] 4.2 **PARAMDEF apply-path field-layout precompute** (gated by T0.3 GO)
+- [x] 4.2 **PARAMDEF apply-path field-layout precompute** (gated by T0.3 GO)
 
   **What to do**:
   1. If T0.3 verdict is NO-GO → skip with CHANGELOG note.
@@ -1917,7 +1917,7 @@ Parallel-execution metrics:
 
   **Commit**: `perf(param): precompute PARAMDEF field layout (-NN% per-row)` — `src/param/paramdef_apply.c src/internal/paramdef_internal.h docs/api-mapping/extensions.md` — pre-commit: param ctest + bench.
 
-- [ ] 4.3 **binary_reader endian inline fast-path** (gated by T0.4 GO)
+- [x] 4.3 **binary_reader endian inline fast-path** (gated by T0.4 GO)
 
   **What to do**:
   1. If T0.4 verdict is NO-GO (<5% win) → skip with CHANGELOG note.
@@ -1957,7 +1957,7 @@ Parallel-execution metrics:
 
 > Strict scope limit: skeleton only. Per-subtype field reads are off-limits.
 
-- [ ] 5.1 **Extract `msb_entry_list_read` / `msb_entry_list_write` into `msb_common.c`**
+- [x] 5.1 **Extract `msb_entry_list_read` / `msb_entry_list_write` into `msb_common.c`**
 
   **What to do**:
   1. If T0.5 verdict is NO-GO (extracted LOC <50 per module) → skip; T5.2/T5.3 also skip; CHANGELOG note.
@@ -2125,7 +2125,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 > Evidence file convention: every T6.X writes `.sisyphus/evidence/task-6.<n>-validator.log` containing
 > the validator's stdout + exit code.
 
-- [ ] 6.0 **Enumerate upstream Formats/*.cs surface inventory**
+- [x] 6.0 **Enumerate upstream Formats/*.cs surface inventory**
 
   **What to do**:
   1. Walk `/home/soar/src/SoulsFormatsNEXT/SoulsFormats/Formats/` and produce an exhaustive inventory: for each `.cs` file or subdirectory, list its public class(es), public methods, approximate LOC, and a one-line description.
