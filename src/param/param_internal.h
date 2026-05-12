@@ -42,6 +42,8 @@ struct sf_param {
 
     sf_param_row_t *rows;
     size_t row_count;
+    uint8_t *row_data_arena;
+    size_t row_data_arena_size;
 
     char *param_type;
 

@@ -53,10 +53,12 @@ void sfi_param_row_clear_cells(sf_param_row_t *row, const sf_allocator_t *alloc)
     row->cells_applied = false;
 }
 
-static void row_free(sf_param_row_t *row, const sf_allocator_t *alloc) {
+enum { PARAM_ROW_ARENA_MIN_ROWS = 1000 };
+
+static void row_free(sf_param_row_t *row, const sf_allocator_t *alloc, bool free_data) {
     if (!row) return;
     sfi_param_row_clear_cells(row, alloc);
-    sf_xfree(alloc, row->data);
+    if (free_data) sf_xfree(alloc, row->data);
     sf_xfree(alloc, row->name);
     memset(row, 0, sizeof(*row));
 }
@@ -64,7 +66,9 @@ static void row_free(sf_param_row_t *row, const sf_allocator_t *alloc) {
 void sf_param_destroy(sf_param_t *param) {
     if (!param) return;
     const sf_allocator_t *alloc = param->alloc;
-    for (size_t i = 0; i < param->row_count; i++) row_free(&param->rows[i], alloc);
+    bool rows_own_data = param->row_data_arena == NULL;
+    for (size_t i = 0; i < param->row_count; i++) row_free(&param->rows[i], alloc, rows_own_data);
+    sf_xfree(alloc, param->row_data_arena);
     sf_xfree(alloc, param->rows);
     sf_xfree(alloc, param->param_type);
     sf_xfree(alloc, param);
@@ -229,6 +233,7 @@ static sf_result_t capture_row_data(sf_binary_reader_t *br, sf_param_t *param,
     const int64_t length = sf_binary_reader_length(br);
     if (strings_offset <= 0 || strings_offset > length) return SF_ERR_TRUNCATED;
 
+    size_t total_size = 0;
     for (size_t i = 0; i < param->row_count; i++) {
         sf_param_row_t *row = &param->rows[i];
         int64_t end = (i + 1 < param->row_count) ? param->rows[i + 1].data_offset : strings_offset;
@@ -239,6 +244,33 @@ static sf_result_t capture_row_data(sf_binary_reader_t *br, sf_param_t *param,
         int64_t size64 = end - row->data_offset;
         if ((uint64_t)size64 > (uint64_t)SIZE_MAX) return SF_ERR_OUT_OF_RANGE;
         row->data_size = (size_t)size64;
+        if (row->data_size > SIZE_MAX - total_size) return SF_ERR_OUT_OF_RANGE;
+        total_size += row->data_size;
+    }
+
+    if (param->row_count >= PARAM_ROW_ARENA_MIN_ROWS && total_size > 0) {
+        param->row_data_arena = (uint8_t *)sf_xalloc(param->alloc, total_size);
+        if (!param->row_data_arena) return SF_ERR_OOM;
+        param->row_data_arena_size = total_size;
+
+        uint8_t *cursor = param->row_data_arena;
+        for (size_t i = 0; i < param->row_count; i++) {
+            sf_param_row_t *row = &param->rows[i];
+            if (row->data_size == 0) continue;
+
+            row->data = cursor;
+            cursor += row->data_size;
+
+            sf_result_t r = seek_abs(br, row->data_offset);
+            if (r != SF_OK) return r;
+            r = sf_binary_reader_read_bytes(br, row->data, row->data_size);
+            if (r != SF_OK) return r;
+        }
+        return SF_OK;
+    }
+
+    for (size_t i = 0; i < param->row_count; i++) {
+        sf_param_row_t *row = &param->rows[i];
         if (row->data_size == 0) continue;
 
         row->data = (uint8_t *)sf_xalloc(param->alloc, row->data_size);
