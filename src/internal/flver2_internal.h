@@ -319,3 +319,35 @@ void sfi_flver2_skeleton_set_destroy(sf_flver2_skeleton_set_t *set,
                                      const sf_allocator_t *a);
 
 #endif /* SF_FLVER2_INTERNAL_H */
+
+typedef struct sf_flver2_vertex_context {
+    float    uv_factor;
+    bool     is_ac6;
+    uint32_t header_version;
+} sf_flver2_vertex_context_t;
+
+typedef struct sf_flver2_decoded_vertex {
+    sf_vec3_t  position;
+    sf_vec3_t  normal;
+    sf_vec4_t  tangent;
+    sf_vec3_t  bitangent;
+    sf_vec2_t  uvs[8];
+    sf_flver_vertex_color_t        colors[4];
+    sf_flver_vertex_bone_indices_t bone_indices;
+    sf_flver_vertex_bone_weights_t bone_weights;
+    uint8_t    uv_count;
+    uint8_t    color_count;
+    int32_t    normal_w;
+} sf_flver2_decoded_vertex_t;
+
+sf_result_t sfi_flver2_vertex_decode_one(
+    const sf_flver2_buffer_layout_t *layout,
+    const uint8_t *vertex_bytes,
+    const sf_flver2_vertex_context_t *ctx,
+    sf_flver2_decoded_vertex_t *out);
+
+sf_result_t sfi_flver2_vertex_encode_one(
+    const sf_flver2_buffer_layout_t *layout,
+    const sf_flver2_decoded_vertex_t *in,
+    const sf_flver2_vertex_context_t *ctx,
+    uint8_t *vertex_bytes);
