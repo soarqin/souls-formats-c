@@ -1,0 +1,3 @@
+[1/3] Building C object CMakeFiles/souls_formats_static.dir/src/effects/tae.c.obj
+[2/3] Building C object CMakeFiles/souls_formats_static.dir/src/effects/fxr3.c.obj
+[3/3] Linking C static library libsouls_formats.a
