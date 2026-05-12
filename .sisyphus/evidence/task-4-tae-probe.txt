@@ -1,0 +1,27 @@
+# TAE c0000.anibnd.dcx empirical probe
+
+TARGET_PATH: /chr/c0000.anibnd.dcx
+SF_PATH_HASH_64: 0x00000000F8630FB1
+ALT_PATH_HASH_64_133: 0xB5D79FD786383451
+
+FOUND_ARCHIVE: Data3
+FOUND_PATH: /chr/c0000.anibnd.dcx
+BND4_SIZE: 67960282
+BND4_ENTRY_COUNT: 654
+SAMPLE[1]: path=N:\GR\data\INTERROOT_win64\chr\c0000\tae\a00.tae size=6362096 TAE_VERSION=0x1000D Format=SDT FormatByte=0xFF BigEndianByte=0 Is64Byte=0xFF ID=2000 AnimCount=1839 AnimOffset=0x110 AnimGroupsOffset=0x7400 SkeletonNameOffset=0x50 SibNameOffset=0x0 Flags=0100010202010101
+SAMPLE[2]: path=N:\GR\data\INTERROOT_win64\chr\c0000\tae\a02.tae size=1207872 TAE_VERSION=0x1000D Format=SDT FormatByte=0xFF BigEndianByte=0 Is64Byte=0xFF ID=2002 AnimCount=427 AnimOffset=0x110 AnimGroupsOffset=0x1BC0 SkeletonNameOffset=0x50 SibNameOffset=0x0 Flags=0100010202010101
+SAMPLE[3]: path=N:\GR\data\INTERROOT_win64\chr\c0000\tae\a03.tae size=1162112 TAE_VERSION=0x1000D Format=SDT FormatByte=0xFF BigEndianByte=0 Is64Byte=0xFF ID=2003 AnimCount=419 AnimOffset=0x110 AnimGroupsOffset=0x1B40 SkeletonNameOffset=0x50 SibNameOffset=0x0 Flags=0100010202010101
+SAMPLE[4]: path=N:\GR\data\INTERROOT_win64\chr\c0000\tae\a10.tae size=618080 TAE_VERSION=0x1000D Format=SDT FormatByte=0xFF BigEndianByte=0 Is64Byte=0xFF ID=2010 AnimCount=240 AnimOffset=0x110 AnimGroupsOffset=0x1010 SkeletonNameOffset=0x50 SibNameOffset=0x0 Flags=0100010202010101
+SAMPLE[5]: path=N:\GR\data\INTERROOT_win64\chr\c0000\tae\a12.tae size=585440 TAE_VERSION=0x1000D Format=SDT FormatByte=0xFF BigEndianByte=0 Is64Byte=0xFF ID=2012 AnimCount=239 AnimOffset=0x110 AnimGroupsOffset=0x1000 SkeletonNameOffset=0x50 SibNameOffset=0x0 Flags=0100010202010101
+TAE_ENTRY_COUNT: 639
+SAMPLE_COUNT: 5
+VERSION_MISMATCH_COUNT: 0
+ALERT: none; all sampled TAE versions equal 0x1000D
+
+SMALLEST_SAMPLE_PATH: N:\GR\data\INTERROOT_win64\chr\c0000\tae\a107.tae
+SMALLEST_SAMPLE_SIZE: 288
+HEX_DUMP_FIRST_64_BYTES:
+0000: 54 41 45 20 00 00 00 FF 0D 00 01 00 20 01 00 00
+0010: 40 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00
+0020: 50 00 00 00 00 00 00 00 80 00 00 00 00 00 00 00
+0030: 25 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
