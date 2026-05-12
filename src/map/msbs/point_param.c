@@ -10,6 +10,7 @@
 #include "msbs_internal.h"
 
 #include "internal/sf_internal.h"
+#include "map/msb_internal.h" /* IWYU pragma: keep */
 
 #include <stdio.h>
 #include <string.h>
@@ -485,32 +486,20 @@ static sf_result_t msbs_region_write_one(sf_binary_writer_t *w, const msbs_regio
     return sf_binary_writer_pad(w, 8);
 }
 
+static sf_result_t msbs_region_write_entry(sf_binary_writer_t *w,
+                                           const void         *entry,
+                                           size_t              index,
+                                           void               *ctx) {
+    (void)ctx;
+    if (index > (size_t)INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+    const sf_msbs_region_t *region = (const sf_msbs_region_t *)entry;
+    return msbs_region_write_one(w, &region->data, (int32_t)index);
+}
+
 sf_result_t msbs_point_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs) {
     if (!w || !msbs) return SF_ERR_INVALID_ARG;
     if (msbs->region_count < 0) return SF_ERR_OUT_OF_RANGE;
-
-    sf_result_t rc;
-    rc = sf_binary_writer_write_i32(w, 35); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_write_i32(w, msbs->region_count + 1); if (rc != SF_OK) return rc;
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbsNameOff2"), return rc);
-
-    for (int32_t i = 0; i < msbs->region_count; i++) {
-        char offset_name[32];
-        snprintf(offset_name, sizeof offset_name, "RegionOffset%d", i);
-        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, offset_name), return rc);
-    }
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbsNextList2"), return rc);
-
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbsNameOff2", sf_binary_writer_position(w)), return rc);
-    rc = sf_binary_writer_write_utf16(w, "POINT_PARAM_ST", true); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
-
-    for (int32_t i = 0; i < msbs->region_count; i++) {
-        char offset_name[32];
-        snprintf(offset_name, sizeof offset_name, "RegionOffset%d", i);
-        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, offset_name, sf_binary_writer_position(w)), return rc);
-        rc = msbs_region_write_one(w, &msbs->regions[i].data, i);
-        if (rc != SF_OK) return rc;
-    }
-    return SF_OK;
+    return msb_entry_list_write(w, 35, "POINT_PARAM_ST", "MsbsNextList2", msbs->regions,
+                                (size_t)msbs->region_count, sizeof(*msbs->regions),
+                                msbs_region_write_entry, NULL);
 }

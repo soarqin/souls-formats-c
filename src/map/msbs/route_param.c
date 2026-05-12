@@ -9,6 +9,7 @@
 #include "msbs_internal.h"
 
 #include "internal/sf_internal.h"
+#include "map/msb_internal.h" /* IWYU pragma: keep */
 
 #include <stdio.h>
 #include <string.h>
@@ -119,31 +120,19 @@ static sf_result_t msbs_route_write_one(sf_binary_writer_t *w, const msbs_route_
     return sf_binary_writer_pad(w, 8);
 }
 
+static sf_result_t msbs_route_write_entry(sf_binary_writer_t *w,
+                                          const void         *entry,
+                                          size_t              index,
+                                          void               *ctx) {
+    (void)ctx;
+    if (index > (size_t)INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+    const sf_msbs_route_t *route = (const sf_msbs_route_t *)entry;
+    return msbs_route_write_one(w, &route->data, (int32_t)index, (int32_t)index);
+}
+
 sf_result_t msbs_route_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs) {
     if (!w || !msbs || msbs->route_count < 0) return SF_ERR_INVALID_ARG;
-
-    sf_result_t rc;
-    rc = sf_binary_writer_write_i32(w, 35); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_write_i32(w, msbs->route_count + 1); if (rc != SF_OK) return rc;
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbsNameOff3"), return rc);
-
-    for (int32_t i = 0; i < msbs->route_count; i++) {
-        char entry_key[32];
-        snprintf(entry_key, sizeof entry_key, "MsbsRouteEntry%d", i);
-        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entry_key), return rc);
-    }
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbsNextList3"), return rc);
-
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbsNameOff3", sf_binary_writer_position(w)), return rc);
-    rc = sf_binary_writer_write_utf16(w, "ROUTE_PARAM_ST", true); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
-
-    for (int32_t i = 0; i < msbs->route_count; i++) {
-        char entry_key[32];
-        snprintf(entry_key, sizeof entry_key, "MsbsRouteEntry%d", i);
-        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)), return rc);
-        rc = msbs_route_write_one(w, &msbs->routes[i].data, i, i);
-        if (rc != SF_OK) return rc;
-    }
-    return SF_OK;
+    return msb_entry_list_write(w, 35, "ROUTE_PARAM_ST", "MsbsNextList3", msbs->routes,
+                                (size_t)msbs->route_count, sizeof(*msbs->routes),
+                                msbs_route_write_entry, NULL);
 }
