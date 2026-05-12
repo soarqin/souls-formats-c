@@ -1,0 +1,1 @@
+ASan/UBSan not available for MinGW-w64 cross-compile on this host (libasan/libubsan not installed for x86_64-w64-mingw32). Sanitizer baseline: SKIP (not available). Core tests pass under regular build: 7/7 PASS.

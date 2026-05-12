@@ -1,0 +1,16 @@
+core: 7
+compression: 5
+crypto: 5
+archive: 8
+param: 15
+script: 9
+map: 23
+geom: 8
+anim: 2
+hygiene: 1
+golden: 1
+e2e: 5
+e2e_er: 2
+e2e_ac6: 2
+e2e_sekiro: 3
+e2e_nightreign: 2
