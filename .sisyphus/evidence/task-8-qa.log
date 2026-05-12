@@ -1,0 +1,30 @@
+=== _Static_assert count (need >= 7) ===
+14
+
+=== SF_API count (need >= 30) ===
+39
+
+=== Enum count (need = 6) ===
+6
+
+=== Version enum values (need = 2: ' = 4' and ' = 5') ===
+4
+
+=== Operand enum values (need = 4: -4, -3, -2, -1) ===
+8
+
+=== List of static asserts ===
+_Static_assert(SF_FXR3_VERSION_DARK_SOULS_3 == 4, "FXRVersion drift (DarkSouls3)");
+_Static_assert(SF_FXR3_VERSION_SEKIRO       == 5, "FXRVersion drift (Sekiro)");
+_Static_assert(SF_FXR3_OPERATOR_NOT_EQUAL == 0, "OperatorType drift (NotEqual)");
+_Static_assert(SF_FXR3_OPERATOR_LT        == 5, "OperatorType drift (LessThan)");
+_Static_assert(SF_FXR3_OPERAND_LITERAL     == -4, "OperandType drift (Literal)");
+_Static_assert(SF_FXR3_OPERAND_EXTERNAL    == -3, "OperandType drift (External)");
+_Static_assert(SF_FXR3_OPERAND_TIME_OF_DAY == -2, "OperandType drift (TimeOfDay)");
+_Static_assert(SF_FXR3_OPERAND_STATE_TIME  == -1, "OperandType drift (StateTime)");
+_Static_assert(SF_FXR3_FIELD_TYPE_INT   == 0, "FieldType drift (Int)");
+_Static_assert(SF_FXR3_FIELD_TYPE_FLOAT == 1, "FieldType drift (Float)");
+_Static_assert(SF_FXR3_PROPERTY_TYPE_SCALAR == 0, "PropertyType drift (Scalar)");
+_Static_assert(SF_FXR3_PROPERTY_TYPE_COLOR  == 3, "PropertyType drift (Color)");
+_Static_assert(SF_FXR3_INTERP_ZERO    == 0, "InterpolationType drift (Zero)");
+_Static_assert(SF_FXR3_INTERP_UNK_AC6 == 7, "InterpolationType drift (UnkAc6)");
