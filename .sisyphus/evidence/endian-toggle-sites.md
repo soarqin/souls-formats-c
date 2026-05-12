@@ -1,10 +1,18 @@
 # T0.4 — binary_reader Endian-Toggle Sites Audit
 
-## Verdict: PENDING (microbench needed in W4.3 for actual % measurement)
+## Verdict: NO-GO (<5% win on FLVER2 synthetic decode)
 
-Note: The microbench harness (`tests/microbench/test_flver2_decode_endian.c`) is created
-as part of this audit. The actual GO/NO-GO for W4.3 requires running the bench with and
-without the fast-path prototype, which happens in W4.3 itself.
+Measured 2026-05-12 with `build-mingw` (MinGW Debug) using the T0.4 microbench harness
+(`tests/microbench/test_flver2_decode_endian.c`). The prototype was limited to a guarded
+`__builtin_expect(!!r->big_endian, 0)` hint on the primitive integer-read endian branch.
+
+| Run | Baseline | Prototype | Delta |
+|-----|----------|-----------|-------|
+| Required default run (1000 iterations) | 3.000 us/decode | 4.000 us/decode | -33.33% |
+| Long confirmation run (100000 iterations) | 2.520 us/decode | 2.500 us/decode | +0.79% |
+
+The long run is below the ≥5% GO threshold, so the prototype was reverted and
+`src/core/binary_reader.c` intentionally keeps the plain mutable-flag branch.
 
 ## Toggle Site Count: 51 total assignments
 
@@ -48,12 +56,12 @@ The fast-path in W4.3 must be limited to:
 
 Created: `tests/microbench/test_flver2_decode_endian.c`
 - Uses synthetic FLVER2 cube (same k_cube_vertices/k_cube_indices as tests/geom/test_flver2_synthetic.c)
-- Times sf_flver2_read_from_buffer in a loop (1000 iterations)
+- Times sf_flver2_read_from_memory in a loop (1000 iterations by default)
 - Prints timing to stdout for baseline capture
 
 ## Downstream Impact
 
-- **T4.3**: PENDING — run microbench in W4.3 to get actual % delta.
-  - If ≥5% win → GO (apply `__builtin_expect` fast-path)
-  - If <5% win → NO-GO (skip T4.3)
+- **T4.3**: NO-GO — measured +0.79% on the long confirmation run.
+  - The fast-path prototype was reverted because it missed the ≥5% threshold.
+  - Keep the current mutable-flag path unchanged.
 - Type-specialization is FORBIDDEN regardless of benchmark result.
