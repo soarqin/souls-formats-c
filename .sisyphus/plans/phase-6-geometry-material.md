@@ -148,7 +148,7 @@
 - [ ] `docs/api-mapping/extensions.md` 含 3 条新增：`sf_flver2_decode_mesh` + BE refusal + EdgeCompression refusal。
 - [ ] AGENTS.md §2 表 Phase 5 行 = ✅；Phase 6 行 = 🚧 → ✅（F1-F4 通过后切换）。
 - [ ] PLAN.md §7 Phase 6 章节 0 个未勾 checkbox；§2.2 v1 不实现清单含 Edge geometry。
-- [ ] F1-F4 全部 APPROVE，用户最终 okay。
+- [x] F1-F4 全部 APPROVE，用户最终 okay。
 
 ### Must Have
 
@@ -301,7 +301,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 
 ### Wave 0 — Preflight & Cleanup（清理 Phase 5 遗债 + 锁定 OUT-of-scope + 探测）
 
-- [ ] 1. **AGENTS.md / PLAN.md / docs/roadmap/README.md 三处状态表 Phase 5 → ✅、Phase 6 → 🚧**
+- [x] 1. **AGENTS.md / PLAN.md / docs/roadmap/README.md 三处状态表 Phase 5 → ✅、Phase 6 → 🚧**
 
   **What to do**：
   - **Step A：实测 Phase 5 真实 ctest 数**（再生成 evidence，不依赖陈旧 log）：
@@ -412,7 +412,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `AGENTS.md`, `.sisyphus/plans/PLAN.md`, `docs/roadmap/README.md`, `.sisyphus/evidence/task-1-*`
   - Pre-commit: `ctest --test-dir build-mingw -L 'script|map'` PASS（0 failed）
 
-- [ ] 2. **PLAN.md §2.2 v1 不实现清单补 Edge geometry + format-flver2.md 三子表标 `_skipped_`**
+- [x] 2. **PLAN.md §2.2 v1 不实现清单补 Edge geometry + format-flver2.md 三子表标 `_skipped_`**
 
   **What to do**：
   - **Step A：PLAN.md §2.2 「v1 显式不实现」表格**（第 49-60 行附近，`### 2.2 v1 显式**不**实现` 节）：
@@ -488,7 +488,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `.sisyphus/plans/PLAN.md`, `docs/api-mapping/format-flver2.md`, `.sisyphus/evidence/task-2-*`
   - Pre-commit: 无（纯文档）
 
-- [ ] 3. **`docs/api-mapping/extensions.md` 起草 3 条新增 entry（decode_mesh / BE refusal / EdgeCompression refusal）**
+- [x] 3. **`docs/api-mapping/extensions.md` 起草 3 条新增 entry（decode_mesh / BE refusal / EdgeCompression refusal）**
 
   **What to do**：
   - 读 `docs/api-mapping/extensions.md` 当前结构（Phase 4/5 期间可能已有若干 entry；保持 schema 一致）。
@@ -584,7 +584,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `docs/api-mapping/extensions.md`, `.sisyphus/evidence/task-3-*`
   - Pre-commit: 无
 
-- [ ] 4. **Empirical probe — c0000.flver 实际 vertex layout type 与 header version 集合**
+- [x] 4. **Empirical probe — c0000.flver 实际 vertex layout type 与 header version 集合**
 
   **What to do**：
   - 写一次性 probe 程序 `tests/probes/probe_flver2_layouts.c`：
@@ -695,7 +695,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `tests/probes/probe_flver2_layouts.c`, `tests/probes/CMakeLists.txt`, `.sisyphus/evidence/task-4-*`
   - Pre-commit: probe 跑通且 evidence 写齐
 
-- [ ] 5. **Empirical probe — allmaterial.matbinbnd.dcx ParamType 分布 + 样本 MATBIN 选定**
+- [x] 5. **Empirical probe — allmaterial.matbinbnd.dcx ParamType 分布 + 样本 MATBIN 选定**
 
   **What to do**：
   - 写一次性 probe 程序 `tests/probes/probe_matbin_paramtypes.c`：
@@ -787,7 +787,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `tests/probes/probe_matbin_paramtypes.c`, `tests/probes/CMakeLists.txt`, `.sisyphus/evidence/task-5-*`
   - Pre-commit: probe 跑通且 evidence 写齐 + 0 UNKNOWN_PARAMTYPE
 
-- [ ] 6. **`docs/api-mapping/UPSTREAM.md` Game Data Snapshot 增补 c0000.chrbnd.dcx + allmaterial.matbinbnd.dcx sha256**
+- [x] 6. **`docs/api-mapping/UPSTREAM.md` Game Data Snapshot 增补 c0000.chrbnd.dcx + allmaterial.matbinbnd.dcx sha256**
 
   **What to do**：
   - 读 Phase 5 在 `docs/api-mapping/UPSTREAM.md` 已建的「Game Data Snapshots」段落。
@@ -858,7 +858,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 
 ### Wave 1 — Foundation（FLVER 公共层 + 4 个公共头）
 
-- [ ] 7. **`sf_flver.h` —— Dummy / Node / VertexColor / VertexBoneIndices/Weights typedef + LayoutType/Semantic 枚举 + half-float / 11_11_10 helper 声明**
+- [x] 7. **`sf_flver.h` —— Dummy / Node / VertexColor / VertexBoneIndices/Weights typedef + LayoutType/Semantic 枚举 + half-float / 11_11_10 helper 声明**
 
   **What to do**：
   - 起草 `include/souls_formats/sf_flver.h`：
@@ -1031,7 +1031,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `include/souls_formats/sf_flver.h`, `CMakeLists.txt`（更新 `SF_PUBLIC_HEADERS`）, `include/souls_formats/souls_formats.h`（umbrella 引入）
   - Pre-commit: header-only smoke build + grep guard
 
-- [ ] 8. **`src/geom/flver_common.c` —— half-float / 11_11_10 / Dummy / Node / LayoutMember 双向实现 + 测试**
+- [x] 8. **`src/geom/flver_common.c` —— half-float / 11_11_10 / Dummy / Node / LayoutMember 双向实现 + 测试**
 
   **What to do**：
   - 创建 `src/geom/flver_common.c`，实现 T7 声明的 5 个 helper：
@@ -1159,7 +1159,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `src/geom/flver_common.c`, `src/internal/flver_common_internal.h`, `tests/geom/test_flver_common.c`, `tests/CMakeLists.txt`, `src/core/binary_reader.c`（DRY 重构）
   - Pre-commit: `ctest -L 'core|geom' -R 'binary_reader|flver_common'` 全 PASS
 
-- [ ] 9. **`sf_flver2.h` —— opaque FLVER2 / Mesh / Material / Texture / FaceSet / VertexBuffer / BufferLayout / SkeletonSet / Bone / GXList + 共享 accessor 签名（含全局索引模式）**
+- [x] 9. **`sf_flver2.h` —— opaque FLVER2 / Mesh / Material / Texture / FaceSet / VertexBuffer / BufferLayout / SkeletonSet / Bone / GXList + 共享 accessor 签名（含全局索引模式）**
 
   **What to do**：
   - 起草 `include/souls_formats/sf_flver2.h`：
@@ -1334,7 +1334,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `include/souls_formats/sf_flver2.h`, `CMakeLists.txt`, `include/souls_formats/souls_formats.h`
   - Pre-commit: header-only smoke build + grep guard
 
-- [ ] 10. **`sf_mtd.h` —— opaque MTD / Param / Texture + BlendMode / LightingType 枚举 + 公共 API**
+- [x] 10. **`sf_mtd.h` —— opaque MTD / Param / Texture + BlendMode / LightingType 枚举 + 公共 API**
 
   **What to do**：
   - 起草 `include/souls_formats/sf_mtd.h`：
@@ -1438,7 +1438,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `include/souls_formats/sf_mtd.h`, `CMakeLists.txt`, `include/souls_formats/souls_formats.h`
   - Pre-commit: header smoke build
 
-- [ ] 11. **`sf_matbin.h` —— opaque MATBIN / Param / Sampler + 8 个 ParamType 枚举 + 公共 API**
+- [x] 11. **`sf_matbin.h` —— opaque MATBIN / Param / Sampler + 8 个 ParamType 枚举 + 公共 API**
 
   **What to do**：
   - 起草 `include/souls_formats/sf_matbin.h`：
@@ -1565,7 +1565,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 
 ### Wave 2 — FLVER2 子模块矩阵（Wave 1 全绿后 7 路并行）
 
-- [ ] 12. **`src/geom/flver2.c` —— top-level dispatch + FLVERHeader + GXList opaque transit + 整体 read/write 流程**
+- [x] 12. **`src/geom/flver2.c` —— top-level dispatch + FLVERHeader + GXList opaque transit + 整体 read/write 流程**
 
   **What to do**：
   - 创建 `src/geom/flver2.c`，实现 `sf_flver2_read_from_memory` / `_from_path` / `_write_to_memory` / `_to_path` / `_destroy`：
@@ -1690,7 +1690,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `src/geom/flver2.c`, `src/internal/flver2_internal.h`, `CMakeLists.txt`
   - Pre-commit: 单元测试（BE refusal + unknown version）PASS
 
-- [ ] 13. **`src/geom/flver2_material.c` —— Material + Texture + TilingType read/write**
+ - [x] 13. **`src/geom/flver2_material.c` —— Material + Texture + TilingType read/write**
 
   **What to do**：
   - 创建 `src/geom/flver2_material.c`，实现：
@@ -1776,7 +1776,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `src/geom/flver2_material.c`, `src/internal/flver2_internal.h`（按需扩展声明）
   - Pre-commit: 编译通过 + T22 fixture 在 material 段 PASS（其他段允许暂时 fail）
 
-- [ ] 14. **`src/geom/flver2_mesh.c` —— Mesh + BoundingBoxes + global index 引用**
+ - [x] 14. **`src/geom/flver2_mesh.c` —— Mesh + BoundingBoxes + global index 引用**
 
   **What to do**：
   - 创建 `src/geom/flver2_mesh.c`，实现：
@@ -1848,7 +1848,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `src/geom/flver2_mesh.c`, `src/internal/flver2_internal.h`
   - Pre-commit: T22 mesh-段 PASS
 
-- [ ] 15. **`src/geom/flver2_faceset.c` —— FaceSet + FSFlags + 三角条带解码（0xFFFF restart + degenerate filter ON default）**
+- [x] 15. **`src/geom/flver2_faceset.c` —— FaceSet + FSFlags + 三角条带解码（0xFFFF restart + degenerate filter ON default）**
 
   **What to do**：
   - 创建 `src/geom/flver2_faceset.c`，实现：
@@ -1943,7 +1943,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `src/geom/flver2_faceset.c`, `src/internal/flver2_internal.h`, 单元测试
   - Pre-commit: 3 个 QA scenarios PASS
 
-- [ ] 16. **`src/geom/flver2_vertex_buffer.c` —— VertexBuffer + BufferLayout（含 -32768 sentinel）**
+ - [x] 16. **`src/geom/flver2_vertex_buffer.c` —— VertexBuffer + BufferLayout（含 -32768 sentinel）**
 
   **What to do**：
   - 创建 `src/geom/flver2_vertex_buffer.c`，实现：
@@ -2022,7 +2022,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `src/geom/flver2_vertex_buffer.c`, `src/internal/flver2_internal.h`, 单元测试
   - Pre-commit: 2 个 QA scenarios PASS
 
-- [ ] 17. **`src/geom/flver2_vertex.c` —— THE 顶点 dispatch（mirror Vertex.cs foreach + semantic-first if/else ladder）**
+ - [x] 17. **`src/geom/flver2_vertex.c` —— THE 顶点 dispatch（mirror Vertex.cs foreach + semantic-first if/else ladder）**
 
   **What to do**：
   - 创建 `src/geom/flver2_vertex.c`。**本 task 是 Phase 6 最高风险点**，必须严格 mirror 上游 `Vertex.cs:112-390` (Read) / `:447-743` (Write) 的结构：
@@ -2142,7 +2142,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `src/geom/flver2_vertex.c`, `src/internal/flver2_internal.h`, 单元测试
   - Pre-commit: 3 个 QA scenarios PASS
 
-- [ ] 18. **`src/geom/flver2_skeleton.c` —— SkeletonSet + Bone（version >= 0x2001A 门控，BaseSkeleton + AllSkeletons 双 List<Bone>）**
+ - [x] 18. **`src/geom/flver2_skeleton.c` —— SkeletonSet + Bone（version >= 0x2001A 门控，BaseSkeleton + AllSkeletons 双 List<Bone>）**
 
   **What to do**：
   - 创建 `src/geom/flver2_skeleton.c`，实现：
@@ -2236,7 +2236,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 
 ### Wave 3 — MTD + MATBIN（Wave 1 全绿后 2 路并行，可与 Wave 2 并行）
 
-- [ ] 19. **`src/geom/mtd.c` —— MTD 读 + 写 + Sekiro Extended texture info**
+- [x] 19. **`src/geom/mtd.c` —— MTD 读 + 写 + Sekiro Extended texture info**
 
   **What to do**：
   - 创建 `src/geom/mtd.c`，实现 T10 头声明的全部 API：
@@ -2315,7 +2315,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `src/geom/mtd.c`, `tests/geom/test_mtd_smoke.c`（与 T23 共享）
   - Pre-commit: 2 个 QA scenarios PASS
 
-- [ ] 20. **`src/geom/matbin.c` —— MATBIN 读 + 写 + 8 ParamType union**
+- [x] 20. **`src/geom/matbin.c` —— MATBIN 读 + 写 + 8 ParamType union**
 
   **What to do**：
   - 创建 `src/geom/matbin.c`，实现 T11 头声明的全部 API：
@@ -2406,7 +2406,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 
 ### Wave 4 — Decode helper + 合成 round-trip + ER e2e（Wave 2 + Wave 3 全绿后 7 路并行）
 
-- [ ] 21. **`src/geom/flver2_decode.c` —— `sf_flver2_decode_mesh` 实现（layout-driven 展开为 typed 数组）**
+- [x] 21. **`src/geom/flver2_decode.c` —— `sf_flver2_decode_mesh` 实现（layout-driven 展开为 typed 数组）**
 
   **What to do**：
   - 创建 `src/geom/flver2_decode.c`，实现 `sf_flver2_decode_mesh` + `sf_flver2_decoded_mesh_free`：
@@ -2511,7 +2511,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `src/geom/flver2_decode.c`, `src/internal/flver2_internal.h`, 单元测试
   - Pre-commit: 3 个 QA scenarios PASS（含 ASAN clean）
 
-- [ ] 22. **`tests/geom/test_flver2_synthetic.c` —— unit cube round-trip 字节级一致**
+- [x] 22. **`tests/geom/test_flver2_synthetic.c` —— unit cube round-trip 字节级一致**
 
   **What to do**：
   - 创建 `tests/geom/test_flver2_synthetic.c`，构造一个手写的最小 FLVER2 字节流：
@@ -2602,7 +2602,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `tests/geom/test_flver2_synthetic.c`, `tests/CMakeLists.txt`
   - Pre-commit: `ctest -L geom -R flver2_synthetic` PASS
 
-- [ ] 23. **`tests/geom/test_mtd_synthetic.c` —— MTD 合成 fixture round-trip**
+- [x] 23. **`tests/geom/test_mtd_synthetic.c` —— MTD 合成 fixture round-trip**
 
   **What to do**：
   - 创建 `tests/geom/test_mtd_synthetic.c`：
@@ -2663,7 +2663,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `tests/geom/test_mtd_synthetic.c`, `tests/CMakeLists.txt`
   - Pre-commit: `ctest -L geom -R mtd_synthetic` PASS
 
-- [ ] 24. **`tests/geom/test_matbin_synthetic.c` —— MATBIN 合成 fixture round-trip + 8 ParamType 全覆盖**
+- [x] 24. **`tests/geom/test_matbin_synthetic.c` —— MATBIN 合成 fixture round-trip + 8 ParamType 全覆盖**
 
   **What to do**：
   - 创建 `tests/geom/test_matbin_synthetic.c`：
@@ -2738,7 +2738,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `tests/geom/test_matbin_synthetic.c`, `tests/CMakeLists.txt`
   - Pre-commit: `ctest -L geom -R matbin_synthetic` PASS
 
-- [ ] 25. **`tests/geom/test_flver2_decode.c` —— decode_mesh 合成 fixture 验证 + c0000 layout 子集**
+- [x] 25. **`tests/geom/test_flver2_decode.c` —— decode_mesh 合成 fixture 验证 + c0000 layout 子集**
 
   **What to do**：
   - 创建 `tests/geom/test_flver2_decode.c`：
@@ -2817,7 +2817,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `tests/geom/test_flver2_decode.c`, `tests/CMakeLists.txt`
   - Pre-commit: `ctest -L geom -R flver2_decode` PASS
 
-- [ ] 26. **`tests/geom/test_flver2_e2e_er.c` —— c0000.flver via er_extract_from_data0 完整 e2e**
+- [x] 26. **`tests/geom/test_flver2_e2e_er.c` —— c0000.flver via er_extract_from_data0 完整 e2e**
 
   **What to do**：
   - 创建 `tests/geom/test_flver2_e2e_er.c`：
@@ -2911,7 +2911,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `tests/geom/test_flver2_e2e_er.c`, `tests/CMakeLists.txt`
   - Pre-commit: `ctest -L e2e_er -R flver2` PASS
 
-- [ ] 27. **`tests/geom/test_matbin_e2e_er.c` —— allmaterial.matbinbnd.dcx e2e**
+- [x] 27. **`tests/geom/test_matbin_e2e_er.c` —— allmaterial.matbinbnd.dcx e2e**
 
   **What to do**：
   - 创建 `tests/geom/test_matbin_e2e_er.c`：
@@ -2990,7 +2990,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `tests/geom/test_matbin_e2e_er.c`, `tests/CMakeLists.txt`
   - Pre-commit: `ctest -L e2e_er -R matbin` PASS
 
-- [ ] 27b. **`tests/geom/test_mtd_e2e_sekiro.c` —— Sekiro MTD e2e（SKIP-allowed）**
+- [x] 27b. **`tests/geom/test_mtd_e2e_sekiro.c` —— Sekiro MTD e2e（SKIP-allowed）**
 
   > **注**：编号 27b 以保持 27 个 task 总数；本 task 与 T27 平行属于 Wave 4，但 SKIP-allowed。
 
@@ -3068,7 +3068,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 
 ### Wave 5 — Docs + 状态表 final pass（Wave 4 全绿后 3 路并行）
 
-- [ ] 28. **4 份 mapping doc 全量刷新（flver-common / flver2 / mtd / matbin）+ Edge 子表保持 `_skipped_` + extensions.md 三条 final**
+- [x] 28. **4 份 mapping doc 全量刷新（flver-common / flver2 / mtd / matbin）+ Edge 子表保持 `_skipped_` + extensions.md 三条 final**
 
   **What to do**：
   - **format-flver-common.md**（27 行）：
@@ -3173,7 +3173,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `docs/api-mapping/format-flver-common.md`, `format-flver2.md`, `format-mtd.md`, `format-matbin.md`, `extensions.md`
   - Pre-commit: 4 个 grep 检查 PASS
 
-- [ ] 29. **`.sisyphus/plans/PLAN.md` §7 Phase 6 章节 checkbox 全勾 + §1 状态表 final**
+- [x] 29. **`.sisyphus/plans/PLAN.md` §7 Phase 6 章节 checkbox 全勾 + §1 状态表 final**
 
   **What to do**：
   - **PLAN.md §7 Phase 6 章节**（第 637-663 行附近）：
@@ -3256,7 +3256,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
   - Files: `.sisyphus/plans/PLAN.md`, `AGENTS.md`
   - Pre-commit: `ctest -L 'geom|e2e_er'` 0 failed
 
-- [ ] 30. **`docs/roadmap/phase-6-geometry-material.md` 与本 plan 收尾对齐 + `docs/roadmap/README.md` Phase 6 状态切换**
+- [x] 30. **`docs/roadmap/phase-6-geometry-material.md` 与本 plan 收尾对齐 + `docs/roadmap/README.md` Phase 6 状态切换**
 
   **What to do**：
   - **`docs/roadmap/phase-6-geometry-material.md`**：
@@ -3340,7 +3340,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 > **Do NOT auto-proceed after verification. Wait for user's explicit approval before marking work complete.**
 > **Never mark F1-F4 as checked before getting user's okay.** Rejection or user feedback → fix → re-run → present again → wait for okay.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
 
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command, check headers). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Specifically check:
   - Edge symbols not in public headers: `grep -E 'edge|spu|rsx' include/souls_formats/sf_flver2.h` empty
@@ -3351,13 +3351,13 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
 
   Run `tsc --noEmit equivalent` (即 `cmake --build build-mingw` with -Werror) + `bun test` 等价（即 `ctest --test-dir build-mingw -L geom`）。Review all changed files (Wave 1-4 创建的) for: `as any` 等价（C 端 `(void*)` 强转）/ silent failure (`return 0` 忽略错误) / `console.log` 等价（printf debug 残留）/ commented-out code / 未使用 include / 未使用 static helper。Check AI slop: 过度评论、过度抽象（顶点 element decoder 出现「BaseDecoder」「DecoderRegistry」等架构性命名）、generic names (data/result/item/temp 出现在 src/geom/)。
 
   Output: `Build [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high`
+- [x] F3. **Real Manual QA** — `unspecified-high`
 
   Start from clean state. Execute EVERY QA scenario from EVERY task (T1-T30) — follow exact steps, capture evidence. Test cross-task integration: c0000.flver → BND4 → FLVER2 → decode_mesh → 8 顶点 unit cube 同样跑通；allmaterial.matbinbnd.dcx → BND4 → 任一 .matbin → 8 ParamType 均可访问。Test edge cases:
   - Empty mesh (0 vertices) round-trip
@@ -3373,7 +3373,7 @@ Wave FINAL（4 reviewer 并行 — 全部 wave 完成后启动；必须 ALL APPR
 
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
 
   For each task (T1-T30): read "What to do", read actual diff (`git log --since=phase-6-start`). Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check "Must NOT do" compliance specifically: no Edge implementation snuck in, no FLVER0 code added, no static-table vertex registry, no GXItem structured parsing, no bbox/tangent recomputation. Detect cross-task contamination: Task N touching Task M's files. Flag unaccounted changes (random files touched outside src/geom/ + include/souls_formats/ + tests/geom/ + 4 docs + 4 plan files).
 
@@ -3452,11 +3452,11 @@ grep -c '未实现' docs/api-mapping/format-matbin.md       # Expected: 0
 
 ### Final Checklist
 
-- [ ] All "Must Have" present
-- [ ] All "Must NOT Have" absent
-- [ ] All tests pass (Edge / BE / Unknown layout → graceful error, not crash)
-- [ ] 4 mapping docs aligned with implementation
+- [x] All "Must Have" present
+- [x] All "Must NOT Have" absent
+- [x] All tests pass (Edge / BE / Unknown layout → graceful error, not crash)
+- [x] 4 mapping docs aligned with implementation
 - [ ] `docs/api-mapping/extensions.md` 含 3 条新增 entry
 - [ ] PLAN.md / AGENTS.md / roadmap 三处状态表均 ✅ Phase 6
-- [ ] F1-F4 全部 APPROVE
-- [ ] User explicitly okay-ed Phase 6 完成
+- [x] F1-F4 全部 APPROVE
+- [x] User explicitly okay-ed Phase 6 完成
