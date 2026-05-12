@@ -73,6 +73,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_bxf4.h
     include/souls_formats/sf_enfl.h
     include/souls_formats/sf_tpf.h
+    include/souls_formats/sf_flver.h
 )
 
 set(SF_SOURCES
