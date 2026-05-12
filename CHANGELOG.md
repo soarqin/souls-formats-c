@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Internal
 - Reserve/fill audit (T0.2): 247 reserve calls vs 238 fill calls — all mismatches confirmed Legit (dynamic name patterns via snprintf/helper functions). No bugs found.
+- `SF_ENABLE_PHASE7` was never landed as a CMake option; Phase 7 (TAE/FXR3) is permanently compiled in since v0.4.0. The option reference in v0.4.0 changelog was erroneous and has been removed.
 
 ---
 
@@ -19,7 +20,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - FXR3 format support (DS3 version 4 + Sekiro version 5; binary + XML round-trip)
 - 2 new public headers: `sf_tae.h`, `sf_fxr3.h`
 - 5 new test binaries under labels `anim` + `e2e_er`
-- `SF_ENABLE_PHASE7` CMake option (default OFF for v1.0; ON for v1.1)
 - `libsouls_formats.dll` now copied to each test output directory (fixes DLL-not-found on Windows)
 
 ### Notes

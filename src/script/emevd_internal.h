@@ -1,4 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
+/* Format-local internal header — intentionally colocated with the EMEVD
+ * implementation per project convention (see AGENTS.md §5). Only files
+ * under src/script/ and tests/script/ should include this header. */
 
 #ifndef SF_SCRIPT_EMEVD_INTERNAL_H
 #define SF_SCRIPT_EMEVD_INTERNAL_H
