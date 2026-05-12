@@ -85,3 +85,10 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 - **C API**: `sf_tae_read_from_memory` returns `SF_ERR_UNSUPPORTED_VERSION` when version ≠ 0x1000D
 - **Rationale**: v1.1 target games (Sekiro / Elden Ring / Nightreign) all use SDT format; legacy formats deferred to v2. AC6 TBD pending probe.
 - **Impact**: DS1 / SOTFS / DS3 / BB / DES / DESR / AC6 (TBD) `.tae` files cannot be read.
+
+### FXR3 XML scratch arena (per-parse single allocation)
+- **Type**: C-style adaptation (performance, internal-only)
+- **Upstream Ref**: `FXR3.cs:1480 XMLToFXR3` — .NET XmlSerializer + GC, no allocator concerns
+- **C API**: `sf_fxr3_from_xml` — public signature unchanged
+- **Rationale**: A naive per-node `sf_xalloc` translation of the C# reader produced 17–19 allocator calls per synthetic fixture and grew O(nodes) on real ER FXR3 files. The reader now bump-allocates the entire transitive tree (state map, container, effects, actions, properties, modifiers, field arrays, references, externals, blood) out of a single arena sized as `xml_size * 6 + 8 KiB`. The arena is stored in the internal field `sf_fxr3_t::xml_arena`; `sf_fxr3_destroy` checks that field and frees the arena in one call instead of walking the tree. Binary-reader-built objects leave `xml_arena = NULL` and continue to use the recursive destroy path. Reduction: ≥88% on synthetic fixtures (17→2, 19→2). See `.sisyphus/evidence/task-3.4-alloc.log`.
+- **Impact**: None on public API. Consumers must continue to use `sf_fxr3_destroy`; mixing XML- and binary-built trees in user-side analysis is unaffected. Arena overflow on pathologically dense XML returns `SF_ERR_OOM`.

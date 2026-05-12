@@ -1199,12 +1199,16 @@ static void destroy_state_map(sf_fxr3_state_map_t *m, const sf_allocator_t *a) {
 SF_API void sf_fxr3_destroy(sf_fxr3_t *f) {
     if (!f) return;
     const sf_allocator_t *a = f->alloc;
-    destroy_state_map(f->root_state_map, a);
-    destroy_container(f->root_container, a);
-    sf_xfree(a, f->references);
-    sf_xfree(a, f->external_values);
-    sf_xfree(a, f->unk_blood_enablers);
-    sf_xfree(a, f->raw_bytes);
+    if (f->xml_arena) {
+        sf_xfree(a, f->xml_arena);
+    } else {
+        destroy_state_map(f->root_state_map, a);
+        destroy_container(f->root_container, a);
+        sf_xfree(a, f->references);
+        sf_xfree(a, f->external_values);
+        sf_xfree(a, f->unk_blood_enablers);
+        sf_xfree(a, f->raw_bytes);
+    }
     sf_xfree(a, f);
 }
 

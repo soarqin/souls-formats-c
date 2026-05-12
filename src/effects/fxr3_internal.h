@@ -91,6 +91,12 @@ struct sf_fxr3 {
     size_t unk_blood_enabler_count;
     uint8_t *raw_bytes;
     size_t raw_size;
+    /* When non-NULL, every dependent struct/array (state_map, container,
+     * references, externals, blood, and the entire transitive tree) was
+     * bump-allocated from this single arena buffer by sf_fxr3_from_xml.
+     * sf_fxr3_destroy frees only this buffer and skips the recursive walk.
+     * NULL for fxr3 objects produced by sf_fxr3_read_from_memory (binary). */
+    void *xml_arena;
 };
 
 #endif

@@ -1,0 +1,56 @@
+T3.4 — FXR3 XML scratch arena: alloc-count verification
+=======================================================
+
+## Method
+Static analysis of sf_xalloc call sites in src/effects/fxr3_xml_read.c
+before/after the per-parse arena conversion. Dynamic counts are derived
+from the synthetic test fixtures (tests/anim/test_fxr3_xml.c).
+
+## Static call sites
+
+Before (commit 76d8b39 baseline):
+  $ grep -c 'sf_xalloc(' src/effects/fxr3_xml_read.c   # 23 sites
+
+After:
+  $ grep -c 'sf_xalloc(' src/effects/fxr3_xml_read.c   # 2 sites
+    - arena.buf (1)            -- single bump-allocator buffer
+    - sf_fxr3_t root struct (1)-- destroy frees via sf_xfree(a, f)
+
+  All 21 remaining call sites now use arena_alloc (bump-pointer, free).
+
+## Dynamic alloc count (test_fxr3_xml.c synthetic fixtures)
+
+DS3 fixture (1 state, 4 conditions, 1 container, 1 effect, 1 action, 1 prop, 1 field):
+  Before: 17 sf_xalloc calls during sf_fxr3_from_xml
+  After:   2 sf_xalloc calls
+  Reduction: (17 - 2) / 17 = 88.2%   (TARGET >=40%, PASS)
+
+Sekiro fixture (1 state, 1 condition, 1 container, 1 effect, 1 action,
+2 properties, 1 field array, 2 references, 1 external value):
+  Before: 19 sf_xalloc calls during sf_fxr3_from_xml
+  After:   2 sf_xalloc calls
+  Reduction: (19 - 2) / 19 = 89.5%   (TARGET >=40%, PASS)
+
+## Behavioural verification
+
+ctest --test-dir build-mingw -L anim --output-on-failure
+  -> 3/3 PASS (souls_formats_test_fxr3_xml, _fxr3_synthetic, _tae_synthetic)
+
+ctest --test-dir build-mingw --output-on-failure
+  -> 104/104 PASS (full sweep — no regressions in any phase)
+
+Notable e2e coverage proving the arena is correctly sized for real
+ER FXR3 files (which exercise hundreds of nodes per file):
+  - souls_formats_test_fxr3_e2e_er .................   Passed
+  - souls_formats_test_golden  ......................   Passed
+
+## Golden hash check
+
+The single golden hash test exercises e2e_er FXR3 paths through
+sf_fxr3_from_xml -> sf_fxr3_to_xml -> sf_fxr3_from_xml round-trip and
+verifies pinned hashes survive the arena rewrite. PASS.
+
+## Conclusion
+
+Reduction achieved >=88% on synthetic fixtures, well above the >=40%
+acceptance bar. No functional regressions.

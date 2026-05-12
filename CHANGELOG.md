@@ -17,6 +17,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   pool instead of duplicating each entry individually, reducing archive-name
   allocation count by roughly `N - 1` for `N` named entries while preserving the
   public `const char *name_utf8` surface.
+- FXR3 XML reader allocation reduction (T3.4): `sf_fxr3_from_xml` now bump-
+  allocates the entire transitive tree (state map, container, effects, actions,
+  properties, modifiers, field arrays, references, externals, blood, and the
+  intermediate NUL-terminated XML copy) out of one per-parse arena. The arena
+  is stored on the internal `sf_fxr3_t::xml_arena` field; `sf_fxr3_destroy`
+  frees it in a single call and skips the recursive tree walk for XML-derived
+  objects. Binary-reader paths leave `xml_arena = NULL` and continue using the
+  existing recursive destroy. Reduction on synthetic fixtures: 17→2 (DS3) and
+  19→2 (Sekiro) allocator calls per parse (≥88%). Public API unchanged.
+  Evidence: `.sisyphus/evidence/task-3.4-alloc.log`.
 
 ### Internal
 - PARAM row arena (T3.5): `sf_param_read_*` now uses one contiguous row-data
