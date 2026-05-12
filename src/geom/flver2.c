@@ -692,25 +692,7 @@ int16_t sf_flver2_bone_previous_sibling_index(const sf_flver2_bone_t *b) {
 }
 int32_t sf_flver2_bone_node_index(const sf_flver2_bone_t *b) { return b ? b->node_index : -1; }
 
-sf_result_t sf_flver2_decode_mesh(const sf_flver2_t *f, size_t mesh_index,
-                                  sf_flver2_decoded_mesh_t *out,
-                                  const sf_allocator_t *a) {
-    (void)f; (void)mesh_index; (void)out; (void)a;
-    return SF_ERR_UNSUPPORTED_VERSION;
-}
-void sf_flver2_decoded_mesh_free(sf_flver2_decoded_mesh_t *m, const sf_allocator_t *a) {
-    if (!m) return;
-    sf_xfree(a, m->positions);
-    sf_xfree(a, m->normals);
-    sf_xfree(a, m->tangents);
-    sf_xfree(a, m->bitangents);
-    for (size_t i = 0; i < sizeof(m->uvs) / sizeof(m->uvs[0]); i++) sf_xfree(a, m->uvs[i]);
-    for (size_t i = 0; i < sizeof(m->colors) / sizeof(m->colors[0]); i++) sf_xfree(a, m->colors[i]);
-    sf_xfree(a, m->bone_indices);
-    sf_xfree(a, m->bone_weights);
-    sf_xfree(a, m->indices);
-    memset(m, 0, sizeof(*m));
-}
+/* sf_flver2_decode_mesh / sf_flver2_decoded_mesh_free — implemented in src/geom/flver2_decode.c (T21). */
 
 /* Material / Texture / TakeTextures — implemented in src/geom/flver2_material.c (T13). */
 /* SkeletonSet / Bone — implemented in src/geom/flver2_skeleton.c (T18). */
