@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Internal
+- Reserve/fill audit (T0.2): 247 reserve calls vs 238 fill calls — all mismatches confirmed Legit (dynamic name patterns via snprintf/helper functions). No bugs found.
+
+---
+
 ## [0.4.0] - 2026-05-12
 
 ### Added
