@@ -41,3 +41,7 @@
 - The current ER `SpEffectParam.param` parses successfully even when
   `sf_param_apply_paramdef` is too strict; TSV dumping can fall back to raw
   cell-by-index rendering while still using Paramdex field names.
+- Documentation updates for Phase 4 required careful mapping of C# signatures to C symbols.
+- Using `✓ aligned`, `+ extension`, and `_skipped_` statuses provides a clear picture of implementation coverage.
+- Folding multiple upstream variants into a single C enum (e.g., `sf_param_apply_mode_t`) is a useful pattern for C-idiomatic APIs.
+- Grep verification is an effective way to ensure no "未实现" entries are missed.
