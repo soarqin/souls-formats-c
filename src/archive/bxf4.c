@@ -162,15 +162,6 @@ static sf_result_t bxf4_file_dup(sf_binder_file_t *dst, const sf_binder_file_t *
     return SF_OK;
 }
 
-static void bxf4_file_free(sf_binder_file_t *f, const sf_allocator_t *a) {
-    if (!f) return;
-    sf_xfree(a, (void *)f->name_utf8);
-    sf_xfree(a, (void *)f->data);
-    f->name_utf8 = NULL;
-    f->data = NULL;
-    f->size = 0;
-}
-
 static bool bxf4_name_in_pool(const char *name, const char *pool, size_t pool_size) {
     if (!name || !pool || pool_size == 0) return false;
     uintptr_t n     = (uintptr_t)name;
