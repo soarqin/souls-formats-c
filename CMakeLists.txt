@@ -213,7 +213,7 @@ function(_sf_configure_library target)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/archive
     )
     target_compile_features(${target} PUBLIC c_std_11)
-    target_link_libraries(${target} PRIVATE bcrypt crypt32 zlib ${SF_ZSTD_TARGET} mxml_static)
+    target_link_libraries(${target} PRIVATE bcrypt crypt32 zlib ${SF_ZSTD_TARGET} mxml_static klib)
     sf_apply_warnings(${target})
     sf_apply_sanitizers(${target})
 endfunction()

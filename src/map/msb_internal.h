@@ -122,11 +122,29 @@ sf_result_t msb_common_iter_lists(sf_binary_reader_t   *r,
 /* Writes the 16-byte MSB magic header. Mirrors MSB.WriteHeader. */
 sf_result_t msb_common_write_header(sf_binary_writer_t *w);
 
+/* Callback invoked by msb_entry_list_write for each concrete entry.
+ * `entry` points at entries[index] using the caller-supplied element size.
+ * `ctx` is opaque caller state for variant-specific index/id policy.
+ */
 typedef sf_result_t (*msb_entry_write_fn)(sf_binary_writer_t *w,
                                          const void         *entry,
                                          size_t              index,
                                          void               *ctx);
 
+/* Write a complete non-empty-capable MSB param/list section:
+ *
+ *   i32  version
+ *   i32  offsetCount = entry_count + 1
+ *   i64  nameOffset
+ *   i64  entryOffsets[entry_count]
+ *   i64  nextParamOffset
+ *   UTF-16 type_name, padded to 8
+ *   entries, each emitted by write_fn
+ *
+ * `next_list_key` is the caller-owned reservation name for nextParamOffset;
+ * a later caller fills it with the next list's start offset (or zero for the
+ * final list), preserving upstream Param<T>.Write chaining.
+ */
 sf_result_t msb_entry_list_write(sf_binary_writer_t *w,
                                  int32_t             version,
                                  const char         *type_name,

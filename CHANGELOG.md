@@ -13,6 +13,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   per def. The 10000-row/128-field synthetic apply benchmark dropped from
   10.940 µs/row to 3.140 µs/row (-71.3%); public API and serialized output are
   unchanged.
+- BHD5 hash extraction now uses an internal `klib` `khash` table populated at
+  open time, matching upstream `Dictionary<long, BucketEntry>` lookup semantics
+  while preserving the flat file array for byte-identical write ordering.
 - BXF3/BXF4 read paths now mirror BND3/BND4 bulk file-name allocation by
   storing per-archive and streaming-reader names in one contiguous pool instead
   of duplicating each entry individually. Public `const char *name_utf8` access

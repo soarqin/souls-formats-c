@@ -190,6 +190,7 @@ sf_result_t msb_entry_list_write(sf_binary_writer_t *w,
     rc = sf_binary_writer_write_i32(w, version); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, (int32_t)entry_count + 1); if (rc != SF_OK) return rc;
     SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_key), return rc);
+
     for (size_t i = 0; i < entry_count; i++) {
         char entry_key[MSB_RESERVE_NAME_MAX * 2];
         snprintf(entry_key, sizeof entry_key, "%sEntry%zu", next_list_key, i);

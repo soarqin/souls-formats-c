@@ -357,6 +357,66 @@ static void test_bhd5_empty_bucket(void) {
     DeleteFileW(bdt_path);
 }
 
+static void test_bhd5_hash_lookup_matches_all_bucket_entries(void) {
+    enum { file_count = 5 };
+    const uint8_t payload[file_count] = { 0x10, 0x21, 0x32, 0x43, 0x54 };
+    const char *paths[file_count] = {
+        "lookup/a.bin",
+        "lookup/b.bin",
+        "lookup/c.bin",
+        "lookup/d.bin",
+        "lookup/e.bin",
+    };
+    synth_file_t files[file_count];
+    memset(files, 0, sizeof(files));
+    for (size_t i = 0; i < file_count; i++) {
+        files[i].path = paths[i];
+        files[i].hash = sf_path_hash_64(paths[i]);
+        files[i].padded_size = 1;
+        files[i].unpadded_size = 1;
+        files[i].file_offset = (int64_t)i;
+    }
+    uint32_t bucket_counts[4] = { 0, 2, 1, 2 };
+    bytebuf_t bhd;
+    build_bhd(&bhd, files, file_count, bucket_counts, 4);
+
+    wchar_t bhd_path[MAX_PATH];
+    wchar_t bdt_path[MAX_PATH];
+    make_temp_path(L"bhd5_lookup_bhd", bhd_path);
+    make_temp_path(L"bhd5_lookup_bdt", bdt_path);
+    write_wfile(bhd_path, bhd.data, bhd.size);
+    write_wfile(bdt_path, payload, sizeof(payload));
+
+    sf_bhd5_t *reader = NULL;
+    TEST_ASSERT_EQUAL(SF_OK, sf_bhd5_open(&reader, bhd_path, bdt_path,
+                                          SF_BHD5_GAME_ELDENRING, NULL));
+    TEST_ASSERT_EQUAL_size_t(4, sf_bhd5_bucket_count(reader));
+    TEST_ASSERT_EQUAL_size_t(file_count, sf_bhd5_total_file_count(reader));
+
+    for (size_t i = file_count; i > 0; i--) {
+        const size_t file_index = i - 1u;
+        void *out = NULL;
+        size_t out_size = 0;
+        TEST_ASSERT_EQUAL(SF_OK, sf_bhd5_extract_by_hash_64(reader, files[file_index].hash,
+                                                            &out, &out_size, NULL));
+        TEST_ASSERT_EQUAL_size_t(1, out_size);
+        TEST_ASSERT_EQUAL_UINT8(payload[file_index], ((const uint8_t *)out)[0]);
+        sf_free(NULL, out);
+    }
+
+    void *missing = NULL;
+    size_t missing_size = 0;
+    TEST_ASSERT_EQUAL(SF_ERR_NOT_FOUND,
+                      sf_bhd5_extract_by_hash_64(reader, 0xFEDCBA9876543210ull,
+                                                 &missing, &missing_size, NULL));
+    TEST_ASSERT_NULL(missing);
+    TEST_ASSERT_EQUAL_size_t(0, missing_size);
+
+    sf_bhd5_close(reader);
+    DeleteFileW(bhd_path);
+    DeleteFileW(bdt_path);
+}
+
 static void test_bhd5_bulk_aes_ranges_do_not_allocate_per_file(void) {
     enum { file_count = 32 };
     synth_file_t files[file_count];
@@ -407,6 +467,7 @@ int main(void) {
     RUN_TEST(test_bhd5_sekiro_style);
     RUN_TEST(test_bhd5_range_skip);
     RUN_TEST(test_bhd5_empty_bucket);
+    RUN_TEST(test_bhd5_hash_lookup_matches_all_bucket_entries);
     RUN_TEST(test_bhd5_bulk_aes_ranges_do_not_allocate_per_file);
     RUN_TEST(test_bhd5_rsa_wrapped);
     return UNITY_END();

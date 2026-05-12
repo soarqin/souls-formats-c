@@ -14,6 +14,8 @@
 #include "souls_formats/sf_hash.h"
 #include "souls_formats/sf_io.h"
 
+#include "khash.h"
+
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
@@ -45,6 +47,8 @@ typedef struct sf_bhd5_file {
     sf_bhd5_range_t *aes_ranges;
 } sf_bhd5_file_t;
 
+KHASH_MAP_INIT_INT64(bhd5_lookup, sf_bhd5_file_t *)
+
 struct sf_bhd5 {
     const sf_allocator_t *alloc;
     sf_bhd5_game_t game;
@@ -61,6 +65,7 @@ struct sf_bhd5 {
     sf_bhd5_file_t *files;
     sf_bhd5_range_t *sha_range_pool;
     sf_bhd5_range_t *aes_range_pool;
+    khash_t(bhd5_lookup) *lookup_table;
 };
 
 static void bhd5_file_clear(const sf_allocator_t *a, sf_bhd5_file_t *f) {
@@ -73,6 +78,7 @@ void sf_bhd5_close(sf_bhd5_t *b) {
     if (!b) return;
     const sf_allocator_t *a = b->alloc;
     for (size_t i = 0; i < b->file_count; i++) bhd5_file_clear(a, &b->files[i]);
+    kh_destroy(bhd5_lookup, b->lookup_table);
     sf_xfree(a, b->sha_range_pool);
     sf_xfree(a, b->aes_range_pool);
     sf_xfree(a, b->files);
@@ -385,6 +391,23 @@ static sf_result_t read_file_header(sf_binary_reader_t *r, sf_bhd5_file_t *file,
     return SF_OK;
 }
 
+static sf_result_t build_lookup_table(sf_bhd5_t *b) {
+    b->lookup_table = kh_init(bhd5_lookup);
+    if (!b->lookup_table) return SF_ERR_OOM;
+
+    for (size_t i = 0; i < b->file_count; i++) {
+        int added = 0;
+        khiter_t it = kh_put(bhd5_lookup, b->lookup_table, b->files[i].path_hash, &added);
+        if (added < 0) {
+            kh_destroy(bhd5_lookup, b->lookup_table);
+            b->lookup_table = NULL;
+            return SF_ERR_OOM;
+        }
+        if (added != 0) kh_value(b->lookup_table, it) = &b->files[i];
+    }
+    return SF_OK;
+}
+
 static sf_result_t parse_bhd5(sf_bhd5_t *b, uint8_t *bytes, size_t size) {
     sf_binary_reader_t *r = NULL;
     int64_t *header_offsets = NULL;
@@ -563,6 +586,9 @@ static sf_result_t parse_bhd5(sf_bhd5_t *b, uint8_t *bytes, size_t size) {
         }
     }
 
+    rr = build_lookup_table(b);
+    if (rr != SF_OK) goto out;
+
 out:
     sf_xfree(b->alloc, header_offsets);
     sf_xfree(b->alloc, sha_offsets);
@@ -622,11 +648,9 @@ const char *sf_bhd5_get_salt(const sf_bhd5_t *b) { return (b && b->salt) ? b->sa
 bool sf_bhd5_get_big_endian(const sf_bhd5_t *b) { return b ? b->big_endian : false; }
 
 static const sf_bhd5_file_t *find_by_hash64(const sf_bhd5_t *b, uint64_t path_hash) {
-    if (!b) return NULL;
-    for (size_t i = 0; i < b->file_count; i++) {
-        if (b->files[i].path_hash == path_hash) return &b->files[i];
-    }
-    return NULL;
+    if (!b || !b->lookup_table) return NULL;
+    khiter_t it = kh_get(bhd5_lookup, b->lookup_table, path_hash);
+    return it == kh_end(b->lookup_table) ? NULL : kh_value(b->lookup_table, it);
 }
 
 static sf_result_t decrypt_ranges(const sf_bhd5_t *b, const sf_bhd5_file_t *f,
