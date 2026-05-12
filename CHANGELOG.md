@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.4.0] - 2026-05-12
+
+### Added
+- TAE format support (SDT version 0x1000D; covers Sekiro + Elden Ring)
+- FXR3 format support (DS3 version 4 + Sekiro version 5; binary + XML round-trip)
+- 2 new public headers: `sf_tae.h`, `sf_fxr3.h`
+- 5 new test binaries under labels `anim` + `e2e_er`
+- `SF_ENABLE_PHASE7` CMake option (default OFF for v1.0; ON for v1.1)
+- `libsouls_formats.dll` now copied to each test output directory (fixes DLL-not-found on Windows)
+
+### Notes
+- TAE Template subsystem deferred to v1.2 (ParameterContainer remains opaque bytes)
+- Non-SDT TAE formats (DS1/SOTFS/DS3/BB/DES/DESR) deferred to v2 (legacy games)
+- FXR3 XML round-trip uses structural equality (not byte-equal) due to mxml whitespace
+
 ## [0.3.0] — 2026-05-10
 
 ### Added

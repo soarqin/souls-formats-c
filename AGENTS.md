@@ -34,7 +34,7 @@ result codes, and opaque pointer types.
 | 4 | Param + text (PARAM/PARAMDEF/PARAMTDF/FMG) | ✅ done | 20/20 PASS across 20 test binaries |
 | 5 | Script + map (EMEVD/ESD/MSB*) | ✅ done | 5/5 PASS across 32 test binaries (verified 2026-05-12) |
 | 6 | Geometry + material (FLVER2/MTD/MATBIN) | ✅ done | 15/15 PASS across 8 test binaries (verified 2026-05-12) |
-| 7 | Animation + effects (TAE/FXR3) | 🚧 in progress | — |
+| 7 | Animation + effects (TAE/FXR3) | ✅ done | 5/5 PASS across 5 test binaries (verified 2026-05-12) |
 | v2 | Legacy games (DS1/DS2/DS3/BB/DeS) | ⏳ post v1 GA | — |
 
 **Current artifacts** (after `cmake --build build-mingw`):

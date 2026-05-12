@@ -61,7 +61,7 @@
 - **PARAMDEF XML 序列化**（写出方向）—— 阶段 4 仅做读，写入推迟。
 
 ### 2.3 后续路线图速览
-- **v1.1**：TAE / FXR3 + PARAMDEF XML 写出。TAE 仅 SDT 格式（version 0x1000D，covers Sekiro + Elden Ring）；Template subsystem 推 v1.2。
+- **v1.1**：TAE / FXR3 已交付 (2026-05-12)；PARAMDEF XML 写出推迟。TAE 仅 SDT 格式；Template subsystem 推 v1.2。
 - **v2.0**：DS3 / Bloodborne / DS1 / DS2 / DeS 全部格式。
 - **v3.0**：Armored Core 4/ACFA/ACV/ACVD、King's Field、Kuon、Otogi、Dreamcast 系列。
 
@@ -664,10 +664,10 @@ souls-formats-c/
   - **跳过条件**：
     - Phase 3 `er_extract_from_data0` 不可用 → 本阶段全部 ER e2e 自动级联 SKIP。
 
-### Phase 7 — 动画与特效（v1 可选 / v1.1 默认）
-- [ ] TAE3 / TAE4。
-- [ ] FXR3（含 mxml 读写双向）。
-- [ ] **QA 场景**（仅当本阶段在 v1 内才跑；v1.1 时默认启用）：
+### Phase 7 — 动画与特效（v1 可选 / v1.1 默认） ✅ 完成 (2026-05-12) — 5/5 PASS across 5 test binaries
+- [x] TAE3 / TAE4。
+- [x] FXR3（含 mxml 读写双向）。
+- [x] **QA 场景**（仅当本阶段在 v1 内才跑；v1.1 时默认启用）：
   - **工具**：cmake / ninja / ctest / mxml / ER 副本 / Oodle DLL
   - **命令**：
     ```bash
