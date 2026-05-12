@@ -1,0 +1,37 @@
+=== T1.5 — Probe gating + e2e label unification evidence ===
+Generated: 2026-05-12T10:58:34Z
+
+--- 1. SF_BUILD_PROBES usage count (target ≥3) ---
+CMakeLists.txt:29:option(SF_BUILD_PROBES      "Build one-shot diagnostic probe binaries (debug aids)" OFF)
+CMakeLists.txt:271:message(STATUS "  Build probes      : ${SF_BUILD_PROBES}")
+tests/CMakeLists.txt:439:# Gated behind SF_BUILD_PROBES so casual builds and downstream consumers do
+tests/CMakeLists.txt:442:if(SF_BUILD_PROBES AND PROJECT_IS_TOP_LEVEL)
+
+Total: 4 occurrences
+
+--- 2. SF_BUILD_PROBES=OFF: probe binaries NOT built ---
+probe_nightreign_msb.exe         : ABSENT (OK)
+probe_matbin_paramtypes.exe      : ABSENT (OK)
+probe_flver2_layouts.exe         : ABSENT (OK)
+probe_fxr3_format.exe            : ABSENT (OK)
+probe_tae_format.exe             : ABSENT (OK)
+probe_sha256_phase7.exe          : ABSENT (OK)
+
+--- 3. SF_BUILD_PROBES=ON: probe binaries built (cross-check) ---
+probe_flver2_layouts.exe
+probe_fxr3_format.exe
+probe_matbin_paramtypes.exe
+probe_nightreign_msb.exe
+probe_sha256_phase7.exe
+probe_tae_format.exe
+
+--- 4. e2e umbrella label coverage ---
+e2e total: 18 tests
+e2e_er  : 11 tests
+e2e_ac6 : 2 tests
+e2e_sekiro    : 3 tests
+e2e_nightreign: 2 tests
+
+--- 5. ctest -L 'core|compression|crypto|archive|param|script|map|geom|anim' (target 83 / 100%) ---
+100% tests passed, 0 tests failed out of 83
+Total Test time (real) =  14.44 sec

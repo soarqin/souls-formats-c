@@ -38,6 +38,15 @@ function(sf_add_test name source label)
     )
 endfunction()
 
+# Helper: register an e2e test with both the umbrella 'e2e' label and a
+# per-game label. Use this for any future e2e test registration so that
+# both `ctest -L '^e2e$'` (run all e2e) and `ctest -L 'e2e_<game>'` (run a
+# single game's e2e) work consistently.
+function(sf_add_e2e_test name source game)
+    sf_add_test(${name} ${source} "e2e_${game}")
+    set_tests_properties(${name} PROPERTIES LABELS "e2e;e2e_${game}")
+endfunction()
+
 #-----------------------------------------------------------------------------
 # Phase 0 — smoke (BCrypt + ABI sanity)
 #-----------------------------------------------------------------------------
@@ -427,28 +436,33 @@ target_compile_definitions(souls_formats_test_mtd_e2e_sekiro PRIVATE
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 # ── Probes (one-shot diagnostics, not part of regular test suite) ──────────
-add_executable(probe_nightreign_msb ${CMAKE_SOURCE_DIR}/tests/probes/probe_nightreign_msb.c
-                                    ${CMAKE_SOURCE_DIR}/tests/e2e/er_test_helper.c)
-target_link_libraries(probe_nightreign_msb PRIVATE souls_formats_static bcrypt crypt32)
-target_include_directories(probe_nightreign_msb PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_compile_definitions(probe_nightreign_msb PRIVATE
-    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
-    SF_E2E_OODLE_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game")
-set_target_properties(probe_nightreign_msb PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
+# Gated behind SF_BUILD_PROBES so casual builds and downstream consumers do
+# not pay the compile cost. These targets reference local game-data paths
+# and are intended only for local debugging.
+if(SF_BUILD_PROBES AND PROJECT_IS_TOP_LEVEL)
+    add_executable(probe_nightreign_msb ${CMAKE_SOURCE_DIR}/tests/probes/probe_nightreign_msb.c
+                                        ${CMAKE_SOURCE_DIR}/tests/e2e/er_test_helper.c)
+    target_link_libraries(probe_nightreign_msb PRIVATE souls_formats_static bcrypt crypt32)
+    target_include_directories(probe_nightreign_msb PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/tests/e2e)
+    target_compile_definitions(probe_nightreign_msb PRIVATE
+        SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+        SF_E2E_OODLE_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game")
+    set_target_properties(probe_nightreign_msb PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
 
-add_executable(probe_matbin_paramtypes ${CMAKE_SOURCE_DIR}/tests/probes/probe_matbin_paramtypes.c
-                                       ${CMAKE_SOURCE_DIR}/tests/e2e/er_test_helper.c)
-target_link_libraries(probe_matbin_paramtypes PRIVATE souls_formats_static bcrypt)
-target_include_directories(probe_matbin_paramtypes PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_compile_definitions(probe_matbin_paramtypes PRIVATE
-    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
-    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
-set_target_properties(probe_matbin_paramtypes PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
-include(${CMAKE_CURRENT_SOURCE_DIR}/probes/CMakeLists.txt)
+    add_executable(probe_matbin_paramtypes ${CMAKE_SOURCE_DIR}/tests/probes/probe_matbin_paramtypes.c
+                                           ${CMAKE_SOURCE_DIR}/tests/e2e/er_test_helper.c)
+    target_link_libraries(probe_matbin_paramtypes PRIVATE souls_formats_static bcrypt)
+    target_include_directories(probe_matbin_paramtypes PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/tests/e2e)
+    target_compile_definitions(probe_matbin_paramtypes PRIVATE
+        SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+        SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+    set_target_properties(probe_matbin_paramtypes PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
+    include(${CMAKE_CURRENT_SOURCE_DIR}/probes/CMakeLists.txt)
+endif()
 
 #-----------------------------------------------------------------------------
 # Phase 7 — animation / effects (synthetic round-trips)
@@ -503,3 +517,42 @@ if(SF_BUILD_TESTS AND PROJECT_IS_TOP_LEVEL)
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/spike")
     sf_apply_warnings(souls_formats_test_klib_spike)
 endif()
+
+#-----------------------------------------------------------------------------
+# E2E label unification (T1.5)
+#
+# Every e2e test carries BOTH the 'e2e' umbrella label AND a per-game
+# 'e2e_<game>' label, so ctest can filter all e2e at once via
+#   ctest -L '^e2e$'
+# or run a single game via
+#   ctest -L 'e2e_er'
+#
+# This is a batch override of the LABELS property set by sf_add_test()
+# above. New e2e tests should use the sf_add_e2e_test() helper instead.
+#-----------------------------------------------------------------------------
+set_tests_properties(
+    souls_formats_test_er_helper_smoke
+    souls_formats_test_bhd5_e2e_er
+    souls_formats_test_bnd4_e2e_er
+    souls_formats_test_bxf4_e2e_er
+    souls_formats_test_tpf_e2e_er
+    souls_formats_test_flver2_e2e_er
+    souls_formats_test_esd_e2e_er
+    souls_formats_test_msbe_e2e_er
+    souls_formats_test_matbin_e2e_er
+    souls_formats_test_tae_e2e_er
+    souls_formats_test_fxr3_e2e_er
+    PROPERTIES LABELS "e2e;e2e_er")
+set_tests_properties(
+    souls_formats_test_ac6_helper_smoke
+    souls_formats_test_msbvi_e2e_ac6
+    PROPERTIES LABELS "e2e;e2e_ac6")
+set_tests_properties(
+    souls_formats_test_sekiro_helper_smoke
+    souls_formats_test_msbs_e2e_sekiro
+    souls_formats_test_mtd_e2e_sekiro
+    PROPERTIES LABELS "e2e;e2e_sekiro")
+set_tests_properties(
+    souls_formats_test_nightreign_helper_smoke
+    souls_formats_test_msbe_e2e_nr
+    PROPERTIES LABELS "e2e;e2e_nightreign")

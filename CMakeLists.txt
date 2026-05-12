@@ -26,6 +26,7 @@ endif()
 include(CTest)
 
 option(SF_BUILD_EXAMPLES    "Build the examples/ tools"           OFF)
+option(SF_BUILD_PROBES      "Build one-shot diagnostic probe binaries (debug aids)" OFF)
 option(SF_ENABLE_SANITIZERS "Build with ASan/UBSan (Clang/GCC)"   OFF)
 
 #-----------------------------------------------------------------------------
@@ -267,5 +268,6 @@ message(STATUS "  Build type        : ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Top-level project : ${PROJECT_IS_TOP_LEVEL}")
 message(STATUS "  Build tests       : ${BUILD_TESTING}")
 message(STATUS "  Build examples    : ${SF_BUILD_EXAMPLES}")
+message(STATUS "  Build probes      : ${SF_BUILD_PROBES}")
 message(STATUS "  Sanitizers        : ${SF_ENABLE_SANITIZERS}")
 message(STATUS "")
