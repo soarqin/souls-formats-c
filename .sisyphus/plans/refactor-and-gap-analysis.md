@@ -2536,7 +2536,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 > complete.**
 > **Never mark F1-F4 as checked before getting user's okay.** Rejection or user feedback → fix → re-run → present again → wait.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
 
   **What to do**: Read this plan end-to-end. For each "Must Have": verify implementation exists (read file, run command, inspect evidence). For each "Must NOT Have": grep codebase for the forbidden pattern — reject with file:line if found. Check every evidence file exists in `.sisyphus/evidence/`. Compare deliverables against the plan.
 
@@ -2561,7 +2561,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Output format**: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`. Evidence path: `.sisyphus/evidence/review-oracle-constraints.md`.
 
-- [ ] F2. **Code Quality + Symbol Stability + Sanitizer Review** — `unspecified-high`
+- [x] F2. **Code Quality + Symbol Stability + Sanitizer Review** — `unspecified-high`
 
   **What to do**: Run `tsc-equivalent` (build with `-Werror`), lint, full `ctest`, sanitizer build. Review all changed files via `git diff main...HEAD` for: AI slop (excessive comments, over-abstraction, generic names), suppression annotations (`#pragma warning`, unused-suppress), empty catch-equivalents, commented-out code, unused includes. Verify symbol export stability via `comm -23 baseline now` showing zero removals.
 
@@ -2576,13 +2576,13 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Output format**: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail/N skip] | Sanitizer [PASS/FAIL] | Symbols removed [0] | Files [N clean/N issues] | VERDICT`. Evidence path: `.sisyphus/evidence/review-quality.md`.
 
-- [ ] F3. **Real Manual QA** — `unspecified-high`
+- [x] F3. **Real Manual QA** — `unspecified-high`
 
   **What to do**: From a freshly cleaned checkout, execute every wave's acceptance commands in order (`W1` then `W2` then …). Save outputs. Verify all six Wave-Acceptance gates pass for each wave. Specifically re-run from scratch: library-only consumer build, BUILD_TESTING toggle, golden hash check, e2e skip-count stability. Note any flakiness.
 
   **Output format**: `Waves [N/N] | Consumer-build [PASS/FAIL] | BUILD_TESTING toggle [PASS/FAIL] | Golden [PASS/FAIL] | e2e skip-count [STABLE/DRIFTED] | Flakes [count] | VERDICT`. Evidence path: `.sisyphus/evidence/review-qa.md`.
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
 
   **What to do**: For each Wave task: read its "What to do", read the actual git diff for that task's commits. Verify 1:1 — everything in the spec was implemented (no missing), nothing beyond the spec was implemented (no creep). Specifically watch for: MSB per-subtype field touches (W5 forbidden), endian type-specialization (W4 forbidden), klib outside BHD5 (W4 forbidden), removed exported symbols (any wave forbidden), changes to `include/souls_formats/*.h` declarations (any wave forbidden).
 
