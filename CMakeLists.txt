@@ -74,6 +74,7 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_enfl.h
     include/souls_formats/sf_tpf.h
     include/souls_formats/sf_flver.h
+    include/souls_formats/sf_flver2.h
     include/souls_formats/sf_mtd.h
     include/souls_formats/sf_matbin.h
 )
@@ -147,6 +148,7 @@ set(SF_SOURCES
     src/map/msbvi/parts_param.c
     src/map/msbvi/point_param.c
     src/map/msbvi/route_param.c
+    src/geom/flver_common.c
 )
 
 if(TARGET libzstd_static)

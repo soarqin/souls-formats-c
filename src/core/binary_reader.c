@@ -11,6 +11,7 @@
 
 #include "souls_formats/sf_io.h"
 #include "souls_formats/sf_encoding.h"
+#include "souls_formats/sf_flver.h"
 
 #include "internal/sf_internal.h"
 
@@ -575,17 +576,10 @@ sf_result_t sf_binary_reader_read_quat(sf_binary_reader_t *r, sf_quat_t *out) {
 
 sf_result_t sf_binary_reader_read_11_11_10_vec3(sf_binary_reader_t *r, sf_vec3_t *out) {
     SF_CHECK_ARG(out != NULL);
-    int32_t v;
-    sf_result_t e = sf_binary_reader_read_i32(r, &v);
+    uint32_t packed;
+    sf_result_t e = sf_binary_reader_read_u32(r, &packed);
     if (e != SF_OK) return e;
-    /*  Sign-extend by left-shift then arithmetic right-shift, matching
-     *  upstream Read11_11_10Vector3. */
-    int32_t x = (int32_t)(((uint32_t)v << 21)) >> 21;   /* bits  0..10  (11 bits) */
-    int32_t y = (int32_t)(((uint32_t)v << 10)) >> 21;   /* bits 11..21  (11 bits) */
-    int32_t z = (int32_t)(((uint32_t)v <<  0)) >> 22;   /* bits 22..31  (10 bits) */
-    out->x = (float)x / (float)0x3FF;   /* 11-bit denom = 1023 */
-    out->y = (float)y / (float)0x3FF;
-    out->z = (float)z / (float)0x1FF;   /* 10-bit denom = 511  */
+    sf_unpack_11_11_10(packed, &out->x, &out->y, &out->z);
     return SF_OK;
 }
 

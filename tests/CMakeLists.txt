@@ -264,6 +264,12 @@ sf_add_test(msbvi_layer_param_synthetic
     map/msbvi/test_layer_param_synthetic.c "map")
 
 #-----------------------------------------------------------------------------
+# Phase 6 — geometry / material (FLVER common helpers)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_flver_common
+    geom/test_flver_common.c "geom")
+
+#-----------------------------------------------------------------------------
 # Phase 5 — Sekiro e2e helper
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_sekiro_helper_smoke
