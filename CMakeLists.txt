@@ -9,7 +9,22 @@ project(souls_formats_c
 #-----------------------------------------------------------------------------
 # Project options
 #-----------------------------------------------------------------------------
-option(SF_BUILD_TESTS       "Build the test suite"                ON)
+# BUILD_TESTING is the canonical CTest variable. It defaults to whether this
+# project is the top-level project (i.e. standalone dev build), so that
+# consumers who pull us in via add_subdirectory() / FetchContent do not
+# implicitly build our tests.
+#
+# SF_BUILD_TESTS is retained as a deprecated backwards-compat alias.
+if(DEFINED SF_BUILD_TESTS)
+    message(DEPRECATION
+        "SF_BUILD_TESTS is deprecated; use -DBUILD_TESTING=ON/OFF instead.")
+    set(BUILD_TESTING ${SF_BUILD_TESTS} CACHE BOOL "Build tests" FORCE)
+endif()
+if(NOT DEFINED BUILD_TESTING)
+    set(BUILD_TESTING ${PROJECT_IS_TOP_LEVEL} CACHE BOOL "Build tests")
+endif()
+include(CTest)
+
 option(SF_BUILD_EXAMPLES    "Build the examples/ tools"           OFF)
 option(SF_ENABLE_SANITIZERS "Build with ASan/UBSan (Clang/GCC)"   OFF)
 
@@ -227,17 +242,16 @@ target_compile_definitions(souls_formats_shared
 )
 
 #-----------------------------------------------------------------------------
-# Tests
+# Tests (only when standalone / top-level)
 #-----------------------------------------------------------------------------
-if(SF_BUILD_TESTS)
-    enable_testing()
+if(BUILD_TESTING AND PROJECT_IS_TOP_LEVEL)
     add_subdirectory(tests)
 endif()
 
 #-----------------------------------------------------------------------------
-# Examples
+# Examples (only when standalone / top-level)
 #-----------------------------------------------------------------------------
-if(SF_BUILD_EXAMPLES)
+if(SF_BUILD_EXAMPLES AND PROJECT_IS_TOP_LEVEL)
     add_subdirectory(examples)
 endif()
 
@@ -249,7 +263,8 @@ message(STATUS "souls-formats-c v${PROJECT_VERSION}")
 message(STATUS "  C compiler        : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
 message(STATUS "  Target system     : ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "  Build type        : ${CMAKE_BUILD_TYPE}")
-message(STATUS "  Build tests       : ${SF_BUILD_TESTS}")
+message(STATUS "  Top-level project : ${PROJECT_IS_TOP_LEVEL}")
+message(STATUS "  Build tests       : ${BUILD_TESTING}")
 message(STATUS "  Build examples    : ${SF_BUILD_EXAMPLES}")
-  message(STATUS "  Sanitizers        : ${SF_ENABLE_SANITIZERS}")
-  message(STATUS "")
+message(STATUS "  Sanitizers        : ${SF_ENABLE_SANITIZERS}")
+message(STATUS "")

@@ -74,6 +74,16 @@ cmake -B build-asan -G Ninja \
     -DCMAKE_BUILD_TYPE=Debug -DSF_ENABLE_SANITIZERS=ON
 ```
 
+### Test/example gating
+`BUILD_TESTING` (CTest's canonical variable) defaults to `${PROJECT_IS_TOP_LEVEL}`,
+so tests build automatically on a standalone dev checkout and are skipped when the
+project is consumed via `add_subdirectory` / `FetchContent`. Override explicitly with
+`-DBUILD_TESTING=OFF` or `-DBUILD_TESTING=ON`. Examples follow the same rule via
+`-DSF_BUILD_EXAMPLES=ON` (only honored at top level).
+
+`SF_BUILD_TESTS` is retained as a deprecated backwards-compat alias; passing it
+emits a CMake `DEPRECATION` warning and forwards the value to `BUILD_TESTING`.
+
 ---
 
 ## 4. Where things live
