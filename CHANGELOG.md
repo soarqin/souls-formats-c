@@ -8,6 +8,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Performance
+- BXF3/BXF4 read paths now mirror BND3/BND4 bulk file-name allocation by
+  storing per-archive and streaming-reader names in one contiguous pool instead
+  of duplicating each entry individually. Public `const char *name_utf8` access
+  and serialized output are unchanged.
 - BHD5 reader allocation reduction (T3.3): file headers remain one flat array,
   and SHA/AES range metadata now lives in two contiguous pools owned by
   `sf_bhd5_t` instead of per-file heap arrays. This preserves BHD5 iteration

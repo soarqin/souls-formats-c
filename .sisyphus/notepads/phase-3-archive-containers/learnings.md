@@ -443,3 +443,9 @@ they only call BXF4 APIs.
 - BHD5 does not carry filenames in the modern ER+/Sekiro header; entries are keyed by path hash only. Allocation reductions therefore target file metadata/range lists, not a string name pool.
 - Existing BHD5 file headers were already stored in one flat `sf_bhd5_file_t` array. The remaining high-cardinality allocation site was per-file `sha_ranges` / `aes_ranges` arrays.
 - Safe bulk-pool pattern: first read file headers and collect SHA/AES metadata offsets; second pass reads only each metadata range count to size the pools; third pass fills pointers into the two contiguous pools. This preserves bucket/file iteration order and write output.
+
+## 2026-05-12 — T3.1 BND3/BND4 name pools
+
+- BND3/BND4 eager and streaming read paths both had per-entry `sf_strdup` calls for `headers[i].name_utf8`; optimizing only eager reads would leave the `*_reader_open` hot site unchanged.
+- Pool-owned names require archive-aware cleanup: `remove_file` and `destroy` must skip `sf_xfree` for pointers inside `name_pool`, while still freeing names added later via `sf_bnd*_add_file`.
+- Docs/changelog may already contain parallel task edits; stage only the BND3/BND4 rows when committing to avoid pulling unrelated T3 work into the perf commit.
