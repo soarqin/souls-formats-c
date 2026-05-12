@@ -1,0 +1,497 @@
+# T2.4 build evidence (souls_formats_e2e_helpers consolidation)
+
+## Build time
+- Baseline (HEAD, before T2.4): ~21.0s clean build (490 ninja steps)
+- After T2.4: ~17.2s clean build (475 ninja steps)
+- Net reduction: ~3.8s (~18% reduction), 15 fewer ninja steps
+
+## ctest -L e2e -N (e2e test count)
+- Baseline: 22 tests
+- After T2.4: 22 tests
+- diff: identical list (see task-2.4-e2e-tests-{before,after}.log)
+
+## ctest run summary
+100% tests passed, 0 tests failed out of 22
+Total Test time (real) = 16.36 sec
+
+## Helper source files compiled (once vs N times)
+Before: er_test_helper.c compiled 13x; nightreign 2x; ac6 2x; sekiro 3x = 20 compilations
+After:  er_test_helper.c compiled 1x; nightreign 1x; ac6 1x; sekiro 1x   =  4 compilations
+Savings: 16 redundant helper-translation-unit compilations eliminated
+
+## Full build log
+[1/475] Building C object CMakeFiles/mxml_static.dir/_deps/mxml-src/mxml-attr.c.obj
+[2/475] Building C object CMakeFiles/mxml_static.dir/_deps/mxml-src/mxml-get.c.obj
+[3/475] Building C object CMakeFiles/mxml_static.dir/_deps/mxml-src/mxml-index.c.obj
+[4/475] Building C object CMakeFiles/mxml_static.dir/_deps/mxml-src/mxml-private.c.obj
+[5/475] Building C object CMakeFiles/mxml_static.dir/_deps/mxml-src/mxml-file.c.obj
+[6/475] Building C object CMakeFiles/mxml_static.dir/_deps/mxml-src/mxml-options.c.obj
+[7/475] Building C object CMakeFiles/mxml_static.dir/_deps/mxml-src/mxml-node.c.obj
+[8/475] Building C object CMakeFiles/mxml_static.dir/_deps/mxml-src/mxml-search.c.obj
+[9/475] Building C object CMakeFiles/souls_formats_static.dir/src/core/error.c.obj
+[10/475] Building C object CMakeFiles/mxml_static.dir/_deps/mxml-src/mxml-set.c.obj
+[11/475] Building C object CMakeFiles/souls_formats_static.dir/src/core/filename_hash.c.obj
+[12/475] Linking C static library libmxml4.a
+[13/475] Building C object CMakeFiles/souls_formats_static.dir/src/core/binary_reader.c.obj
+[14/475] Building C object CMakeFiles/souls_formats_static.dir/src/core/binary_writer.c.obj
+[15/475] Building C object CMakeFiles/souls_formats_static.dir/src/core/sf_util.c.obj
+[16/475] Building C object CMakeFiles/souls_formats_static.dir/src/compression/dcx.c.obj
+[17/475] Building C object CMakeFiles/souls_formats_static.dir/src/compression/deflate_zlibng.c.obj
+[18/475] Building C object CMakeFiles/souls_formats_static.dir/src/compression/deflate_chunked.c.obj
+[19/475] Building C object CMakeFiles/souls_formats_static.dir/src/compression/zstd_wrap.c.obj
+[20/475] Building C object CMakeFiles/souls_formats_static.dir/src/compression/oodle/oodle_loader.c.obj
+[21/475] Building C object CMakeFiles/souls_formats_static.dir/src/compression/oodle/oodle_v6.c.obj
+[22/475] Building C object CMakeFiles/souls_formats_static.dir/src/compression/oodle/oodle_v8.c.obj
+[23/475] Building C object CMakeFiles/souls_formats_static.dir/src/compression/oodle/oodle_v9.c.obj
+[24/475] Building C object CMakeFiles/souls_formats_static.dir/src/core/encoding_win32.c.obj
+[25/475] Building C object CMakeFiles/souls_formats_static.dir/src/core/path.c.obj
+[26/475] Building C object CMakeFiles/souls_formats_static.dir/src/crypto/regulation.c.obj
+[27/475] Building C object CMakeFiles/souls_formats_static.dir/src/crypto/regulation_keys.c.obj
+[28/475] Building C object CMakeFiles/souls_formats_static.dir/src/core/stream.c.obj
+[29/475] Building C object CMakeFiles/souls_formats_static.dir/src/crypto/aes_cng.c.obj
+[30/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/bhd5.c.obj
+[31/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/bhd5_keys.c.obj
+[32/475] Building C object CMakeFiles/souls_formats_static.dir/src/crypto/md5_cng.c.obj
+[33/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/binder_common.c.obj
+[34/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/sf_binder.c.obj
+[35/475] Building C object CMakeFiles/souls_formats_static.dir/src/crypto/sl2.c.obj
+[36/475] Building C object CMakeFiles/souls_formats_static.dir/src/crypto/rsa_cng.c.obj
+[37/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/bnd3.c.obj
+[38/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/bnd4.c.obj
+[39/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/enfl.c.obj
+[40/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/bxf3.c.obj
+[41/475] Building C object CMakeFiles/souls_formats_static.dir/src/internal/dds_header.c.obj
+[42/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/tpf_headerizer.c.obj
+[43/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/bxf4.c.obj
+[44/475] Building C object CMakeFiles/souls_formats_static.dir/src/archive/tpf.c.obj
+[45/475] Building C object CMakeFiles/souls_formats_static.dir/src/param/paramdef_apply.c.obj
+[46/475] Building C object CMakeFiles/souls_formats_static.dir/src/param/param.c.obj
+[47/475] Building C object CMakeFiles/souls_formats_static.dir/src/param/paramdef_xml_read.c.obj
+[48/475] Building C object CMakeFiles/souls_formats_static.dir/src/param/paramdef.c.obj
+[49/475] Building C object CMakeFiles/souls_formats_static.dir/src/param/paramtdf.c.obj
+[50/475] Building C object CMakeFiles/souls_formats_static.dir/src/script/emevd_event.c.obj
+[51/475] Building C object CMakeFiles/souls_formats_static.dir/src/text/fmg.c.obj
+[52/475] Building C object CMakeFiles/souls_formats_static.dir/src/script/emevd.c.obj
+[53/475] Building C object CMakeFiles/souls_formats_static.dir/src/script/emevd_instruction.c.obj
+[54/475] Building C object CMakeFiles/souls_formats_static.dir/src/script/emevd_layer.c.obj
+[55/475] Building C object CMakeFiles/souls_formats_static.dir/src/script/emevd_parameter.c.obj
+[56/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msb_common.c.obj
+[57/475] Building C object CMakeFiles/souls_formats_static.dir/src/script/esd_bytecode.c.obj
+[58/475] Building C object CMakeFiles/souls_formats_static.dir/src/script/esd.c.obj
+[59/475] Building C object CMakeFiles/souls_formats_static.dir/src/script/esd_write.c.obj
+[60/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbs/msbs.c.obj
+[61/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbs/event_param.c.obj
+[62/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbs/model_param.c.obj
+[63/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbs/route_param.c.obj
+[64/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbe/msbe.c.obj
+[65/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbs/point_param.c.obj
+[66/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbs/parts_param.c.obj
+[67/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbe/event_param.c.obj
+[68/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbe/model_param.c.obj
+[69/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbe/parts_param.c.obj
+[70/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbe/point_param.c.obj
+[71/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbe/route_param.c.obj
+[72/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbvi/msbvi.c.obj
+[73/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbvi/event_param.c.obj
+[74/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbvi/layer_param.c.obj
+[75/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbvi/model_param.c.obj
+[76/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbvi/route_param.c.obj
+[77/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbvi/parts_param.c.obj
+[78/475] Building C object CMakeFiles/souls_formats_static.dir/src/map/msbvi/point_param.c.obj
+[79/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/flver2_decode.c.obj
+[80/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/flver_common.c.obj
+[81/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/flver2_vertex.c.obj
+[82/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/flver2_faceset.c.obj
+[83/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/flver2.c.obj
+[84/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/flver2_material.c.obj
+[85/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/flver2_skeleton.c.obj
+[86/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/flver2_mesh.c.obj
+[87/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/flver2_vertex_buffer.c.obj
+[88/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/matbin.c.obj
+[89/475] Building C object CMakeFiles/souls_formats_static.dir/src/geom/mtd.c.obj
+[90/475] Building C object CMakeFiles/souls_formats_static.dir/src/effects/fxr3_xml_write.c.obj
+[91/475] Building C object CMakeFiles/souls_formats_static.dir/src/effects/tae.c.obj
+[92/475] Building C object CMakeFiles/souls_formats_static.dir/src/effects/fxr3_xml_read.c.obj
+[93/475] Building C object CMakeFiles/souls_formats_shared.dir/src/core/error.c.obj
+[94/475] Building C object CMakeFiles/souls_formats_shared.dir/src/core/filename_hash.c.obj
+[95/475] Building C object CMakeFiles/souls_formats_static.dir/src/effects/fxr3.c.obj
+[96/475] Building C object CMakeFiles/souls_formats_shared.dir/src/core/binary_reader.c.obj
+[97/475] Building C object CMakeFiles/souls_formats_shared.dir/src/core/binary_writer.c.obj
+[98/475] Building C object CMakeFiles/souls_formats_shared.dir/src/core/sf_util.c.obj
+[99/475] Building C object CMakeFiles/souls_formats_shared.dir/src/compression/dcx.c.obj
+[100/475] Building C object CMakeFiles/souls_formats_shared.dir/src/compression/deflate_zlibng.c.obj
+[101/475] Building C object CMakeFiles/souls_formats_shared.dir/src/compression/deflate_chunked.c.obj
+[102/475] Building C object CMakeFiles/souls_formats_shared.dir/src/compression/zstd_wrap.c.obj
+[103/475] Building C object CMakeFiles/souls_formats_shared.dir/src/compression/oodle/oodle_loader.c.obj
+[104/475] Building C object CMakeFiles/souls_formats_shared.dir/src/compression/oodle/oodle_v6.c.obj
+[105/475] Building C object CMakeFiles/souls_formats_shared.dir/src/compression/oodle/oodle_v8.c.obj
+[106/475] Building C object CMakeFiles/souls_formats_shared.dir/src/compression/oodle/oodle_v9.c.obj
+[107/475] Building C object CMakeFiles/souls_formats_shared.dir/src/core/encoding_win32.c.obj
+[108/475] Building C object CMakeFiles/souls_formats_shared.dir/src/core/path.c.obj
+[109/475] Building C object CMakeFiles/souls_formats_shared.dir/src/core/stream.c.obj
+[110/475] Building C object CMakeFiles/souls_formats_shared.dir/src/crypto/regulation.c.obj
+[111/475] Building C object CMakeFiles/souls_formats_shared.dir/src/crypto/regulation_keys.c.obj
+[112/475] Building C object CMakeFiles/souls_formats_shared.dir/src/crypto/aes_cng.c.obj
+[113/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/bhd5.c.obj
+[114/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/bhd5_keys.c.obj
+[115/475] Building C object CMakeFiles/souls_formats_shared.dir/src/crypto/md5_cng.c.obj
+[116/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/sf_binder.c.obj
+[117/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/binder_common.c.obj
+[118/475] Building C object CMakeFiles/souls_formats_shared.dir/src/crypto/rsa_cng.c.obj
+[119/475] Building C object CMakeFiles/souls_formats_shared.dir/src/crypto/sl2.c.obj
+[120/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/bnd3.c.obj
+[121/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/bnd4.c.obj
+[122/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/enfl.c.obj
+[123/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/bxf3.c.obj
+[124/475] Building C object CMakeFiles/souls_formats_shared.dir/src/internal/dds_header.c.obj
+[125/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/tpf_headerizer.c.obj
+[126/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/bxf4.c.obj
+[127/475] Building C object CMakeFiles/souls_formats_shared.dir/src/archive/tpf.c.obj
+[128/475] Building C object CMakeFiles/souls_formats_shared.dir/src/param/paramdef_apply.c.obj
+[129/475] Building C object CMakeFiles/souls_formats_shared.dir/src/param/param.c.obj
+[130/475] Building C object CMakeFiles/souls_formats_shared.dir/src/param/paramdef.c.obj
+[131/475] Building C object CMakeFiles/souls_formats_shared.dir/src/param/paramdef_xml_read.c.obj
+[132/475] Building C object CMakeFiles/souls_formats_shared.dir/src/param/paramtdf.c.obj
+[133/475] Building C object CMakeFiles/souls_formats_shared.dir/src/script/emevd_event.c.obj
+[134/475] Building C object CMakeFiles/souls_formats_shared.dir/src/text/fmg.c.obj
+[135/475] Building C object CMakeFiles/souls_formats_shared.dir/src/script/emevd.c.obj
+[136/475] Building C object CMakeFiles/souls_formats_shared.dir/src/script/emevd_instruction.c.obj
+[137/475] Building C object CMakeFiles/souls_formats_shared.dir/src/script/emevd_layer.c.obj
+[138/475] Building C object CMakeFiles/souls_formats_shared.dir/src/script/emevd_parameter.c.obj
+[139/475] Building C object CMakeFiles/souls_formats_shared.dir/src/script/esd_bytecode.c.obj
+[140/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msb_common.c.obj
+[141/475] Building C object CMakeFiles/souls_formats_shared.dir/src/script/esd_write.c.obj
+[142/475] Building C object CMakeFiles/souls_formats_shared.dir/src/script/esd.c.obj
+[143/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbs/msbs.c.obj
+[144/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbs/event_param.c.obj
+[145/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbs/model_param.c.obj
+[146/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbs/route_param.c.obj
+[147/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbs/point_param.c.obj
+[148/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbe/msbe.c.obj
+[149/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbs/parts_param.c.obj
+[150/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbe/event_param.c.obj
+[151/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbe/model_param.c.obj
+[152/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbe/parts_param.c.obj
+[153/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbe/point_param.c.obj
+[154/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbe/route_param.c.obj
+[155/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbvi/msbvi.c.obj
+[156/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbvi/event_param.c.obj
+[157/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbvi/layer_param.c.obj
+[158/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbvi/model_param.c.obj
+[159/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbvi/parts_param.c.obj
+[160/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbvi/point_param.c.obj
+[161/475] Building C object CMakeFiles/souls_formats_shared.dir/src/map/msbvi/route_param.c.obj
+[162/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/flver_common.c.obj
+[163/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/flver2_decode.c.obj
+[164/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/flver2_vertex.c.obj
+[165/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/flver2_faceset.c.obj
+[166/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/flver2.c.obj
+[167/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/flver2_material.c.obj
+[168/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/flver2_skeleton.c.obj
+[169/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/flver2_mesh.c.obj
+[170/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/flver2_vertex_buffer.c.obj
+[171/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/matbin.c.obj
+[172/475] Building C object CMakeFiles/souls_formats_shared.dir/src/geom/mtd.c.obj
+[173/475] Building C object CMakeFiles/souls_formats_shared.dir/src/effects/fxr3_xml_write.c.obj
+[174/475] Building C object CMakeFiles/souls_formats_shared.dir/src/effects/tae.c.obj
+[175/475] Building C object CMakeFiles/souls_formats_shared.dir/src/effects/fxr3_xml_read.c.obj
+[176/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/generic/adler32_c.c.obj
+[177/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/generic/adler32_fold_c.c.obj
+[178/475] Building C object CMakeFiles/souls_formats_shared.dir/src/effects/fxr3.c.obj
+[179/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/generic/chunkset_c.c.obj
+[180/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/generic/compare256_c.c.obj
+[181/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/generic/crc32_braid_c.c.obj
+[182/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/generic/crc32_fold_c.c.obj
+[183/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/generic/slide_hash_c.c.obj
+[184/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/adler32.c.obj
+[185/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/compress.c.obj
+[186/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/crc32.c.obj
+[187/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/crc32_braid_comb.c.obj
+[188/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/deflate_fast.c.obj
+[189/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/deflate_huff.c.obj
+[190/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/deflate.c.obj
+[191/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/deflate_medium.c.obj
+[192/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/deflate_rle.c.obj
+[193/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/deflate_quick.c.obj
+[194/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/deflate_slow.c.obj
+[195/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/deflate_stored.c.obj
+[196/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/functable.c.obj
+[197/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/inftrees.c.obj
+[198/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/infback.c.obj
+[199/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/insert_string.c.obj
+[200/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/insert_string_roll.c.obj
+[201/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/uncompr.c.obj
+[202/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/zutil.c.obj
+[203/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/inflate.c.obj
+[204/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/cpu_features.c.obj
+[205/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/trees.c.obj
+[206/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/compare256_sse2.c.obj
+[207/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/x86_features.c.obj
+[208/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/chunkset_sse2.c.obj
+[209/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/slide_hash_sse2.c.obj
+[210/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/adler32_ssse3.c.obj
+[211/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/chunkset_ssse3.c.obj
+[212/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/adler32_sse42.c.obj
+[213/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/slide_hash_avx2.c.obj
+[214/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/crc32_pclmulqdq.c.obj
+[215/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/adler32_avx512.c.obj
+[216/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/chunkset_avx2.c.obj
+[217/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/compare256_avx2.c.obj
+[218/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/adler32_avx2.c.obj
+[219/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/gzlib.c.obj
+[220/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/gzread.c.obj
+[221/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/gzwrite.c.obj
+[222/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/chunkset_avx512.c.obj
+[223/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/adler32_avx512_vnni.c.obj
+[224/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/debug.c.obj
+[225/475] Building C object _deps/zlib-ng-build/CMakeFiles/zlib.dir/arch/x86/crc32_vpclmulqdq.c.obj
+[226/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/error_private.c.obj
+[227/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/entropy_common.c.obj
+[228/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/fse_decompress.c.obj
+[229/475] Linking C static library _deps/zlib-ng-build/libz.a
+[230/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/zstd_common.c.obj
+[231/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/xxhash.c.obj
+[232/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/hist.c.obj
+[233/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/fse_compress.c.obj
+[234/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/pool.c.obj
+[235/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/threading.c.obj
+[236/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_compress_literals.c.obj
+[237/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_compress_sequences.c.obj
+[238/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_compress_superblock.c.obj
+[239/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/huf_compress.c.obj
+[240/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_compress.c.obj
+[241/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_ldm.c.obj
+[242/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_double_fast.c.obj
+[243/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_fast.c.obj
+[244/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_preSplit.c.obj
+[245/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_opt.c.obj
+[246/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/decompress/zstd_ddict.c.obj
+[247/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/decompress/huf_decompress.c.obj
+[248/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/decompress/zstd_decompress.c.obj
+[249/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstdmt_compress.c.obj
+[250/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/dictBuilder/divsufsort.c.obj
+[251/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/decompress/zstd_decompress_block.c.obj
+[252/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/dictBuilder/zdict.c.obj
+[253/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/dictBuilder/cover.c.obj
+[254/475] Building C object tests/CMakeFiles/souls_formats_test_filename_hash.dir/core/test_filename_hash.c.obj
+[255/475] Building C object tests/CMakeFiles/souls_formats_test_encoding.dir/core/test_encoding.c.obj
+[256/475] Building C object tests/CMakeFiles/souls_formats_test_binary_reader.dir/core/test_binary_reader.c.obj
+[257/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/dictBuilder/fastcover.c.obj
+[258/475] Building C object tests/CMakeFiles/souls_formats_test_binary_writer.dir/core/test_binary_writer.c.obj
+[259/475] Building C object tests/CMakeFiles/souls_formats_test_sf_util.dir/core/test_sf_util.c.obj
+[260/475] Building C object tests/CMakeFiles/souls_formats_test_dds_header.dir/core/test_dds_header.c.obj
+[261/475] Building C object tests/CMakeFiles/souls_formats_test_no_absolute_paths.dir/core/test_no_absolute_paths.c.obj
+[262/475] Building C object tests/CMakeFiles/souls_formats_test_dcx_dflt.dir/compression/test_dcx_dflt.c.obj
+[263/475] Building C object tests/CMakeFiles/souls_formats_test_dcx_edge.dir/compression/test_dcx_edge.c.obj
+[264/475] Building C object tests/CMakeFiles/souls_formats_test_dcx_zstd.dir/compression/test_dcx_zstd.c.obj
+[265/475] Building C object tests/CMakeFiles/souls_formats_test_dcx_krak.dir/compression/test_dcx_krak.c.obj
+[266/475] Building C object tests/CMakeFiles/souls_formats_test_dcx_sniff.dir/compression/test_dcx_sniff.c.obj
+[267/475] Building C object tests/CMakeFiles/souls_formats_test_aes_kat.dir/crypto/test_aes_kat.c.obj
+[268/475] Building C object tests/CMakeFiles/souls_formats_test_md5_kat.dir/crypto/test_md5_kat.c.obj
+[269/475] Building C object tests/CMakeFiles/souls_formats_test_smoke.dir/unity_runner.c.obj
+[270/475] Building C object tests/CMakeFiles/souls_formats_test_sl2_kat.dir/crypto/test_sl2_kat.c.obj
+[271/475] Building C object tests/CMakeFiles/souls_formats_test_rsa.dir/crypto/test_rsa.c.obj
+[272/475] Building C object tests/CMakeFiles/souls_formats_test_binder_common.dir/archive/test_binder_common.c.obj
+[273/475] Building C object _deps/zstd-build/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_lazy.c.obj
+[274/475] Building C object tests/CMakeFiles/souls_formats_test_bhd5_synthetic.dir/archive/test_bhd5_synthetic.c.obj
+[275/475] Linking C static library _deps/zstd-build/lib/libzstd.a
+[276/475] Building C object tests/CMakeFiles/souls_formats_test_path.dir/core/test_path.c.obj
+[277/475] Linking C static library libsouls_formats.a
+[278/475] Building C object tests/CMakeFiles/souls_formats_test_bnd4_synthetic.dir/archive/test_bnd4_synthetic.c.obj
+[279/475] Linking C shared library libsouls_formats.dll
+[280/475] Building C object tests/CMakeFiles/souls_formats_test_bxf4_synthetic.dir/archive/test_bxf4_synthetic.c.obj
+[281/475] Building C object tests/CMakeFiles/souls_formats_test_bnd3_synthetic.dir/archive/test_bnd3_synthetic.c.obj
+[282/475] Building C object tests/CMakeFiles/souls_formats_test_regulation_decrypt.dir/crypto/test_regulation_decrypt.c.obj
+[283/475] Building C object tests/CMakeFiles/souls_formats_test_bxf3_synthetic.dir/archive/test_bxf3_synthetic.c.obj
+[284/475] Building C object tests/CMakeFiles/souls_formats_test_enfl_synthetic.dir/archive/test_enfl_synthetic.c.obj
+[285/475] Building C object tests/CMakeFiles/souls_formats_test_tpf_synthetic.dir/archive/test_tpf_synthetic.c.obj
+[286/475] Building C object tests/CMakeFiles/souls_formats_e2e_helpers.dir/e2e/er_test_helper.c.obj
+[287/475] Building C object tests/CMakeFiles/souls_formats_test_er_helper_smoke.dir/e2e/test_er_helper_smoke.c.obj
+[288/475] Building C object tests/CMakeFiles/souls_formats_test_nightreign_helper_smoke.dir/e2e/test_nightreign_helper_smoke.c.obj
+[289/475] Building C object tests/CMakeFiles/souls_formats_e2e_helpers.dir/e2e/nightreign_test_helper.c.obj
+[290/475] Building C object tests/CMakeFiles/souls_formats_test_bhd5_e2e_er.dir/e2e/test_bhd5_e2e_er.c.obj
+[291/475] Building C object tests/CMakeFiles/souls_formats_test_ac6_helper_smoke.dir/e2e/test_ac6_helper_smoke.c.obj
+[292/475] Building C object tests/CMakeFiles/souls_formats_test_msbvi_e2e_ac6.dir/map/msbvi/test_msbvi_e2e_ac6.c.obj
+[293/475] Building C object tests/CMakeFiles/souls_formats_test_bnd4_e2e_er.dir/e2e/test_bnd4_e2e_er.c.obj
+[294/475] Building C object tests/CMakeFiles/souls_formats_test_bxf4_e2e_er.dir/e2e/test_bxf4_e2e_er.c.obj
+[295/475] Building C object tests/CMakeFiles/souls_formats_test_tpf_e2e_er.dir/e2e/test_tpf_e2e_er.c.obj
+[296/475] Building C object tests/CMakeFiles/souls_formats_test_esd_read.dir/script/test_esd_read.c.obj
+[297/475] Building C object tests/CMakeFiles/souls_formats_e2e_helpers.dir/e2e/ac6_test_helper.c.obj
+[298/475] Building C object tests/CMakeFiles/souls_formats_test_esd_write.dir/script/test_esd_write.c.obj
+[299/475] Building C object tests/CMakeFiles/souls_formats_e2e_helpers.dir/e2e/sekiro_test_helper.c.obj
+[300/475] Building C object tests/CMakeFiles/souls_formats_test_paramdef_bitstream.dir/param/test_paramdef_bitstream.c.obj
+[301/475] Linking C static library tests/libsouls_formats_e2e_helpers.a
+[302/475] Building C object tests/CMakeFiles/souls_formats_test_esd_synthetic_rt.dir/script/test_esd_synthetic_rt.c.obj
+[303/475] Building C object tests/CMakeFiles/souls_formats_test_param_binary_read.dir/param/test_param_binary_read.c.obj
+[304/475] Building C object tests/CMakeFiles/souls_formats_test_param_binary_write.dir/param/test_param_binary_write.c.obj
+[305/475] Building C object tests/CMakeFiles/souls_formats_test_paramdef_binary_read.dir/param/test_paramdef_binary_read.c.obj
+[306/475] Building C object tests/CMakeFiles/souls_formats_test_paramdef_binary_write.dir/param/test_paramdef_binary_write.c.obj
+[307/475] Building C object tests/CMakeFiles/souls_formats_test_param_apply_paramdef.dir/param/test_param_apply_paramdef.c.obj
+[308/475] Building C object tests/CMakeFiles/souls_formats_test_paramdef_xml_read.dir/param/test_paramdef_xml_read.c.obj
+[309/475] Building C object tests/CMakeFiles/paramtdf_read.dir/param/test_paramtdf_read.c.obj
+[310/475] Building C object tests/CMakeFiles/souls_formats_test_paramtdf_write.dir/param/test_paramtdf_write.c.obj
+[311/475] Building C object tests/CMakeFiles/fmg_read.dir/param/test_fmg_read.c.obj
+[312/475] Building C object tests/CMakeFiles/paramdef_xml_e2e.dir/param/test_paramdef_xml_e2e.c.obj
+[313/475] Building C object tests/CMakeFiles/fmg_write.dir/param/test_fmg_write.c.obj
+[314/475] Building C object tests/CMakeFiles/souls_formats_test_synthetic_roundtrip.dir/param/test_synthetic_roundtrip.c.obj
+[315/475] Building C object tests/CMakeFiles/param_apply_paramdef_e2e.dir/param/test_param_apply_paramdef_e2e.c.obj
+[316/475] Building C object tests/CMakeFiles/fmg_e2e_er.dir/param/test_fmg_e2e_er.c.obj
+[317/475] Building C object tests/CMakeFiles/souls_formats_test_emevd_read.dir/script/test_emevd_read.c.obj
+[318/475] Building C object tests/CMakeFiles/souls_formats_test_emevd_write.dir/script/test_emevd_write.c.obj
+[319/475] Building C object tests/CMakeFiles/emevd_e2e_er.dir/script/test_emevd_e2e_er.c.obj
+[320/475] Building C object tests/CMakeFiles/souls_formats_test_emevd_synthetic.dir/script/test_emevd_synthetic.c.obj
+[321/475] Building C object tests/CMakeFiles/souls_formats_test_msb_common_skeleton.dir/map/test_msb_common_skeleton.c.obj
+[322/475] Building C object tests/CMakeFiles/msbs_root_smoke.dir/map/msbs/test_msbs_root_smoke.c.obj
+[323/475] Building C object tests/CMakeFiles/souls_formats_test_msbs_synthetic_rt.dir/map/msbs/test_msbs_synthetic_rt.c.obj
+[324/475] Building C object tests/CMakeFiles/souls_formats_test_msbs_model_param_synthetic.dir/map/msbs/test_model_param_synthetic.c.obj
+[325/475] Building C object tests/CMakeFiles/souls_formats_test_msbs_event_param_synthetic.dir/map/msbs/test_event_param_synthetic.c.obj
+[326/475] Building C object tests/CMakeFiles/msbs_point_param_synthetic.dir/map/msbs/test_point_param_synthetic.c.obj
+[327/475] Building C object tests/CMakeFiles/msbs_parts_param_synthetic.dir/map/msbs/test_parts_param_synthetic.c.obj
+[328/475] Building C object tests/CMakeFiles/msbs_route_param_synthetic.dir/map/msbs/test_route_param_synthetic.c.obj
+[329/475] Building C object tests/CMakeFiles/souls_formats_test_msbe_model_param_synthetic.dir/map/msbe/test_model_param_synthetic.c.obj
+[330/475] Building C object tests/CMakeFiles/msbe_root_smoke.dir/map/msbe/test_msbe_root_smoke.c.obj
+[331/475] Building C object tests/CMakeFiles/souls_formats_test_msbe_synthetic_rt.dir/map/msbe/test_msbe_synthetic_rt.c.obj
+[332/475] Building C object tests/CMakeFiles/souls_formats_test_msbe_event_param_synthetic.dir/map/msbe/test_event_param_synthetic.c.obj
+[333/475] Building C object tests/CMakeFiles/msbe_parts_param_synthetic.dir/map/msbe/test_parts_param_synthetic.c.obj
+[334/475] Building C object tests/CMakeFiles/msbe_point_param_synthetic.dir/map/msbe/test_point_param_synthetic.c.obj
+[335/475] Building C object tests/CMakeFiles/msbe_route_param_synthetic.dir/map/msbe/test_route_param_synthetic.c.obj
+[336/475] Building C object tests/CMakeFiles/msbvi_root_smoke.dir/map/msbvi/test_msbvi_root_smoke.c.obj
+[337/475] Building C object tests/CMakeFiles/souls_formats_test_msbvi_model_param_synthetic.dir/map/msbvi/test_model_param_synthetic.c.obj
+[338/475] Building C object tests/CMakeFiles/souls_formats_test_msbvi_synthetic_rt.dir/map/msbvi/test_msbvi_synthetic_rt.c.obj
+[339/475] Building C object tests/CMakeFiles/souls_formats_test_msbvi_event_param_synthetic.dir/map/msbvi/test_event_param_synthetic.c.obj
+[340/475] Building C object tests/CMakeFiles/msbvi_point_param_synthetic.dir/map/msbvi/test_point_param_synthetic.c.obj
+[341/475] Building C object tests/CMakeFiles/msbvi_parts_param_synthetic.dir/map/msbvi/test_parts_param_synthetic.c.obj
+[342/475] Building C object tests/CMakeFiles/msbvi_route_param_synthetic.dir/map/msbvi/test_route_param_synthetic.c.obj
+[343/475] Building C object tests/CMakeFiles/msbvi_layer_param_synthetic.dir/map/msbvi/test_layer_param_synthetic.c.obj
+[344/475] Building C object tests/CMakeFiles/flver2_vertex.dir/geom/test_flver2_vertex.c.obj
+[345/475] Building C object tests/CMakeFiles/souls_formats_test_flver2_top_level.dir/geom/test_flver2_top_level.c.obj
+[346/475] Building C object tests/CMakeFiles/souls_formats_test_flver_common.dir/geom/test_flver_common.c.obj
+[347/475] Building C object tests/CMakeFiles/souls_formats_test_flver2_faceset.dir/geom/test_flver2_faceset.c.obj
+[348/475] Building C object tests/CMakeFiles/souls_formats_test_flver2_synthetic.dir/geom/test_flver2_synthetic.c.obj
+[349/475] Building C object tests/CMakeFiles/souls_formats_test_mtd_synthetic.dir/geom/test_mtd_synthetic.c.obj
+[350/475] Building C object tests/CMakeFiles/souls_formats_test_matbin_synthetic.dir/geom/test_matbin_synthetic.c.obj
+[351/475] Building C object tests/CMakeFiles/souls_formats_test_flver2_decode.dir/geom/test_flver2_decode.c.obj
+[352/475] Building C object tests/CMakeFiles/souls_formats_test_sekiro_helper_smoke.dir/e2e/test_sekiro_helper_smoke.c.obj
+[353/475] Building C object tests/CMakeFiles/souls_formats_test_esd_bytecode.dir/script/test_esd_bytecode.c.obj
+[354/475] Building C object tests/CMakeFiles/souls_formats_test_msbe_e2e_er.dir/map/msbe/test_msbe_e2e_er.c.obj
+[355/475] Building C object tests/CMakeFiles/souls_formats_test_esd_e2e_er.dir/script/test_esd_e2e_er.c.obj
+[356/475] Building C object tests/CMakeFiles/souls_formats_test_msbe_e2e_nr.dir/map/msbe/test_msbe_e2e_nr.c.obj
+[357/475] Building C object tests/CMakeFiles/souls_formats_test_msbs_e2e_sekiro.dir/map/msbs/test_msbs_e2e_sekiro.c.obj
+[358/475] Building C object tests/CMakeFiles/souls_formats_test_mtd_e2e_sekiro.dir/geom/test_mtd_e2e_sekiro.c.obj
+[359/475] Building C object tests/CMakeFiles/souls_formats_test_matbin_e2e_er.dir/geom/test_matbin_e2e_er.c.obj
+[360/475] Building C object tests/CMakeFiles/souls_formats_test_fxr3_xml.dir/anim/test_fxr3_xml.c.obj
+[361/475] Building C object tests/CMakeFiles/souls_formats_test_fxr3_synthetic.dir/anim/test_fxr3_synthetic.c.obj
+[362/475] Building C object tests/CMakeFiles/souls_formats_test_flver2_e2e_er.dir/geom/test_flver2_e2e_er.c.obj
+[363/475] Building C object tests/CMakeFiles/souls_formats_test_emevd_format_probe.dir/script/test_emevd_format_probe.c.obj
+[364/475] Building C object tests/CMakeFiles/souls_formats_test_tae_e2e_er.dir/__/src/crypto/aes_cng.c.obj
+[365/475] Building C object tests/CMakeFiles/souls_formats_test_tae_e2e_er.dir/anim/test_tae_e2e_er.c.obj
+[366/475] Building C object tests/CMakeFiles/souls_formats_test_tae_synthetic.dir/anim/test_tae_synthetic.c.obj
+[367/475] Building C object _deps/unity-build/CMakeFiles/unity.dir/src/unity.c.obj
+[368/475] Linking C static library _deps/unity-build/libunity.a
+[369/475] Linking C executable tests/smoke/souls_formats_test_smoke.exe; Copying souls_formats DLL to tests/smoke/
+[370/475] Linking C executable tests/core/souls_formats_test_filename_hash.exe; Copying souls_formats DLL to tests/core/
+[371/475] Building C object tests/CMakeFiles/souls_formats_test_tae_e2e_er.dir/__/src/crypto/rsa_cng.c.obj
+[372/475] Building C object tests/CMakeFiles/souls_formats_test_fxr3_e2e_er.dir/anim/test_fxr3_e2e_er.c.obj
+[373/475] Linking C executable tests/core/souls_formats_test_encoding.exe; Copying souls_formats DLL to tests/core/
+[374/475] Linking C executable tests/core/souls_formats_test_binary_reader.exe; Copying souls_formats DLL to tests/core/
+[375/475] Linking C executable tests/core/souls_formats_test_path.exe; Copying souls_formats DLL to tests/core/
+[376/475] Linking C executable tests/core/souls_formats_test_binary_writer.exe; Copying souls_formats DLL to tests/core/
+[377/475] Building C object tests/CMakeFiles/souls_formats_test_golden.dir/golden/capture_golden.c.obj
+[378/475] Linking C executable tests/core/souls_formats_test_sf_util.exe; Copying souls_formats DLL to tests/core/
+[379/475] Linking C executable tests/core/souls_formats_test_dds_header.exe; Copying souls_formats DLL to tests/core/
+[380/475] Linking C executable tests/hygiene/souls_formats_test_no_absolute_paths.exe; Copying souls_formats DLL to tests/hygiene/
+[381/475] Linking C executable tests/compression/souls_formats_test_dcx_dflt.exe; Copying souls_formats DLL to tests/compression/
+[382/475] Linking C executable tests/compression/souls_formats_test_dcx_edge.exe; Copying souls_formats DLL to tests/compression/
+[383/475] Linking C executable tests/compression/souls_formats_test_dcx_zstd.exe; Copying souls_formats DLL to tests/compression/
+[384/475] Linking C executable tests/compression/souls_formats_test_dcx_krak.exe; Copying souls_formats DLL to tests/compression/
+[385/475] Linking C executable tests/compression/souls_formats_test_dcx_sniff.exe; Copying souls_formats DLL to tests/compression/
+[386/475] Linking C executable tests/crypto/souls_formats_test_aes_kat.exe; Copying souls_formats DLL to tests/crypto/
+[387/475] Linking C executable tests/crypto/souls_formats_test_md5_kat.exe; Copying souls_formats DLL to tests/crypto/
+[388/475] Linking C executable tests/crypto/souls_formats_test_regulation_decrypt.exe; Copying souls_formats DLL to tests/crypto/
+[389/475] Linking C executable tests/crypto/souls_formats_test_sl2_kat.exe; Copying souls_formats DLL to tests/crypto/
+[390/475] Linking C executable tests/crypto/souls_formats_test_rsa.exe; Copying souls_formats DLL to tests/crypto/
+[391/475] Linking C executable tests/archive/souls_formats_test_binder_common.exe; Copying souls_formats DLL to tests/archive/
+[392/475] Linking C executable tests/archive/souls_formats_test_bhd5_synthetic.exe; Copying souls_formats DLL to tests/archive/
+[393/475] Linking C executable tests/archive/souls_formats_test_bnd4_synthetic.exe; Copying souls_formats DLL to tests/archive/
+[394/475] Linking C executable tests/archive/souls_formats_test_bnd3_synthetic.exe; Copying souls_formats DLL to tests/archive/
+[395/475] Linking C executable tests/archive/souls_formats_test_bxf3_synthetic.exe; Copying souls_formats DLL to tests/archive/
+[396/475] Linking C executable tests/archive/souls_formats_test_bxf4_synthetic.exe; Copying souls_formats DLL to tests/archive/
+[397/475] Linking C executable tests/archive/souls_formats_test_enfl_synthetic.exe; Copying souls_formats DLL to tests/archive/
+[398/475] Linking C executable tests/archive/souls_formats_test_tpf_synthetic.exe; Copying souls_formats DLL to tests/archive/
+[399/475] Linking C executable tests/e2e_nightreign/souls_formats_test_nightreign_helper_smoke.exe; Copying souls_formats DLL to tests/e2e_nightreign/
+[400/475] Linking C executable tests/e2e/souls_formats_test_er_helper_smoke.exe; Copying souls_formats DLL to tests/e2e/
+[401/475] Linking C executable tests/e2e/souls_formats_test_bhd5_e2e_er.exe; Copying souls_formats DLL to tests/e2e/
+[402/475] Linking C executable tests/e2e_ac6/souls_formats_test_ac6_helper_smoke.exe; Copying souls_formats DLL to tests/e2e_ac6/
+[403/475] Linking C executable tests/e2e_ac6/souls_formats_test_msbvi_e2e_ac6.exe; Copying souls_formats DLL to tests/e2e_ac6/
+[404/475] Linking C executable tests/e2e/souls_formats_test_bnd4_e2e_er.exe; Copying souls_formats DLL to tests/e2e/
+[405/475] Linking C executable tests/e2e/souls_formats_test_bxf4_e2e_er.exe; Copying souls_formats DLL to tests/e2e/
+[406/475] Linking C executable tests/e2e/souls_formats_test_tpf_e2e_er.exe; Copying souls_formats DLL to tests/e2e/
+[407/475] Linking C executable tests/script/souls_formats_test_esd_read.exe; Copying souls_formats DLL to tests/script/
+[408/475] Linking C executable tests/script/souls_formats_test_esd_write.exe; Copying souls_formats DLL to tests/script/
+[409/475] Linking C executable tests/script/souls_formats_test_esd_synthetic_rt.exe; Copying souls_formats DLL to tests/script/
+[410/475] Linking C executable tests/param/souls_formats_test_paramdef_bitstream.exe; Copying souls_formats DLL to tests/param/
+[411/475] Linking C executable tests/param/souls_formats_test_param_binary_read.exe; Copying souls_formats DLL to tests/param/
+[412/475] Linking C executable tests/param/souls_formats_test_param_binary_write.exe; Copying souls_formats DLL to tests/param/
+[413/475] Linking C executable tests/param/souls_formats_test_param_apply_paramdef.exe; Copying souls_formats DLL to tests/param/
+[414/475] Linking C executable tests/param/souls_formats_test_paramdef_binary_read.exe; Copying souls_formats DLL to tests/param/
+[415/475] Linking C executable tests/param/souls_formats_test_paramdef_xml_read.exe; Copying souls_formats DLL to tests/param/
+[416/475] Linking C executable tests/param/souls_formats_test_paramdef_binary_write.exe; Copying souls_formats DLL to tests/param/
+[417/475] Linking C executable tests/param/paramtdf_read.exe; Copying souls_formats DLL to tests/param/
+[418/475] Linking C executable tests/param/souls_formats_test_paramtdf_write.exe; Copying souls_formats DLL to tests/param/
+[419/475] Linking C executable tests/param/fmg_read.exe; Copying souls_formats DLL to tests/param/
+[420/475] Linking C executable tests/param/fmg_write.exe; Copying souls_formats DLL to tests/param/
+[421/475] Linking C executable tests/param/souls_formats_test_synthetic_roundtrip.exe; Copying souls_formats DLL to tests/param/
+[422/475] Linking C executable tests/param/paramdef_xml_e2e.exe; Copying souls_formats DLL to tests/param/
+[423/475] Linking C executable tests/script/souls_formats_test_emevd_read.exe; Copying souls_formats DLL to tests/script/
+[424/475] Linking C executable tests/script/souls_formats_test_emevd_write.exe; Copying souls_formats DLL to tests/script/
+[425/475] Linking C executable tests/param/param_apply_paramdef_e2e.exe; Copying souls_formats DLL to tests/param/
+[426/475] Linking C executable tests/param/fmg_e2e_er.exe; Copying souls_formats DLL to tests/param/
+[427/475] Linking C executable tests/script/souls_formats_test_emevd_synthetic.exe; Copying souls_formats DLL to tests/script/
+[428/475] Linking C executable tests/map/souls_formats_test_msb_common_skeleton.exe; Copying souls_formats DLL to tests/map/
+[429/475] Linking C executable tests/map/msbs_root_smoke.exe; Copying souls_formats DLL to tests/map/
+[430/475] Linking C executable tests/script/emevd_e2e_er.exe; Copying souls_formats DLL to tests/script/
+[431/475] Linking C executable tests/map/souls_formats_test_msbs_model_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[432/475] Linking C executable tests/map/souls_formats_test_msbs_synthetic_rt.exe; Copying souls_formats DLL to tests/map/
+[433/475] Linking C executable tests/map/souls_formats_test_msbs_event_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[434/475] Linking C executable tests/map/msbs_point_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[435/475] Linking C executable tests/map/msbs_parts_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[436/475] Linking C executable tests/map/msbs_route_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[437/475] Linking C executable tests/map/msbe_root_smoke.exe; Copying souls_formats DLL to tests/map/
+[438/475] Linking C executable tests/map/souls_formats_test_msbe_model_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[439/475] Linking C executable tests/map/souls_formats_test_msbe_synthetic_rt.exe; Copying souls_formats DLL to tests/map/
+[440/475] Linking C executable tests/map/souls_formats_test_msbe_event_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[441/475] Linking C executable tests/map/msbe_point_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[442/475] Linking C executable tests/map/msbe_parts_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[443/475] Linking C executable tests/map/msbvi_root_smoke.exe; Copying souls_formats DLL to tests/map/
+[444/475] Linking C executable tests/map/msbe_route_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[445/475] Linking C executable tests/map/souls_formats_test_msbvi_model_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[446/475] Linking C executable tests/map/souls_formats_test_msbvi_synthetic_rt.exe; Copying souls_formats DLL to tests/map/
+[447/475] Linking C executable tests/map/souls_formats_test_msbvi_event_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[448/475] Linking C executable tests/map/msbvi_point_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[449/475] Linking C executable tests/map/msbvi_parts_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[450/475] Linking C executable tests/map/msbvi_route_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[451/475] Linking C executable tests/map/msbvi_layer_param_synthetic.exe; Copying souls_formats DLL to tests/map/
+[452/475] Linking C executable tests/geom/souls_formats_test_flver_common.exe; Copying souls_formats DLL to tests/geom/
+[453/475] Linking C executable tests/geom/flver2_vertex.exe; Copying souls_formats DLL to tests/geom/
+[454/475] Linking C executable tests/geom/souls_formats_test_flver2_top_level.exe; Copying souls_formats DLL to tests/geom/
+[455/475] Linking C executable tests/geom/souls_formats_test_flver2_faceset.exe; Copying souls_formats DLL to tests/geom/
+[456/475] Linking C executable tests/geom/souls_formats_test_flver2_synthetic.exe; Copying souls_formats DLL to tests/geom/
+[457/475] Linking C executable tests/geom/souls_formats_test_mtd_synthetic.exe; Copying souls_formats DLL to tests/geom/
+[458/475] Linking C executable tests/geom/souls_formats_test_matbin_synthetic.exe; Copying souls_formats DLL to tests/geom/
+[459/475] Linking C executable tests/geom/souls_formats_test_flver2_decode.exe; Copying souls_formats DLL to tests/geom/
+[460/475] Linking C executable tests/e2e_er/souls_formats_test_flver2_e2e_er.exe; Copying souls_formats DLL to tests/e2e_er/
+[461/475] Linking C executable tests/script/souls_formats_test_esd_bytecode.exe; Copying souls_formats DLL to tests/script/
+[462/475] Linking C executable tests/script/souls_formats_test_emevd_format_probe.exe; Copying souls_formats DLL to tests/script/
+[463/475] Linking C executable tests/e2e_sekiro/souls_formats_test_sekiro_helper_smoke.exe; Copying souls_formats DLL to tests/e2e_sekiro/
+[464/475] Linking C executable tests/e2e_er/souls_formats_test_esd_e2e_er.exe; Copying souls_formats DLL to tests/e2e_er/
+[465/475] Linking C executable tests/e2e_er/souls_formats_test_msbe_e2e_er.exe; Copying souls_formats DLL to tests/e2e_er/
+[466/475] Linking C executable tests/e2e_nightreign/souls_formats_test_msbe_e2e_nr.exe; Copying souls_formats DLL to tests/e2e_nightreign/
+[467/475] Linking C executable tests/e2e_sekiro/souls_formats_test_msbs_e2e_sekiro.exe; Copying souls_formats DLL to tests/e2e_sekiro/
+[468/475] Linking C executable tests/e2e_er/souls_formats_test_matbin_e2e_er.exe; Copying souls_formats DLL to tests/e2e_er/
+[469/475] Linking C executable tests/e2e_sekiro/souls_formats_test_mtd_e2e_sekiro.exe; Copying souls_formats DLL to tests/e2e_sekiro/
+[470/475] Linking C executable tests/anim/souls_formats_test_fxr3_synthetic.exe; Copying souls_formats DLL to tests/anim/
+[471/475] Linking C executable tests/anim/souls_formats_test_fxr3_xml.exe; Copying souls_formats DLL to tests/anim/
+[472/475] Linking C executable tests/e2e_er/souls_formats_test_tae_e2e_er.exe; Copying souls_formats DLL to tests/e2e_er/
+[473/475] Linking C executable tests/anim/souls_formats_test_tae_synthetic.exe; Copying souls_formats DLL to tests/anim/
+[474/475] Linking C executable tests/golden/souls_formats_test_golden.exe; Copying souls_formats DLL to tests/golden/
+[475/475] Linking C executable tests/e2e_er/souls_formats_test_fxr3_e2e_er.exe; Copying souls_formats DLL to tests/e2e_er/

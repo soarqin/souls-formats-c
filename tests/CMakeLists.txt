@@ -109,78 +109,88 @@ sf_add_test(souls_formats_test_enfl_synthetic archive/test_enfl_synthetic.c "arc
 sf_add_test(souls_formats_test_tpf_synthetic  archive/test_tpf_synthetic.c  "archive")
 
 #-----------------------------------------------------------------------------
+# T2.4 — shared e2e helper library
+#
+# Each per-game helper (er_test_helper.c, nightreign_test_helper.c,
+# ac6_test_helper.c, sekiro_test_helper.c) used to be added to every
+# consuming e2e test via target_sources(...), which recompiled the helper
+# once per test target (~13 ER tests + others). The static lib below
+# compiles each helper exactly once and lets consuming tests link against
+# the resulting archive.
+#
+# Helper sources use #ifndef SF_E2E_* fallbacks that match the canonical
+# paths each test target uses, so the precompiled object code holds the
+# same path values that the prior target_sources approach produced. Each
+# consuming *test source* still receives its own SF_E2E_* defines via
+# target_compile_definitions() because some tests (e.g. test_bhd5_e2e_er)
+# also reference those macros directly from the test body.
+#
+# PUBLIC include of tests/e2e propagates the helper *.h files to every
+# consumer transitively. PUBLIC link of souls_formats_static + bcrypt
+# matches sf_add_test() so adding souls_formats_e2e_helpers to a test
+# target adds nothing redundant on top of what sf_add_test already linked.
+#-----------------------------------------------------------------------------
+add_library(souls_formats_e2e_helpers STATIC
+    e2e/er_test_helper.c
+    e2e/nightreign_test_helper.c
+    e2e/ac6_test_helper.c
+    e2e/sekiro_test_helper.c)
+target_link_libraries(souls_formats_e2e_helpers PUBLIC souls_formats_static bcrypt)
+target_include_directories(souls_formats_e2e_helpers PUBLIC
+    ${CMAKE_SOURCE_DIR}/tests/e2e
+    ${CMAKE_SOURCE_DIR}/src)
+sf_apply_warnings(souls_formats_e2e_helpers)
+sf_apply_sanitizers(souls_formats_e2e_helpers)
+
+#-----------------------------------------------------------------------------
 # Phase 3 — e2e tests (require ER copy + Oodle DLL; gracefully skip otherwise)
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_er_helper_smoke e2e/test_er_helper_smoke.c "e2e")
-target_include_directories(souls_formats_test_er_helper_smoke PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_er_helper_smoke PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_er_helper_smoke PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_er_helper_smoke PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
  
 # Phase 5 — Nightreign e2e helper
 sf_add_test(souls_formats_test_nightreign_helper_smoke e2e/test_nightreign_helper_smoke.c "e2e_nightreign")
-target_include_directories(souls_formats_test_nightreign_helper_smoke PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_nightreign_helper_smoke PRIVATE
-    e2e/nightreign_test_helper.c)
+target_link_libraries(souls_formats_test_nightreign_helper_smoke PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_nightreign_helper_smoke PRIVATE
     SF_E2E_NIGHTREIGN_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
 
 sf_add_test(souls_formats_test_bhd5_e2e_er e2e/test_bhd5_e2e_er.c "e2e")
-target_include_directories(souls_formats_test_bhd5_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_bhd5_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_bhd5_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_bhd5_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 # Phase 5 — AC6 e2e helper
 sf_add_test(souls_formats_test_ac6_helper_smoke e2e/test_ac6_helper_smoke.c "e2e_ac6")
-target_include_directories(souls_formats_test_ac6_helper_smoke PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_ac6_helper_smoke PRIVATE
-    e2e/ac6_test_helper.c)
+target_link_libraries(souls_formats_test_ac6_helper_smoke PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_ac6_helper_smoke PRIVATE
     SF_E2E_AC6_DIR=L"C:/Games/ARMORED CORE VI FIRES OF RUBICON/Game"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 sf_add_test(souls_formats_test_msbvi_e2e_ac6 map/msbvi/test_msbvi_e2e_ac6.c "e2e_ac6")
-target_include_directories(souls_formats_test_msbvi_e2e_ac6 PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_msbvi_e2e_ac6 PRIVATE
-    e2e/ac6_test_helper.c)
+target_link_libraries(souls_formats_test_msbvi_e2e_ac6 PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_msbvi_e2e_ac6 PRIVATE
     SF_E2E_AC6_DIR=L"C:/Games/ARMORED CORE VI FIRES OF RUBICON/Game"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 sf_add_test(souls_formats_test_bnd4_e2e_er e2e/test_bnd4_e2e_er.c "e2e")
-target_include_directories(souls_formats_test_bnd4_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_bnd4_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_bnd4_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_bnd4_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 sf_add_test(souls_formats_test_bxf4_e2e_er e2e/test_bxf4_e2e_er.c "e2e")
-target_include_directories(souls_formats_test_bxf4_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_bxf4_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_bxf4_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_bxf4_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 sf_add_test(souls_formats_test_tpf_e2e_er e2e/test_tpf_e2e_er.c "e2e")
-target_include_directories(souls_formats_test_tpf_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_tpf_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_tpf_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_tpf_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
@@ -209,10 +219,7 @@ sf_add_test(fmg_write param/test_fmg_write.c "param")
 sf_add_test(souls_formats_test_synthetic_roundtrip param/test_synthetic_roundtrip.c "param")
 sf_add_test(paramdef_xml_e2e param/test_paramdef_xml_e2e.c "param")
 sf_add_test(param_apply_paramdef_e2e param/test_param_apply_paramdef_e2e.c "param")
-target_include_directories(param_apply_paramdef_e2e PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(param_apply_paramdef_e2e PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(param_apply_paramdef_e2e PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(param_apply_paramdef_e2e PRIVATE
     SOULS_FORMATS_ROOT_DIR="${CMAKE_SOURCE_DIR}"
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
@@ -220,10 +227,7 @@ target_compile_definitions(param_apply_paramdef_e2e PRIVATE
 target_compile_definitions(paramdef_xml_e2e PRIVATE
     SOULS_FORMATS_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 sf_add_test(fmg_e2e_er param/test_fmg_e2e_er.c "param")
-target_include_directories(fmg_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(fmg_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(fmg_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(fmg_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
@@ -236,10 +240,7 @@ sf_add_test(souls_formats_test_emevd_read script/test_emevd_read.c "script")
 sf_add_test(souls_formats_test_emevd_write script/test_emevd_write.c "script")
 sf_add_test(souls_formats_test_emevd_synthetic script/test_emevd_synthetic.c "script")
 sf_add_test(emevd_e2e_er script/test_emevd_e2e_er.c "script")
-target_include_directories(emevd_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(emevd_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(emevd_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(emevd_e2e_er PRIVATE
     SF_E2E_REPO_DIR=L"${CMAKE_SOURCE_DIR}"
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
@@ -339,10 +340,7 @@ endif()
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_sekiro_helper_smoke
     e2e/test_sekiro_helper_smoke.c "e2e_sekiro")
-target_include_directories(souls_formats_test_sekiro_helper_smoke PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_sekiro_helper_smoke PRIVATE
-    e2e/sekiro_test_helper.c)
+target_link_libraries(souls_formats_test_sekiro_helper_smoke PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_sekiro_helper_smoke PRIVATE
     SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
@@ -353,10 +351,7 @@ target_compile_definitions(souls_formats_test_sekiro_helper_smoke PRIVATE
 # .sisyphus/evidence/phase4-pre-flight.md. No format parsing here.
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_emevd_format_probe script/test_emevd_format_probe.c "script")
-target_include_directories(souls_formats_test_emevd_format_probe PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_emevd_format_probe PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_emevd_format_probe PRIVATE souls_formats_e2e_helpers)
 # Escape backslashes for both CMake and the C preprocessor so the macro
 # value reaches the compiler as L"...\\Ubuntu\\..." verbatim.
 target_compile_definitions(souls_formats_test_emevd_format_probe PRIVATE
@@ -374,40 +369,28 @@ sf_add_test(souls_formats_test_esd_bytecode script/test_esd_bytecode.c "script")
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_esd_e2e_er
     script/test_esd_e2e_er.c "e2e_er")
-target_include_directories(souls_formats_test_esd_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_esd_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_esd_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_esd_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 sf_add_test(souls_formats_test_msbe_e2e_er
     map/msbe/test_msbe_e2e_er.c "e2e_er")
-target_include_directories(souls_formats_test_msbe_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_msbe_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_msbe_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_msbe_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 sf_add_test(souls_formats_test_msbe_e2e_nr
     map/msbe/test_msbe_e2e_nr.c "e2e_nightreign")
-target_include_directories(souls_formats_test_msbe_e2e_nr PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_msbe_e2e_nr PRIVATE
-    e2e/nightreign_test_helper.c)
+target_link_libraries(souls_formats_test_msbe_e2e_nr PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_msbe_e2e_nr PRIVATE
     SF_E2E_NIGHTREIGN_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
 
 sf_add_test(souls_formats_test_msbs_e2e_sekiro
     map/msbs/test_msbs_e2e_sekiro.c "e2e_sekiro")
-target_include_directories(souls_formats_test_msbs_e2e_sekiro PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_msbs_e2e_sekiro PRIVATE
-    e2e/sekiro_test_helper.c)
+target_link_libraries(souls_formats_test_msbs_e2e_sekiro PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_msbs_e2e_sekiro PRIVATE
     SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
@@ -417,20 +400,14 @@ target_compile_definitions(souls_formats_test_msbs_e2e_sekiro PRIVATE
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_matbin_e2e_er
     geom/test_matbin_e2e_er.c "e2e_er")
-target_include_directories(souls_formats_test_matbin_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_matbin_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_matbin_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_matbin_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 sf_add_test(souls_formats_test_mtd_e2e_sekiro
     geom/test_mtd_e2e_sekiro.c "e2e_sekiro")
-target_include_directories(souls_formats_test_mtd_e2e_sekiro PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_mtd_e2e_sekiro PRIVATE
-    e2e/sekiro_test_helper.c)
+target_link_libraries(souls_formats_test_mtd_e2e_sekiro PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_mtd_e2e_sekiro PRIVATE
     SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
@@ -440,23 +417,15 @@ target_compile_definitions(souls_formats_test_mtd_e2e_sekiro PRIVATE
 # not pay the compile cost. These targets reference local game-data paths
 # and are intended only for local debugging.
 if(SF_BUILD_PROBES AND PROJECT_IS_TOP_LEVEL)
-    add_executable(probe_nightreign_msb ${CMAKE_SOURCE_DIR}/tests/probes/probe_nightreign_msb.c
-                                        ${CMAKE_SOURCE_DIR}/tests/e2e/er_test_helper.c)
-    target_link_libraries(probe_nightreign_msb PRIVATE souls_formats_static bcrypt crypt32)
-    target_include_directories(probe_nightreign_msb PRIVATE
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/tests/e2e)
+    add_executable(probe_nightreign_msb ${CMAKE_SOURCE_DIR}/tests/probes/probe_nightreign_msb.c)
+    target_link_libraries(probe_nightreign_msb PRIVATE souls_formats_e2e_helpers crypt32)
     target_compile_definitions(probe_nightreign_msb PRIVATE
         SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
         SF_E2E_OODLE_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game")
     set_target_properties(probe_nightreign_msb PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
 
-    add_executable(probe_matbin_paramtypes ${CMAKE_SOURCE_DIR}/tests/probes/probe_matbin_paramtypes.c
-                                           ${CMAKE_SOURCE_DIR}/tests/e2e/er_test_helper.c)
-    target_link_libraries(probe_matbin_paramtypes PRIVATE souls_formats_static bcrypt)
-    target_include_directories(probe_matbin_paramtypes PRIVATE
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/tests/e2e)
+    add_executable(probe_matbin_paramtypes ${CMAKE_SOURCE_DIR}/tests/probes/probe_matbin_paramtypes.c)
+    target_link_libraries(probe_matbin_paramtypes PRIVATE souls_formats_e2e_helpers)
     target_compile_definitions(probe_matbin_paramtypes PRIVATE
         SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
         SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
@@ -491,10 +460,7 @@ target_compile_definitions(souls_formats_test_tae_e2e_er PRIVATE
 # Uses er_extract_from_data0 from the shared er_test_helper.
 sf_add_test(souls_formats_test_fxr3_e2e_er
     anim/test_fxr3_e2e_er.c "e2e_er")
-target_include_directories(souls_formats_test_fxr3_e2e_er PRIVATE
-    ${CMAKE_SOURCE_DIR}/tests/e2e)
-target_sources(souls_formats_test_fxr3_e2e_er PRIVATE
-    e2e/er_test_helper.c)
+target_link_libraries(souls_formats_test_fxr3_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_fxr3_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")

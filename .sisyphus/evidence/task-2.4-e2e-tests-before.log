@@ -1,0 +1,25 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+  Test  #28: souls_formats_test_er_helper_smoke
+  Test  #29: souls_formats_test_nightreign_helper_smoke
+  Test  #30: souls_formats_test_bhd5_e2e_er
+  Test  #31: souls_formats_test_ac6_helper_smoke
+  Test  #32: souls_formats_test_msbvi_e2e_ac6
+  Test  #33: souls_formats_test_bnd4_e2e_er
+  Test  #34: souls_formats_test_bxf4_e2e_er
+  Test  #35: souls_formats_test_tpf_e2e_er
+  Test  #51: paramdef_xml_e2e
+  Test  #52: param_apply_paramdef_e2e
+  Test  #53: fmg_e2e_er
+  Test  #57: emevd_e2e_er
+  Test  #89: souls_formats_test_flver2_e2e_er
+  Test  #90: souls_formats_test_sekiro_helper_smoke
+  Test  #93: souls_formats_test_esd_e2e_er
+  Test  #94: souls_formats_test_msbe_e2e_er
+  Test  #95: souls_formats_test_msbe_e2e_nr
+  Test  #96: souls_formats_test_msbs_e2e_sekiro
+  Test  #97: souls_formats_test_matbin_e2e_er
+  Test  #98: souls_formats_test_mtd_e2e_sekiro
+  Test #101: souls_formats_test_tae_e2e_er
+  Test #102: souls_formats_test_fxr3_e2e_er
+
+Total Tests: 22

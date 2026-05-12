@@ -8,6 +8,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Internal
+- E2E helper consolidation (T2.4): introduced `souls_formats_e2e_helpers`
+  static lib in `tests/CMakeLists.txt`. Previously the four per-game helpers
+  (`er_test_helper.c`, `nightreign_test_helper.c`, `ac6_test_helper.c`,
+  `sekiro_test_helper.c`) were added to every consuming e2e test via
+  `target_sources(...)`, producing ~20 redundant translation-unit compilations
+  per clean build. The lib compiles each helper exactly once and exposes
+  PUBLIC includes so consumers transitively pick up the `*.h` files. Clean
+  build dropped from ~21.0s / 490 ninja steps → ~17.2s / 475 ninja steps
+  (~18% faster). E2E test list unchanged at 22 tests; full ctest pass
+  preserved. Evidence: `.sisyphus/evidence/task-2.4-build.log`.
 - Reserve/fill scaffold refactor (T2.3): added `SF_RESERVE_FILL_PAIR` and
   converted 356 reserve/fill checks across 39 source files, reducing source LOC
   by 162 lines before evidence/changelog notes; direct-return helper wrappers,
