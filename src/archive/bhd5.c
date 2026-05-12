@@ -33,7 +33,7 @@ typedef struct sf_bhd5_bucket {
 typedef struct sf_bhd5_file {
     uint64_t path_hash;
     uint32_t padded_size;
-    uint32_t unpadded_size;
+    uint64_t unpadded_size;
     int64_t file_offset;
 
     bool has_sha_hash;
@@ -358,12 +358,33 @@ static sf_result_t read_file_header(sf_binary_reader_t *r, sf_bhd5_file_t *file,
                                     int64_t *aes_key_offset) {
     int32_t padded = 0;
     int32_t unpadded = 0;
+    int64_t ds3_unpadded = 0;
 
     *sha_hash_offset = 0;
     *aes_key_offset = 0;
 
     sf_result_t rr = SF_OK;
     switch (game) {
+    case SF_BHD5_GAME_DARKSOULS3:
+        {
+            uint32_t hash32 = 0;
+            rr = sf_binary_reader_read_u32(r, &hash32);
+            if (rr != SF_OK) return rr;
+            file->path_hash = (uint64_t)hash32;
+        }
+        rr = read_i32_nonnegative(r, &padded);
+        if (rr != SF_OK) return rr;
+        rr = sf_binary_reader_read_i64(r, &file->file_offset);
+        if (rr != SF_OK) return rr;
+        rr = sf_binary_reader_read_i64(r, sha_hash_offset);
+        if (rr != SF_OK) return rr;
+        rr = sf_binary_reader_read_i64(r, aes_key_offset);
+        if (rr != SF_OK) return rr;
+        rr = sf_binary_reader_read_i64(r, &ds3_unpadded);
+        if (rr != SF_OK) return rr;
+        if (ds3_unpadded < 0) return SF_ERR_OUT_OF_RANGE;
+        file->unpadded_size = (uint64_t)ds3_unpadded;
+        break;
     case SF_BHD5_GAME_SEKIRO:
     case SF_BHD5_GAME_ELDENRING:
     case SF_BHD5_GAME_NIGHTREIGN:
@@ -387,7 +408,9 @@ static sf_result_t read_file_header(sf_binary_reader_t *r, sf_bhd5_file_t *file,
 
     if (file->file_offset < 0 || *sha_hash_offset < 0 || *aes_key_offset < 0) return SF_ERR_OUT_OF_RANGE;
     file->padded_size = (uint32_t)padded;
-    file->unpadded_size = (uint32_t)unpadded;
+    if (game != SF_BHD5_GAME_DARKSOULS3) {
+        file->unpadded_size = (uint32_t)unpadded;
+    }
     return SF_OK;
 }
 
@@ -731,6 +754,9 @@ sf_result_t sf_bhd5_extract_by_path(const sf_bhd5_t *b, const char *utf8_path,
                                     void **out, size_t *out_size,
                                     const sf_allocator_t *a) {
     SF_CHECK_ARG(utf8_path != NULL);
+    if (b && b->game == SF_BHD5_GAME_DARKSOULS3) {
+        return sf_bhd5_extract_by_hash_32(b, sf_path_hash(utf8_path), out, out_size, a);
+    }
     return sf_bhd5_extract_by_hash_64(b, sf_path_hash_64(utf8_path), out, out_size, a);
 }
 
@@ -740,6 +766,21 @@ static sf_result_t write_file_headers(sf_binary_writer_t *w, const sf_bhd5_t *b,
         const sf_bhd5_file_t *f = &b->files[i];
         sf_result_t rr = SF_OK;
         switch (b->game) {
+        case SF_BHD5_GAME_DARKSOULS3:
+            rr = sf_binary_writer_write_u32(w, (uint32_t)f->path_hash);
+            if (rr != SF_OK) return rr;
+            rr = sf_binary_writer_write_u32(w, f->padded_size);
+            if (rr != SF_OK) return rr;
+            rr = sf_binary_writer_write_i64(w, f->file_offset);
+            if (rr != SF_OK) return rr;
+            rr = sf_binary_writer_write_i64(w, sha_offsets[i]);
+            if (rr != SF_OK) return rr;
+            rr = sf_binary_writer_write_i64(w, aes_offsets[i]);
+            if (rr != SF_OK) return rr;
+            if (f->unpadded_size > (uint64_t)INT64_MAX) return SF_ERR_OUT_OF_RANGE;
+            rr = sf_binary_writer_write_i64(w, (int64_t)f->unpadded_size);
+            if (rr != SF_OK) return rr;
+            break;
         case SF_BHD5_GAME_SEKIRO:
         case SF_BHD5_GAME_ELDENRING:
         case SF_BHD5_GAME_NIGHTREIGN:

@@ -45,19 +45,21 @@ typedef struct sf_bhd5 sf_bhd5_t;
 /*===========================================================================
  * Game enum for BHD5 key + format selection
  *
- * v1 covers four target games. Older titles (DS1, DS1R, DS2, DS3) are
- * deferred to v2+; see legacy.md and extensions.md for the rationale.
+ * v1 covers modern games plus DS3 real-game e2e coverage. Older DS1/DS2
+ * BHD variants remain deferred; DS3 uses the DarkSouls3 BHD5 layout from
+ * upstream BHD5.cs (32-bit path hash plus 64-bit unpadded size).
  *===========================================================================*/
 typedef enum sf_bhd5_game {
     SF_BHD5_GAME_SEKIRO       = 0,
     SF_BHD5_GAME_ELDENRING    = 1,
     SF_BHD5_GAME_NIGHTREIGN   = 2,
     SF_BHD5_GAME_ARMOREDCORE6 = 3,
+    SF_BHD5_GAME_DARKSOULS3   = 4,
     /* Sentinel — must remain last; do not use as a real value. */
     SF_BHD5_GAME_COUNT_
 } sf_bhd5_game_t;
 
-_Static_assert(SF_BHD5_GAME_COUNT_ == 4, "sf_bhd5_game_t drift");
+_Static_assert(SF_BHD5_GAME_COUNT_ == 5, "sf_bhd5_game_t drift");
 
 SF_API sf_result_t sf_bhd5_open(sf_bhd5_t **out,
                                 const wchar_t *bhd_path,

@@ -15,6 +15,7 @@
  *   SF_BHD5_GAME_ELDENRING    → EldenRingKeys["Data0"]
  *   SF_BHD5_GAME_NIGHTREIGN   → EldenRingNightreignKeys["Data0"]
  *   SF_BHD5_GAME_ARMOREDCORE6 → ArmoredCore6Keys["Data0"]
+ *   SF_BHD5_GAME_DARKSOULS3   → DarkSouls3Keys["Data1"]
  */
 
 #include "archive/bhd5_keys.h"
@@ -59,12 +60,23 @@ static const char SF_BHD5_PEM_KEY_ARMOREDCORE6[] =
     "YmR86B680OyL9oiEonEFhh4cor/84PSmNQIFAOHX27k=\n"
     "-----END RSA PUBLIC KEY-----\n";
 
+static const char SF_BHD5_PEM_KEY_DARKSOULS3[] =
+    "-----BEGIN RSA PUBLIC KEY-----\n"
+    "MIIBCwKCAQEA05hqyboW/qZaJ3GBIABFVt1X1aa0/sKINklvpkTRC+5Ytbxvp18L\n"
+    "M1gN6gjTgSJiPUgdlaMbptVa66MzvilEk60aHyVVEhtFWy+HzUZ3xRQm6r/2qsK3\n"
+    "8wXndgEU5JIT2jrBXZcZfYDCkUkjsGVkYqjBNKfp+c5jlnNwbieUihWTSEO+DA8n\n"
+    "aaCCzZD3e7rKhDQyLCkpdsGmuqBvl02Ou7QeehbPPno78mOYs2XkP6NGqbFFGQwa\n"
+    "swyyyXlQ23N15ZaFGRRR0xYjrX4LSe6OJ8Mx/Zkec0o7L28CgwCTmcD2wO8TEATE\n"
+    "AUbbV+1Su9uq2+wQxgnsAp+xzhn9og9hmwIEC35bSQ==\n"
+    "-----END RSA PUBLIC KEY-----\n";
+
 const char *sfi_bhd5_get_pem_key(sf_bhd5_game_t game) {
     switch (game) {
     case SF_BHD5_GAME_SEKIRO:       return SF_BHD5_PEM_KEY_SEKIRO;
     case SF_BHD5_GAME_ELDENRING:    return SF_BHD5_PEM_KEY_ELDENRING;
     case SF_BHD5_GAME_NIGHTREIGN:   return SF_BHD5_PEM_KEY_NIGHTREIGN;
     case SF_BHD5_GAME_ARMOREDCORE6: return SF_BHD5_PEM_KEY_ARMOREDCORE6;
+    case SF_BHD5_GAME_DARKSOULS3:   return SF_BHD5_PEM_KEY_DARKSOULS3;
     case SF_BHD5_GAME_COUNT_:
     default:                        return NULL;
     }
