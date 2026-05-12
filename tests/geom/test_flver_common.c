@@ -183,6 +183,15 @@ static void test_11_11_10_roundtrip_mixed(void) {
     TEST_ASSERT_FLOAT_WITHIN(0.002f,  0.25f, z);
 }
 
+static void test_11_11_10_diagonal(void) {
+    uint32_t p = sf_pack_11_11_10(0.5f, 0.5f, 0.5f);
+    float x = 0.0f, y = 0.0f, z = 0.0f;
+    sf_unpack_11_11_10(p, &x, &y, &z);
+    TEST_ASSERT_FLOAT_WITHIN(0.002f, 0.5f, x);
+    TEST_ASSERT_FLOAT_WITHIN(0.002f, 0.5f, y);
+    TEST_ASSERT_FLOAT_WITHIN(0.002f, 0.5f, z);
+}
+
 static void test_11_11_10_clamp_extremes(void) {
     /* Pack beyond [-1, 1]; expect saturation. */
     uint32_t p = sf_pack_11_11_10(2.0f, -2.0f, 2.0f);
@@ -514,6 +523,7 @@ int main(void) {
     RUN_TEST(test_11_11_10_unit_y);
     RUN_TEST(test_11_11_10_unit_z);
     RUN_TEST(test_11_11_10_roundtrip_mixed);
+    RUN_TEST(test_11_11_10_diagonal);
     RUN_TEST(test_11_11_10_clamp_extremes);
     RUN_TEST(test_layout_type_size_basic);
     RUN_TEST(test_layout_type_size_speedtree_sentinel);
