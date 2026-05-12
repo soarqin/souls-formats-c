@@ -33,6 +33,7 @@
 #include "souls_formats/sf_tpf.h"
 #include "souls_formats/sf_paramtdf.h"
 #include "souls_formats/sf_flver.h"
+#include "souls_formats/sf_flver2.h"
 #include "souls_formats/sf_mtd.h"
 #include "souls_formats/sf_matbin.h"
 
