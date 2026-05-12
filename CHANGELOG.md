@@ -14,6 +14,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   public `const char *name_utf8` surface.
 
 ### Internal
+- PARAM row arena (T3.5): `sf_param_read_*` now uses one contiguous row-data
+  allocation for PARAMs with at least 1000 rows, preserving the existing
+  per-row allocation path for smaller PARAMs. This cuts allocator churn for
+  large tables such as `SpEffectParam` without changing the public row API or
+  serialized output.
 - E2E helper consolidation (T2.4): introduced `souls_formats_e2e_helpers`
   static lib in `tests/CMakeLists.txt`. Previously the four per-game helpers
   (`er_test_helper.c`, `nightreign_test_helper.c`, `ac6_test_helper.c`,
