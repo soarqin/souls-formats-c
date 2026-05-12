@@ -437,3 +437,9 @@ they only call BXF4 APIs.
 - CLI sf_bnd_extract.exe (5.30 MB) prints usage banner, exit=1 on no args (correct).
 - Regression: core 7/7, compression 5/5, crypto 5/5 all green.
 - VERDICT: APPROVE.
+
+## 2026-05-12 — T3.3 BHD5 bulk metadata pools
+
+- BHD5 does not carry filenames in the modern ER+/Sekiro header; entries are keyed by path hash only. Allocation reductions therefore target file metadata/range lists, not a string name pool.
+- Existing BHD5 file headers were already stored in one flat `sf_bhd5_file_t` array. The remaining high-cardinality allocation site was per-file `sha_ranges` / `aes_ranges` arrays.
+- Safe bulk-pool pattern: first read file headers and collect SHA/AES metadata offsets; second pass reads only each metadata range count to size the pools; third pass fills pointers into the two contiguous pools. This preserves bucket/file iteration order and write output.

@@ -8,6 +8,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Performance
+- BHD5 reader allocation reduction (T3.3): file headers remain one flat array,
+  and SHA/AES range metadata now lives in two contiguous pools owned by
+  `sf_bhd5_t` instead of per-file heap arrays. This preserves BHD5 iteration
+  order and public API while removing one allocation per encrypted/hashed entry
+  for large ER Data0 headers.
 - BND3/BND4 read paths now bulk-allocate file name strings into one per-archive
   pool instead of duplicating each entry individually, reducing archive-name
   allocation count by roughly `N - 1` for `N` named entries while preserving the

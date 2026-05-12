@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
 
@@ -53,6 +54,31 @@ static const uint8_t k_key[16] = {
     0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
     0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c,
 };
+
+typedef struct counting_allocator {
+    size_t alloc_calls;
+    size_t realloc_calls;
+    size_t free_calls;
+} counting_allocator_t;
+
+static void *counting_alloc(size_t size, void *user) {
+    counting_allocator_t *c = (counting_allocator_t *)user;
+    c->alloc_calls++;
+    return malloc(size ? size : 1u);
+}
+
+static void *counting_realloc(void *p, size_t old_size, size_t new_size, void *user) {
+    (void)old_size;
+    counting_allocator_t *c = (counting_allocator_t *)user;
+    c->realloc_calls++;
+    return realloc(p, new_size ? new_size : 1u);
+}
+
+static void counting_free(void *p, void *user) {
+    counting_allocator_t *c = (counting_allocator_t *)user;
+    c->free_calls++;
+    free(p);
+}
 
 static void bb_u8(bytebuf_t *b, uint8_t v) {
     TEST_ASSERT_LESS_THAN_size_t(sizeof(b->data), b->size);
@@ -331,6 +357,46 @@ static void test_bhd5_empty_bucket(void) {
     DeleteFileW(bdt_path);
 }
 
+static void test_bhd5_bulk_aes_ranges_do_not_allocate_per_file(void) {
+    enum { file_count = 32 };
+    synth_file_t files[file_count];
+    memset(files, 0, sizeof(files));
+    for (size_t i = 0; i < file_count; i++) {
+        files[i].path = "bulk/aes.bin";
+        files[i].hash = sf_path_hash_64(files[i].path) + i;
+        files[i].padded_size = 16;
+        files[i].unpadded_size = 16;
+        files[i].file_offset = (int64_t)(i * 16u);
+        files[i].has_aes = true;
+        memcpy(files[i].aes_key, k_key, sizeof(k_key));
+        files[i].range_start = 0;
+        files[i].range_end = 16;
+    }
+    uint32_t bucket_counts[4] = { 8, 8, 8, 8 };
+    bytebuf_t bhd;
+    build_bhd(&bhd, files, file_count, bucket_counts, 4);
+
+    uint8_t bdt[file_count * 16u];
+    memset(bdt, 0xA5, sizeof(bdt));
+    wchar_t bhd_path[MAX_PATH];
+    wchar_t bdt_path[MAX_PATH];
+    make_temp_path(L"bhd5_bulk_bhd", bhd_path);
+    make_temp_path(L"bhd5_bulk_bdt", bdt_path);
+    write_wfile(bhd_path, bhd.data, bhd.size);
+    write_wfile(bdt_path, bdt, sizeof(bdt));
+
+    counting_allocator_t counts = {0};
+    const sf_allocator_t alloc = { counting_alloc, counting_realloc, counting_free, &counts };
+    sf_bhd5_t *reader = NULL;
+    TEST_ASSERT_EQUAL(SF_OK, sf_bhd5_open(&reader, bhd_path, bdt_path,
+                                          SF_BHD5_GAME_ELDENRING, &alloc));
+    TEST_ASSERT_EQUAL_size_t(file_count, sf_bhd5_total_file_count(reader));
+    TEST_ASSERT_LESS_THAN_size_t(24, counts.alloc_calls + counts.realloc_calls);
+    sf_bhd5_close(reader);
+    DeleteFileW(bhd_path);
+    DeleteFileW(bdt_path);
+}
+
 static void test_bhd5_rsa_wrapped(void) {
     TEST_PASS_MESSAGE("Skipped: RSA-wrapped BHD5 requires a game-signed fixture/private key");
 }
@@ -341,6 +407,7 @@ int main(void) {
     RUN_TEST(test_bhd5_sekiro_style);
     RUN_TEST(test_bhd5_range_skip);
     RUN_TEST(test_bhd5_empty_bucket);
+    RUN_TEST(test_bhd5_bulk_aes_ranges_do_not_allocate_per_file);
     RUN_TEST(test_bhd5_rsa_wrapped);
     return UNITY_END();
 }
