@@ -29,6 +29,7 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 | `sf_paramdef_get_index` | `sf_paramdef.h` | Paramdex XML `<Index>` element; binary returns -1 | stable | `include/souls_formats/sf_paramdef.h` |
 | `sf_paramdef_field_get_sort_id` | `sf_paramdef.h` | Paramdex XML `<SortID>` element; binary returns 0 | stable | `include/souls_formats/sf_paramdef.h` |
 | BND3/BND4 name pool | archive | Name strings bulk-allocated in one contiguous block per archive; `_destroy` frees the pool. Upstream C# uses GC. | + extension | `src/archive/bnd3.c`; `src/archive/bnd4.c` |
+| MSB shared scaffolding engine | map | Internal callback-based polymorphism to mirror C# `Param<T>` generics without code duplication. | stable | `src/map/msb_common.c` |
 
 ## Phase 6: Geometry + Material
 

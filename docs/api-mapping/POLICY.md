@@ -69,8 +69,19 @@ The following symbols are used in mapping tables to indicate the implementation 
 * **8→3 Apply fold**: `sf_param_apply_mode_t` folds 8 upstream `ApplyParamdef*` variants into 3 core modes. `RegulationVersioned*` variants deferred to v1.1.
 * **Bit-packing literal mirror**: `paramdef_apply.c` bitstream helpers mirror `Row.cs:236-244` `(64 - bitSize - bitOffset)` shift pattern verbatim. No "beautification".
 
-### Phase 5 MSB Adaptations
-* **Param<T> scaffold extraction**: upstream MSB `Param<T>.Write` is represented by internal callback helpers in `src/map/msb_common.c`. The helper owns the shared offset-table/name/next-list scaffolding, while variant files keep per-entry subtype serialization callbacks.
+## MSB shared scaffolding extraction
+
+The MSB entry-list scaffolding (offset-table read, count check, alloc loop, index backfill)
+is extracted into `src/map/msb_common.c` helpers. The chosen technique is internal callback-table helpers.
+
+### Rationale
+C lacks the generic `Param<T>` class used in upstream C#. By extracting the shared scaffolding into common helpers that accept function pointers, we avoid duplicating ~50-100 LOC of boilerplate across 19 variant-specific MSB files while maintaining the polymorphic behavior of the original implementation.
+
+### Upstream mapping
+Upstream C# uses `Param<T>` generic class in `MSB.cs`. The C port uses internal callback functions (`msb_entry_write_fn` and `msb_list_cb_t`) to achieve the same polymorphism without C++ templates.
+
+### LOC delta
+Per T0.5 audit: ~50-100 LOC extractable per file across 19 MSB .c files. Total estimated reduction is ~1,100 LOC (26% of total MSB code).
 
 ## Error cleanup convention
 
