@@ -48,6 +48,8 @@
 
 ### 2.2 v1 显式**不**实现（推迟到 v1.x / v2）
 - **动画与特效**：TAE3 / TAE4、FXR3、FFXDLSE、ANI、MQB —— 单独立 Phase 7，可在 v1.1 增量交付。
+- **TAE Template subsystem**（`Template.cs` 801 LOC，`ApplyTemplate` / `BankTemplate` / `EventTemplate` / `ParameterTemplate`）—— v1.1 不实现，参数容器维持 opaque bytes；typed access 推 v1.2。
+- **TAE 非 SDT 格式**（DS1 / SOTFS / DS3 / BB / DES / DESR）—— v1.1 仅实现 SDT (version 0x1000D)；其他 format byte 路径返回 `SF_ERR_UNSUPPORTED_VERSION`，推 v2 legacy。
 - **遗留地图**：MSB1 / MSB2 / MSB3 / MSBB / MSBD / MSBN / MSBV / MSBVD / MSBFA / MSBAC4。
 - **遗留几何**：FLVER0、MDL / MDL0 / MDL4 / SMD4 / OM2、CLM2、F2TR、GRASS。
 - **遗留几何**：FLVER0、MDL / MDL0 / MDL4 / SMD4 / OM2、CLM2、F2TR、GRASS。Edge Geometry / SPU vertex format / RSX vertex format（PS3-era console-specific 顶点压缩；v1 4 款目标游戏均不使用，推迟到 v2）。
@@ -59,7 +61,7 @@
 - **PARAMDEF XML 序列化**（写出方向）—— 阶段 4 仅做读，写入推迟。
 
 ### 2.3 后续路线图速览
-- **v1.1**：TAE / FXR3 + PARAMDEF XML 写出。
+- **v1.1**：TAE / FXR3 + PARAMDEF XML 写出。TAE 仅 SDT 格式（version 0x1000D，covers Sekiro + Elden Ring）；Template subsystem 推 v1.2。
 - **v2.0**：DS3 / Bloodborne / DS1 / DS2 / DeS 全部格式。
 - **v3.0**：Armored Core 4/ACFA/ACV/ACVD、King's Field、Kuon、Otogi、Dreamcast 系列。
 

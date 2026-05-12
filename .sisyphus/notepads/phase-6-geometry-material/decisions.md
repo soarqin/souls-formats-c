@@ -22,3 +22,4 @@
 
 ### [2026-05-12] Documentation
 - Seeded `docs/api-mapping/extensions.md` with detailed entries for `sf_flver2_decode_mesh`, BE refusal, and EdgeCompression refusal.
+2026-05-12 — Implemented MTD public API as read/write/accessor-only, keeping upstream file/header/data/lists/param/value/texture block structure fully internal and preserving the existing no-mutation public surface in `sf_mtd.h`.

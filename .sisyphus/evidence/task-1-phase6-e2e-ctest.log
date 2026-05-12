@@ -1,0 +1,16 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+    Start 89: souls_formats_test_flver2_e2e_er
+1/4 Test #89: souls_formats_test_flver2_e2e_er ...   Passed    1.90 sec
+    Start 93: souls_formats_test_esd_e2e_er
+2/4 Test #93: souls_formats_test_esd_e2e_er ......   Passed    0.45 sec
+    Start 94: souls_formats_test_msbe_e2e_er
+3/4 Test #94: souls_formats_test_msbe_e2e_er .....   Passed    0.45 sec
+    Start 97: souls_formats_test_matbin_e2e_er
+4/4 Test #97: souls_formats_test_matbin_e2e_er ...   Passed    0.75 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Label Time Summary:
+e2e_er    =   3.55 sec*proc (4 tests)
+
+Total Test time (real) =   3.55 sec

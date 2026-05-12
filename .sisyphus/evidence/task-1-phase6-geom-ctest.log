@@ -1,0 +1,24 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+    Start 81: souls_formats_test_flver_common
+1/8 Test #81: souls_formats_test_flver_common .......   Passed    0.14 sec
+    Start 82: flver2_vertex
+2/8 Test #82: flver2_vertex .........................   Passed    0.10 sec
+    Start 83: souls_formats_test_flver2_top_level
+3/8 Test #83: souls_formats_test_flver2_top_level ...   Passed    0.14 sec
+    Start 84: souls_formats_test_flver2_faceset
+4/8 Test #84: souls_formats_test_flver2_faceset .....   Passed    0.11 sec
+    Start 85: souls_formats_test_flver2_synthetic
+5/8 Test #85: souls_formats_test_flver2_synthetic ...   Passed    0.13 sec
+    Start 86: souls_formats_test_mtd_synthetic
+6/8 Test #86: souls_formats_test_mtd_synthetic ......   Passed    0.13 sec
+    Start 87: souls_formats_test_matbin_synthetic
+7/8 Test #87: souls_formats_test_matbin_synthetic ...   Passed    0.12 sec
+    Start 88: souls_formats_test_flver2_decode
+8/8 Test #88: souls_formats_test_flver2_decode ......   Passed    0.14 sec
+
+100% tests passed, 0 tests failed out of 8
+
+Label Time Summary:
+geom    =   1.01 sec*proc (8 tests)
+
+Total Test time (real) =   1.04 sec
