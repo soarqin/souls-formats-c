@@ -1,3 +1,6 @@
+sf_sl2.h added to SF_PUBLIC_HEADERS in CMakeLists.txt line 77
+examples/CMakeLists.txt: both sf_bnd_extract and sf_param_dump now link souls_formats_static
+77:    include/souls_formats/sf_sl2.h
 add_executable(sf_bnd_extract sf_bnd_extract.c)
 target_link_libraries(sf_bnd_extract PRIVATE souls_formats_static)
 sf_apply_warnings(sf_bnd_extract)
