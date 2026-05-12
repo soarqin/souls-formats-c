@@ -379,6 +379,36 @@ static sf_result_t flver2_write_to_writer(const sf_flver2_t *f, sf_binary_writer
     }
 
     r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
+    for (int32_t i = 0; i < f->header.mesh_count; i++) {
+        r = sfi_flver2_mesh_write_bounding_box(bw, &f->header, &f->meshes[i], (size_t)i);
+        if (r != SF_OK) return r;
+    }
+
+    r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
+    int64_t bone_indices_start_pos = sf_binary_writer_position(bw);
+    if (bone_indices_start_pos < 0 || bone_indices_start_pos > INT32_MAX) {
+        return SF_ERR_OUT_OF_RANGE;
+    }
+    int32_t bone_indices_start = (int32_t)bone_indices_start_pos;
+    for (int32_t i = 0; i < f->header.mesh_count; i++) {
+        r = sfi_flver2_mesh_write_bone_indices(bw, &f->meshes[i], (size_t)i,
+                                               bone_indices_start);
+        if (r != SF_OK) return r;
+    }
+
+    r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
+    for (int32_t i = 0; i < f->header.mesh_count; i++) {
+        r = sfi_flver2_mesh_fill_face_set_indices(bw, &f->meshes[i], (size_t)i);
+        if (r != SF_OK) return r;
+    }
+
+    r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
+    for (int32_t i = 0; i < f->header.mesh_count; i++) {
+        r = sfi_flver2_mesh_fill_vertex_buffer_indices(bw, &f->meshes[i], (size_t)i);
+        if (r != SF_OK) return r;
+    }
+
+    r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
     int32_t *gx_offsets = NULL;
     if (f->gx_list_count > 0) {
         gx_offsets = (int32_t *)sf_xalloc(f->alloc, f->gx_list_count * sizeof(int32_t));
