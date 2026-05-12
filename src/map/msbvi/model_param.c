@@ -5,6 +5,7 @@
 
 #include "msbvi_internal.h"
 #include "internal/sf_internal.h"
+#include "map/msb_internal.h" /* IWYU pragma: keep */
 
 #include <stdio.h>
 #include <string.h>
@@ -98,27 +99,19 @@ static sf_result_t msbvi_model_write_one(sf_binary_writer_t *w, const msbvi_mode
     return sf_binary_writer_pad(w, 8);
 }
 
+static sf_result_t msbvi_model_write_entry(sf_binary_writer_t *w,
+                                           const void         *entry,
+                                           size_t              index,
+                                           void               *ctx) {
+    (void)ctx;
+    if (index > (size_t)INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+    const sf_msbvi_model_t *model = (const sf_msbvi_model_t *)entry;
+    return msbvi_model_write_one(w, &model->data, (int32_t)index);
+}
+
 sf_result_t msbvi_model_param_write(sf_binary_writer_t *w, const sf_msbvi_t *msbvi) {
     if (!w || !msbvi) return SF_ERR_INVALID_ARG;
-    sf_result_t rc;
-    rc = sf_binary_writer_write_i32(w, 52); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_write_i32(w, msbvi->model_count + 1); if (rc != SF_OK) return rc;
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbviNameOff0"), return rc);
-    for (int32_t i = 0; i < msbvi->model_count; i++) {
-        char off_name[32];
-        snprintf(off_name, sizeof off_name, "MsbviModelOff%d", i);
-        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, off_name), return rc);
-    }
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbviNextList0"), return rc);
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbviNameOff0", sf_binary_writer_position(w)), return rc);
-    rc = sf_binary_writer_write_utf16(w, "MODEL_PARAM_ST", true); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
-    for (int32_t i = 0; i < msbvi->model_count; i++) {
-        char off_name[32];
-        snprintf(off_name, sizeof off_name, "MsbviModelOff%d", i);
-        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, off_name, sf_binary_writer_position(w)), return rc);
-        rc = msbvi_model_write_one(w, &msbvi->models[i].data, i);
-        if (rc != SF_OK) return rc;
-    }
-    return SF_OK;
+    return msb_entry_list_write(w, 52, "MODEL_PARAM_ST", "MsbviNextList0", msbvi->models,
+                                (size_t)msbvi->model_count, sizeof(*msbvi->models),
+                                msbvi_model_write_entry, NULL);
 }

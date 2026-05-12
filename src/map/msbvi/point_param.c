@@ -5,6 +5,7 @@
 
 #include "msbvi_internal.h"
 #include "internal/sf_internal.h"
+#include "map/msb_internal.h" /* IWYU pragma: keep */
 
 #include <stdio.h>
 #include <string.h>
@@ -86,13 +87,19 @@ static sf_result_t msbvi_region_write_one(sf_binary_writer_t *w, const msbvi_reg
     rc = sf_binary_writer_fill_i64(w, type_res, 0); if (rc != SF_OK) return rc; rc = sf_binary_writer_fill_i64(w, tail_res, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc; rc = sf_binary_writer_write_i32(w, -1); if (rc != SF_OK) return rc; rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc; return sf_binary_writer_write_i32(w, -1);
 }
 
+static sf_result_t msbvi_region_write_entry(sf_binary_writer_t *w,
+                                            const void         *entry,
+                                            size_t              index,
+                                            void               *ctx) {
+    (void)ctx;
+    if (index > (size_t)INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+    const sf_msbvi_region_t *region = (const sf_msbvi_region_t *)entry;
+    return msbvi_region_write_one(w, &region->data, (int32_t)index);
+}
+
 sf_result_t msbvi_point_param_write(sf_binary_writer_t *w, const sf_msbvi_t *msbvi) {
     if (!w || !msbvi) return SF_ERR_INVALID_ARG;
-    sf_result_t rc;
-    rc = sf_binary_writer_write_i32(w, 52); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_write_i32(w, msbvi->region_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbviNameOff2"); if (rc != SF_OK) return rc; for (int32_t i = 0; i < msbvi->region_count; i++) { char n[32]; snprintf(n, sizeof n, "MsbviRegionOff%d", i); rc = sf_binary_writer_reserve_i64(w, n); if (rc != SF_OK) return rc; }
-    rc = sf_binary_writer_reserve_i64(w, "MsbviNextList2"); if (rc != SF_OK) return rc; rc = sf_binary_writer_fill_i64(w, "MsbviNameOff2", sf_binary_writer_position(w)); if (rc != SF_OK) return rc; rc = sf_binary_writer_write_utf16(w, "POINT_PARAM_ST", true); if (rc != SF_OK) return rc; rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
-    for (int32_t i = 0; i < msbvi->region_count; i++) { char n[32]; snprintf(n, sizeof n, "MsbviRegionOff%d", i); rc = sf_binary_writer_fill_i64(w, n, sf_binary_writer_position(w)); if (rc != SF_OK) return rc; rc = msbvi_region_write_one(w, &msbvi->regions[i].data, i); if (rc != SF_OK) return rc; }
-    return SF_OK;
+    return msb_entry_list_write(w, 52, "POINT_PARAM_ST", "MsbviNextList2", msbvi->regions,
+                                (size_t)msbvi->region_count, sizeof(*msbvi->regions),
+                                msbvi_region_write_entry, NULL);
 }

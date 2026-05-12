@@ -5,6 +5,7 @@
 
 #include "msbvi_internal.h"
 #include "internal/sf_internal.h"
+#include "map/msb_internal.h" /* IWYU pragma: keep */
 
 #include <stdio.h>
 #include <string.h>
@@ -61,23 +62,19 @@ static sf_result_t msbvi_layer_write_one(sf_binary_writer_t *w, const msbvi_laye
     return sf_binary_writer_pad(w, 8);
 }
 
+static sf_result_t msbvi_layer_write_entry(sf_binary_writer_t *w,
+                                           const void         *entry,
+                                           size_t              index,
+                                           void               *ctx) {
+    (void)ctx;
+    (void)index;
+    const sf_msbvi_layer_t *layer = (const sf_msbvi_layer_t *)entry;
+    return msbvi_layer_write_one(w, &layer->data);
+}
+
 sf_result_t msbvi_layer_param_write(sf_binary_writer_t *w, const sf_msbvi_t *msbvi) {
     if (!w || !msbvi) return SF_ERR_INVALID_ARG;
-    sf_result_t rc;
-    rc = sf_binary_writer_write_i32(w, 52); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_write_i32(w, msbvi->layer_count + 1); if (rc != SF_OK) return rc;
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbviNameOff4"), return rc);
-    for (int32_t i = 0; i < msbvi->layer_count; i++) { char n[32]; snprintf(n, sizeof n, "MsbviLayerOff%d", i); rc = sf_binary_writer_reserve_i64(w, n); if (rc != SF_OK) return rc; }
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbviNextList4"), return rc);
-    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbviNameOff4", sf_binary_writer_position(w)), return rc);
-    rc = sf_binary_writer_write_utf16(w, "LAYER_PARAM_ST", true); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
-    for (int32_t i = 0; i < msbvi->layer_count; i++) {
-        char n[32];
-        snprintf(n, sizeof n, "MsbviLayerOff%d", i);
-        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, n, sf_binary_writer_position(w)), return rc);
-        rc = msbvi_layer_write_one(w, &msbvi->layers[i].data);
-        if (rc != SF_OK) return rc;
-    }
-    return SF_OK;
+    return msb_entry_list_write(w, 52, "LAYER_PARAM_ST", "MsbviNextList4", msbvi->layers,
+                                (size_t)msbvi->layer_count, sizeof(*msbvi->layers),
+                                msbvi_layer_write_entry, NULL);
 }
