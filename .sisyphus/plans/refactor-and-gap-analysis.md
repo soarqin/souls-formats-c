@@ -1644,7 +1644,7 @@ Parallel-execution metrics:
 > 5 tasks; each operates only on a hot path approved by T0.6's alloc-site audit.
 > If T0.6 says a path is per-archive (not per-entry), the corresponding task is downgraded to a no-op.
 
-- [ ] 3.1 **BND3/BND4: bulk-allocate names array in single block**
+- [x] 3.1 **BND3/BND4: bulk-allocate names array in single block**
 
   **What to do**: In `src/archive/bnd3.c` and `src/archive/bnd4.c`, the read paths allocate `name_copy` via `sf_strdup` per entry inside a loop (confirmed at bnd4.c:366, :771). Replace the per-entry `sf_strdup` with a single bulk allocation: compute `Σ strlen(headers[i].name_utf8)+1` first, allocate one block, copy each name into the block, store offsets. Update `_destroy` to free the single block instead of per-entry `sf_xfree`. Same change on the write path.
 
@@ -1683,7 +1683,7 @@ Parallel-execution metrics:
 
   **Commit**: `perf(archive): bulk-allocate BND3/BND4 name array (-N allocs/archive)` — `src/archive/bnd3.c src/archive/bnd4.c docs/api-mapping/extensions.md` — pre-commit: ctest + asan ctest.
 
-- [ ] 3.2 **BXF3/BXF4: mirror BND3/BND4 optimization**
+- [x] 3.2 **BXF3/BXF4: mirror BND3/BND4 optimization**
 
   **What to do**: Same pattern as T3.1 applied to `src/archive/bxf3.c` and `src/archive/bxf4.c`. The BHD/BDT split doesn't change the per-entry alloc pattern materially.
 
@@ -1727,7 +1727,7 @@ Parallel-execution metrics:
 
   **Commit**: `perf(archive): bulk-allocate BXF3/BXF4 name array` — `src/archive/bxf3.c src/archive/bxf4.c` — pre-commit: ctest -L 'archive|golden' + asan -L archive.
 
-- [ ] 3.3 **BHD5: entry-list bulk alloc + name pool**
+- [x] 3.3 **BHD5: entry-list bulk alloc + name pool**
 
   **What to do**: `src/archive/bhd5.c` (37 alloc calls) is the canonical large-N case (ER Data0 has ~25K entries per bhd). Replace per-bucket / per-entry `sf_xalloc` calls with a single bulk allocation per bucket array AND a single contiguous name pool for all entry names in the file. Update `sf_bhd5_destroy` to free the two blocks instead of N+M per-entry frees.
 
@@ -1765,7 +1765,7 @@ Parallel-execution metrics:
 
   **Commit**: `perf(archive): BHD5 bulk-alloc entries + name pool (-Nk allocs/bhd)` — `src/archive/bhd5.c docs/api-mapping/extensions.md` — pre-commit: ctest + golden.
 
-- [ ] 3.4 **FXR3 XML read path: scratch buffer for transient strings**
+- [x] 3.4 **FXR3 XML read path: scratch buffer for transient strings**
 
   **What to do**: `src/effects/fxr3_xml_read.c` has 76 alloc calls — many for transient strings consumed during mxml parsing then immediately copied into final POD. Introduce a per-parse scratch arena (single `sf_xalloc` of estimated size, bump-pointer allocation, freed all at once on parse complete or error). Persistent fields (strings stored in the final FXR3 tree) keep using `sf_strdup`.
 
@@ -1801,7 +1801,7 @@ Parallel-execution metrics:
 
   **Commit**: `perf(effects): FXR3 XML scratch arena (-NN%/parse)` — `src/effects/fxr3_xml_read.c docs/api-mapping/extensions.md` — pre-commit: ctest + asan.
 
-- [ ] 3.5 **PARAM row data: contiguous arena per param (audited subset only)**
+- [x] 3.5 **PARAM row data: contiguous arena per param (audited subset only)**
 
   **What to do**: If T0.6 audit confirms PARAM rows are allocated per-row (likely), introduce a single bulk allocation for all row data of one PARAM. Update `sf_param_destroy` accordingly. Apply only if profitable per audit (PARAMs with ≥1000 rows).
 
