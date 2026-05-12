@@ -23,6 +23,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/CPM.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/deps/zlib-ng.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/deps/zstd.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/deps/mxml.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/deps/klib.cmake)
 
 #-----------------------------------------------------------------------------
 # Platform guard — Windows only (per project charter)

@@ -313,6 +313,18 @@ target_compile_definitions(souls_formats_test_flver2_e2e_er PRIVATE
     SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
     SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
+# T0.4 endian microbench
+if(SF_BUILD_TESTS AND PROJECT_IS_TOP_LEVEL)
+    add_executable(souls_formats_microbench_endian
+        microbench/test_flver2_decode_endian.c)
+    target_link_libraries(souls_formats_microbench_endian PRIVATE souls_formats_static)
+    target_include_directories(souls_formats_microbench_endian PRIVATE ${CMAKE_SOURCE_DIR}/src)
+    set_target_properties(souls_formats_microbench_endian PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/microbench")
+    sf_apply_warnings(souls_formats_microbench_endian)
+    sf_apply_sanitizers(souls_formats_microbench_endian)
+endif()
+
 #-----------------------------------------------------------------------------
 # Phase 5 — Sekiro e2e helper
 #-----------------------------------------------------------------------------
@@ -482,3 +494,12 @@ target_include_directories(souls_formats_test_golden
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/golden)
 
 sf_add_test(souls_formats_test_tae_synthetic anim/test_tae_synthetic.c "anim")
+
+# T0.1 klib compile spike — remove after Wave 4 (T4.1 klib khash adoption in BHD5)
+if(SF_BUILD_TESTS AND PROJECT_IS_TOP_LEVEL)
+    add_executable(souls_formats_test_klib_spike spike/test_klib_compile.c)
+    target_link_libraries(souls_formats_test_klib_spike PRIVATE klib)
+    set_target_properties(souls_formats_test_klib_spike PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/spike")
+    sf_apply_warnings(souls_formats_test_klib_spike)
+endif()
