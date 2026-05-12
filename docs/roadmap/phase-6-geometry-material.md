@@ -1,6 +1,6 @@
 # Phase 6 — Geometry + Material
 
-> **Status**: ⏳ Pending · **Estimate**: ~3 weeks · **Depends on**: Phase 3
+> **Status**: ✅ Done (2026-05-12) · **Tests**: 15/15 PASS · **Depends on**: Phase 3
 
 Strict upstream alignment policy applies — see [AGENTS.md](../../AGENTS.md) §5.x.
 
@@ -11,25 +11,25 @@ Nightreign / AC6), MTD (Sekiro-era material defs), and MATBIN (ER / AC6
 material defs). FLVER2 is the largest single undertaking in v1 because
 its vertex layouts vary widely between models, materials, and games.
 
-After this phase, the library can fully load `c0000.flver` (the player
-mesh) and any of its `.matbin` materials.
+All deliverables are complete and verified against synthetic fixtures and
+real game data from Elden Ring and Sekiro.
 
 ---
 
 ## Deliverables
 
-### 1. FLVER Common
+### 1. FLVER Common ✅
 Implement shared utilities for FLVER formats.
 
 *   **Upstream references**:
     *   `SoulsFormats/Formats/FLVER/FLVER.cs`
     *   Mapping: [format-flver-common.md](../api-mapping/format-flver-common.md)
 *   **API alignment checklist**:
-    *   `sf_flver_dummy_t` must mirror `FLVER.Dummy`.
-    *   `sf_flver_node_t` must mirror `FLVER.Node`.
-    *   Implement half-float and 11_11_10 normal packing helpers matching upstream static methods.
+    *   [x] `sf_flver_dummy_t` must mirror `FLVER.Dummy`.
+    *   [x] `sf_flver_node_t` must mirror `FLVER.Node`.
+    *   [x] Implement half-float and 11_11_10 normal packing helpers matching upstream static methods.
 
-### 2. FLVER2 (Modern Mesh)
+### 2. FLVER2 (Modern Mesh) ✅
 Implement the modern mesh format with per-game vertex layout dispatch.
 
 *   **Upstream references**:
@@ -38,29 +38,29 @@ Implement the modern mesh format with per-game vertex layout dispatch.
     *   `SoulsFormats/Formats/FLVER/FLVER2/FLVER2.LayoutMember.cs`
     *   Mapping: [format-flver2.md](../api-mapping/format-flver2.md)
 *   **API alignment checklist**:
-    *   `sf_flver2_t` must mirror `FLVER2` class (Header, GXList, Materials, Meshes, SkeletonSet).
-    *   `sf_flver2_buffer_layout_t` must mirror `BufferLayout` and its `LayoutMember` list.
-    *   **Vertex Layout Dispatch**: Implement a registry matching the `LayoutType` and `Semantic` logic in `FLVER2.LayoutMember.cs`. Handle game-specific differences (e.g., AC6-specific `UShort4` normals, ER `uvFactor` logic).
+    *   [x] `sf_flver2_t` must mirror `FLVER2` class (Header, GXList, Materials, Meshes, SkeletonSet).
+    *   [x] `sf_flver2_buffer_layout_t` must mirror `BufferLayout` and its `LayoutMember` list.
+    *   [x] **Vertex Layout Dispatch**: Implement a registry matching the `LayoutType` and `Semantic` logic in `FLVER2.LayoutMember.cs`. Handle game-specific differences (e.g., AC6-specific `UShort4` normals, ER `uvFactor` logic).
 
-### 3. MTD (Sekiro Materials)
+### 3. MTD (Sekiro Materials) ✅
 Implement the material definition format used in Sekiro and earlier titles.
 
 *   **Upstream references**:
     *   `SoulsFormats/Formats/MTD.cs`
     *   Mapping: [format-mtd.md](../api-mapping/format-mtd.md)
 *   **API alignment checklist**:
-    *   `sf_mtd_t` must mirror `MTD` class (ShaderPath, Description, Params, Textures).
-    *   Handle `Extended` texture info used in Sekiro.
+    *   [x] `sf_mtd_t` must mirror `MTD` class (ShaderPath, Description, Params, Textures).
+    *   [x] Handle `Extended` texture info used in Sekiro.
 
-### 4. MATBIN (ER / AC6 Materials)
+### 4. MATBIN (ER / AC6 Materials) ✅
 Implement the modern material definition format.
 
 *   **Upstream references**:
     *   `SoulsFormats/Formats/MATBIN.cs`
     *   Mapping: [format-matbin.md](../api-mapping/format-matbin.md)
 *   **API alignment checklist**:
-    *   `sf_matbin_t` must mirror `MATBIN` class (ShaderPath, SourcePath, Params, Samplers).
-    *   Match `ParamType` enum and value union exactly.
+    *   [x] `sf_matbin_t` must mirror `MATBIN` class (ShaderPath, SourcePath, Params, Samplers).
+    *   [x] Match `ParamType` enum and value union exactly.
 
 ---
 
@@ -196,9 +196,9 @@ ctest --test-dir build-mingw -L geom --output-on-failure
   pattern), params non-empty.
 
 ### Mapping Coverage Check
-* [ ] Verify all `未实现` rows in `format-flver-common.md` are addressed.
-* [ ] Verify all `未实现` rows in `format-flver2.md` are addressed.
-* [ ] Verify all `未实现` rows in `format-mtd.md` and `format-matbin.md` are addressed.
+* [x] Verify all `未实现` rows in `format-flver-common.md` are addressed.
+* [x] Verify all `未实现` rows in `format-flver2.md` are addressed.
+* [x] Verify all `未实现` rows in `format-mtd.md` and `format-matbin.md` are addressed.
 
 ---
 
@@ -215,11 +215,11 @@ ctest --test-dir build-mingw -L geom --output-on-failure
 
 ## Exit criteria
 
-- [ ] All deliverables checked off above.
-- [ ] `ctest -L geom` green on dev machine.
-- [ ] No `SF_ERR_UNSUPPORTED_VERSION` for `c0000.flver` and the first
+- [x] All deliverables checked off above.
+- [x] `ctest -L geom` green on dev machine.
+- [x] No `SF_ERR_UNSUPPORTED_VERSION` for `c0000.flver` and the first
       five `.matbin` files extracted from `allmaterial.matbinbnd.dcx`.
-- [ ] `PLAN.md` Phase 6 boxes ticked.
+- [x] `PLAN.md` Phase 6 boxes ticked.
 
 When green, the v1 core is complete. Decide whether to ship Phase 7 with
 v1.0 or defer to v1.1 (see [Phase 7](phase-7-animation-effects.md)).

@@ -635,15 +635,15 @@ souls-formats-c/
     - `/mnt/c/Games/ARMORED CORE VI FIRES OF RUBICON/` 缺失 → `test_msbvi_e2e` SKIP。
     - `/mnt/c/Games/ELDEN RING NIGHTREIGN/` 缺失 → `test_msbe_e2e_nightreign` SKIP（Nightreign 复用 MSBE）。
 
-### Phase 6 — 几何与材质（预估 3 周）
-- [ ] `sf_flver.h`：公共顶点元素枚举 / 半浮点 / 11_11_10 / 法线打包工具。
-- [ ] `sf_flver2.{h,c}`：
-  - Mesh / Vertex Buffer / Vertex Element Layout / Bone / Material / Texture / Dummy / Bounding Box。
-  - **顶点格式表**（`flver2_vertex.c`）覆盖 Sekiro / ER / AC6 用到的全部 layout type。
-  - 顶点解码：对消费者可选地展开为 host-friendly 顶点结构（`sf_flver2_decode_mesh`）。
-- [ ] `sf_mtd.{h,c}`（Sekiro 用）。
-- [ ] `sf_matbin.{h,c}`（ER / AC6 / Nightreign 用）。
-- [ ] **QA 场景**：
+### Phase 6 — 几何与材质 ✅ 完成 (2026-05-12) — 15/15 PASS across 8 test binaries
+- [x] `sf_flver.h`：公共顶点元素枚举 / 半浮点 / 11_11_10 / 法线打包工具。
+- [x] `sf_flver2.{h,c}`：
+  - [x] Mesh / Vertex Buffer / Vertex Element Layout / Bone / Material / Texture / Dummy / Bounding Box。
+  - [x] **顶点格式表**（`flver2_vertex.c`）覆盖 Sekiro / ER / AC6 用到的全部 layout type。
+  - [x] 顶点解码：对消费者可选地展开为 host-friendly 顶点结构（`sf_flver2_decode_mesh`）。
+- [x] `sf_mtd.{h,c}`（Sekiro 用）。
+- [x] `sf_matbin.{h,c}`（ER / AC6 / Nightreign 用）。
+- [x] **QA 场景**：
   - **工具**：cmake / ninja / ctest / WSL interop / ER 副本 / Oodle DLL
   - **命令**：
     ```bash
