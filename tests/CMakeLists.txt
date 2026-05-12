@@ -268,6 +268,8 @@ sf_add_test(msbvi_layer_param_synthetic
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_flver_common
     geom/test_flver_common.c "geom")
+sf_add_test(souls_formats_test_flver2_top_level
+    geom/test_flver2_top_level.c "geom")
 
 #-----------------------------------------------------------------------------
 # Phase 5 — Sekiro e2e helper
