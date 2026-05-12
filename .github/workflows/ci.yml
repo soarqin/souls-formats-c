@@ -108,7 +108,7 @@ jobs:
           cmake -B build-mingw -G Ninja
           --toolchain cmake/toolchain-mingw-w64.cmake
           -DCMAKE_BUILD_TYPE=Debug
-          -DSF_BUILD_TESTS=ON
+          -DBUILD_TESTING=ON
 
       - name: Build (cross — no run on Linux runner)
         run: cmake --build build-mingw
