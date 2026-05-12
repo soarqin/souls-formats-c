@@ -84,6 +84,8 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_esd.h
     include/souls_formats/sf_bhd5.h
     include/souls_formats/sf_binder.h
+    include/souls_formats/sf_bnd.h
+    include/souls_formats/sf_bnd2.h
     include/souls_formats/sf_bnd3.h
     include/souls_formats/sf_bnd4.h
     include/souls_formats/sf_bxf3.h
@@ -91,7 +93,10 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_enfl.h
     include/souls_formats/sf_tpf.h
     include/souls_formats/sf_flver.h
+    include/souls_formats/sf_flver0.h
     include/souls_formats/sf_flver2.h
+    include/souls_formats/sf_mdl4.h
+    include/souls_formats/sf_mdl.h
     include/souls_formats/sf_mtd.h
     include/souls_formats/sf_matbin.h
 )
@@ -99,6 +104,20 @@ set(SF_PUBLIC_HEADERS
 list(APPEND SF_PUBLIC_HEADERS
     include/souls_formats/sf_tae.h
     include/souls_formats/sf_fxr3.h
+)
+
+list(APPEND SF_PUBLIC_HEADERS
+    include/souls_formats/sf_msb1.h
+    include/souls_formats/sf_msb2.h
+    include/souls_formats/sf_msb3.h
+    include/souls_formats/sf_msbac4.h
+    include/souls_formats/sf_msbb.h
+    include/souls_formats/sf_msbd.h
+    include/souls_formats/sf_msbdr.h
+    include/souls_formats/sf_msbfa.h
+    include/souls_formats/sf_msbn.h
+    include/souls_formats/sf_msbv.h
+    include/souls_formats/sf_msbvd.h
 )
 
 set(SF_SOURCES
@@ -128,6 +147,8 @@ set(SF_SOURCES
     src/archive/bhd5_keys.c
     src/archive/binder_common.c
     src/archive/sf_binder.c
+    src/archive/bnd.c
+    src/archive/bnd2.c
     src/archive/bnd3.c
     src/archive/bnd4.c
     src/archive/bxf3.c
@@ -171,6 +192,7 @@ set(SF_SOURCES
     src/map/msbvi/point_param.c
     src/map/msbvi/route_param.c
     src/geom/flver_common.c
+    src/geom/flver0.c
     src/geom/flver2_vertex.c
     src/geom/flver2_decode.c
     src/geom/flver2.c
@@ -179,6 +201,9 @@ set(SF_SOURCES
     src/geom/flver2_mesh.c
     src/geom/flver2_skeleton.c
     src/geom/flver2_vertex_buffer.c
+    src/geom/mdl4.c
+    src/geom/mdl.c
+    src/geom/mdl0.c
     src/geom/mtd.c
     src/geom/matbin.c
 )
@@ -188,6 +213,63 @@ list(APPEND SF_SOURCES
     src/effects/fxr3.c
     src/effects/fxr3_xml_read.c
     src/effects/fxr3_xml_write.c
+)
+
+list(APPEND SF_SOURCES
+    src/map/msb_legacy_common.c
+    src/map/msb1/msb1.c
+    src/map/msb1/model_param.c
+    src/map/msb1/event_param.c
+    src/map/msb1/point_param.c
+    src/map/msb1/parts_param.c
+    src/map/msb2/msb2.c
+    src/map/msb2/model_param.c
+    src/map/msb2/event_param.c
+    src/map/msb2/point_param.c
+    src/map/msb2/parts_param.c
+    src/map/msb3/msb3.c
+    src/map/msb3/model_param.c
+    src/map/msb3/event_param.c
+    src/map/msb3/point_param.c
+    src/map/msb3/parts_param.c
+    src/map/msbac4/msbac4.c
+    src/map/msbac4/model_param.c
+    src/map/msbac4/event_param.c
+    src/map/msbac4/point_param.c
+    src/map/msbac4/parts_param.c
+    src/map/msbb/msbb.c
+    src/map/msbb/model_param.c
+    src/map/msbb/event_param.c
+    src/map/msbb/point_param.c
+    src/map/msbb/parts_param.c
+    src/map/msbd/msbd.c
+    src/map/msbd/model_param.c
+    src/map/msbd/event_param.c
+    src/map/msbd/point_param.c
+    src/map/msbd/parts_param.c
+    src/map/msbdr/msbdr.c
+    src/map/msbdr/model_param.c
+    src/map/msbdr/event_param.c
+    src/map/msbdr/point_param.c
+    src/map/msbdr/parts_param.c
+    src/map/msbfa/msbfa.c
+    src/map/msbfa/model_param.c
+    src/map/msbfa/event_param.c
+    src/map/msbfa/point_param.c
+    src/map/msbfa/parts_param.c
+    src/map/msbn/msbn.c
+    src/map/msbn/model_param.c
+    src/map/msbn/parts_param.c
+    src/map/msbv/msbv.c
+    src/map/msbv/model_param.c
+    src/map/msbv/event_param.c
+    src/map/msbv/point_param.c
+    src/map/msbv/parts_param.c
+    src/map/msbvd/msbvd.c
+    src/map/msbvd/model_param.c
+    src/map/msbvd/event_param.c
+    src/map/msbvd/point_param.c
+    src/map/msbvd/parts_param.c
 )
 
 if(TARGET libzstd_static)

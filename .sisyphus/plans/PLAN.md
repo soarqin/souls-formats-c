@@ -717,6 +717,9 @@ souls-formats-c/
 | Sekiro 游戏目录 | `/mnt/c/Games/Sekiro` | `C:/Games/Sekiro` | ⏳ 暂未提供 → 测试 SKIP |
 | AC6 游戏目录 | `/mnt/c/Games/ARMORED CORE VI FIRES OF RUBICON` | `C:/Games/ARMORED CORE VI FIRES OF RUBICON` | ⏳ 暂未提供 → 测试 SKIP |
 | Nightreign 游戏目录 | `/mnt/c/Games/ELDEN RING NIGHTREIGN` | `C:/Games/ELDEN RING NIGHTREIGN` | ⏳ 暂未提供 → 测试 SKIP |
+| DS1R 游戏目录（松散文件，无 BHD5） | `/mnt/c/Games/DARK SOULS REMASTERED` | `C:/Games/DARK SOULS REMASTERED` | ✅ 用户已提供 (2026-05-13) |
+| DS2S 游戏目录 | `/mnt/c/Games/Dark Souls II Scholar of the First Sin/Game` | `C:/Games/Dark Souls II Scholar of the First Sin/Game` | ✅ 用户已提供 (2026-05-13) |
+| DS3 游戏目录 | `/mnt/c/Games/DARK SOULS III/Game` | `C:/Games/DARK SOULS III/Game` | ✅ 用户已提供 (2026-05-13) |
 | Oodle DLL 目录 | `/home/soar/dev/oodle/` | `\\wsl.localhost\Ubuntu\home\soar\dev\oodle` | ✅ 用户承诺放 `oo2core_6_win64.dll` (Sekiro/ER) 与 `oo2core_9_win64.dll` (AC6/Nightreign) |
 | Paramdex 仓库 | `/home/soar/dev/paramdex/` | `\\wsl.localhost\Ubuntu\home\soar\dev\paramdex` | ✅ 用户已克隆 soulsmods/Paramdex |
 
@@ -746,8 +749,11 @@ target_compile_definitions(souls_formats_e2e PRIVATE
 | Paramdex XML | ❌ 不入仓 | 用户本地 clone，硬编码路径 |
 
 ### 8.6 v1 GA 的 e2e 覆盖范围
-**当前用户仅提供 Elden Ring 副本**，所以 v1 GA 时：
+**当前用户提供 Elden Ring + DS1R + DS2S + DS3 副本**，所以 v1 GA 时：
 - ✅ Elden Ring 走完整 e2e：DCX_KRAK / BND4 / BXF4 / BHD5 / TPF / PARAM / PARAMDEF / PARAMTDF / FMG / EMEVD / ESD / MSBE / FLVER2 / MTD / MATBIN / ENFL。
+- ✅ DS1R 走松散文件 e2e（无 BHD5，无 Oodle）：BND3 / FMG / EMEVD(DS1) / FLVER2 / MTD。MSB1 与 PARAM 因 DS1R 扩展格式（新 event type / 旧 PARAM 版本）暂 SKIP，待实现支持后自动生效。
+- ✅ DS2S 走松散 PARAM e2e：`Param/KeyConfigParam.param`。
+- ✅ DS3 走 BHD5 e2e（`SF_BHD5_GAME_DARKSOULS3`，32-bit path hash）：EMEVD(DS3)。MSB3 / FLVER2 / FMG 因仅有 Data1 RSA key，其他 shard 暂 SKIP，待补全 key 后自动生效。
 - ⏳ Sekiro / AC6 / Nightreign：代码实现 + 单元 + 合成 fixture 通过，**但缺真实游戏 e2e 校验**；待用户提供副本后补全（按 §8.4 表中预定路径）。
 - 这一不对称在 README 显眼处标注，不视为阻塞 v1 GA。
 

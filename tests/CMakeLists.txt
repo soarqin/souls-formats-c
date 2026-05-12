@@ -109,6 +109,12 @@ sf_add_test(souls_formats_test_enfl_synthetic archive/test_enfl_synthetic.c "arc
 sf_add_test(souls_formats_test_tpf_synthetic  archive/test_tpf_synthetic.c  "archive")
 
 #-----------------------------------------------------------------------------
+# Legacy binder formats (BND + BND2)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_bnd_synthetic  archive/test_bnd_synthetic.c  "legacy-binder")
+sf_add_test(souls_formats_test_bnd2_synthetic archive/test_bnd2_synthetic.c "legacy-binder")
+
+#-----------------------------------------------------------------------------
 # T2.4 — shared e2e helper library
 #
 # Each per-game helper (er_test_helper.c, nightreign_test_helper.c,
@@ -134,13 +140,114 @@ add_library(souls_formats_e2e_helpers STATIC
     e2e/er_test_helper.c
     e2e/nightreign_test_helper.c
     e2e/ac6_test_helper.c
-    e2e/sekiro_test_helper.c)
+    e2e/sekiro_test_helper.c
+    e2e/ds1r_test_helper.c
+    e2e/ds2s_test_helper.c
+    e2e/ds3_test_helper.c)
 target_link_libraries(souls_formats_e2e_helpers PUBLIC souls_formats_static bcrypt)
 target_include_directories(souls_formats_e2e_helpers PUBLIC
     ${CMAKE_SOURCE_DIR}/tests/e2e
     ${CMAKE_SOURCE_DIR}/src)
 sf_apply_warnings(souls_formats_e2e_helpers)
 sf_apply_sanitizers(souls_formats_e2e_helpers)
+
+#-----------------------------------------------------------------------------
+# Legacy Souls real-game e2e tests (DS1R loose files, DS2S loose PARAM, DS3 BHD5)
+#-----------------------------------------------------------------------------
+sf_add_e2e_test(souls_formats_test_ds1r_helper_smoke
+    e2e/test_ds1r_helper_smoke.c "ds1r")
+target_link_libraries(souls_formats_test_ds1r_helper_smoke PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_ds1r_helper_smoke PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_e2e_test(souls_formats_test_msb1_e2e_ds1r
+    map/msb1/test_msb1_e2e_ds1r.c "ds1r")
+target_link_libraries(souls_formats_test_msb1_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_msb1_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_e2e_test(souls_formats_test_bnd3_e2e_ds1r
+    archive/test_bnd3_e2e_ds1r.c "ds1r")
+target_link_libraries(souls_formats_test_bnd3_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_bnd3_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_e2e_test(souls_formats_test_param_e2e_ds1r
+    param/test_param_e2e_ds1r.c "ds1r")
+target_link_libraries(souls_formats_test_param_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_param_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_e2e_test(souls_formats_test_fmg_e2e_ds1r
+    param/test_fmg_e2e_ds1r.c "ds1r")
+target_link_libraries(souls_formats_test_fmg_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_fmg_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_e2e_test(souls_formats_test_emevd_e2e_ds1r
+    script/test_emevd_e2e_ds1r.c "ds1r")
+target_link_libraries(souls_formats_test_emevd_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_emevd_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_e2e_test(souls_formats_test_flver2_e2e_ds1r
+    geom/test_flver2_e2e_ds1r.c "ds1r")
+target_link_libraries(souls_formats_test_flver2_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_flver2_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_e2e_test(souls_formats_test_mtd_e2e_ds1r
+    geom/test_mtd_e2e_ds1r.c "ds1r")
+target_link_libraries(souls_formats_test_mtd_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_mtd_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_e2e_test(souls_formats_test_ds2s_helper_smoke
+    e2e/test_ds2s_helper_smoke.c "ds2s")
+target_link_libraries(souls_formats_test_ds2s_helper_smoke PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_ds2s_helper_smoke PRIVATE
+    SF_E2E_DS2S_DIR=L"C:/Games/Dark Souls II Scholar of the First Sin/Game")
+
+sf_add_e2e_test(souls_formats_test_param_e2e_ds2s
+    param/test_param_e2e_ds2s.c "ds2s")
+target_link_libraries(souls_formats_test_param_e2e_ds2s PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_param_e2e_ds2s PRIVATE
+    SF_E2E_DS2S_DIR=L"C:/Games/Dark Souls II Scholar of the First Sin/Game")
+
+sf_add_e2e_test(souls_formats_test_ds3_helper_smoke
+    e2e/test_ds3_helper_smoke.c "ds3")
+target_link_libraries(souls_formats_test_ds3_helper_smoke PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_ds3_helper_smoke PRIVATE
+    SF_E2E_DS3_DIR=L"C:/Games/DARK SOULS III/Game"
+    SF_E2E_OODLE_DIR=L"\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
+
+sf_add_e2e_test(souls_formats_test_msb3_e2e_ds3
+    map/msb3/test_msb3_e2e_ds3.c "ds3")
+target_link_libraries(souls_formats_test_msb3_e2e_ds3 PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_msb3_e2e_ds3 PRIVATE
+    SF_E2E_DS3_DIR=L"C:/Games/DARK SOULS III/Game"
+    SF_E2E_OODLE_DIR=L"\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
+
+sf_add_e2e_test(souls_formats_test_emevd_e2e_ds3
+    script/test_emevd_e2e_ds3.c "ds3")
+target_link_libraries(souls_formats_test_emevd_e2e_ds3 PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_emevd_e2e_ds3 PRIVATE
+    SF_E2E_DS3_DIR=L"C:/Games/DARK SOULS III/Game"
+    SF_E2E_OODLE_DIR=L"\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
+
+sf_add_e2e_test(souls_formats_test_flver2_e2e_ds3
+    geom/test_flver2_e2e_ds3.c "ds3")
+target_link_libraries(souls_formats_test_flver2_e2e_ds3 PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_flver2_e2e_ds3 PRIVATE
+    SF_E2E_DS3_DIR=L"C:/Games/DARK SOULS III/Game"
+    SF_E2E_OODLE_DIR=L"\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
+
+sf_add_e2e_test(souls_formats_test_fmg_e2e_ds3
+    param/test_fmg_e2e_ds3.c "ds3")
+target_link_libraries(souls_formats_test_fmg_e2e_ds3 PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_fmg_e2e_ds3 PRIVATE
+    SF_E2E_DS3_DIR=L"C:/Games/DARK SOULS III/Game"
+    SF_E2E_OODLE_DIR=L"\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
 
 #-----------------------------------------------------------------------------
 # Phase 3 — e2e tests (require ER copy + Oodle DLL; gracefully skip otherwise)
@@ -316,6 +423,12 @@ sf_add_test(souls_formats_test_matbin_synthetic
     geom/test_matbin_synthetic.c "geom")
 sf_add_test(souls_formats_test_flver2_decode
     geom/test_flver2_decode.c "geom")
+sf_add_test(souls_formats_test_flver0_synthetic
+    geom/test_flver0_synthetic.c "legacy-flver")
+sf_add_test(souls_formats_test_mdl4_synthetic
+    geom/test_mdl4_synthetic.c "legacy-flver")
+sf_add_test(souls_formats_test_mdl_synthetic
+    geom/test_mdl_synthetic.c "legacy-flver")
 
 sf_add_test(souls_formats_test_flver2_e2e_er
     geom/test_flver2_e2e_er.c "e2e_er")
@@ -522,6 +635,42 @@ set_tests_properties(
     souls_formats_test_msbs_e2e_sekiro
     souls_formats_test_mtd_e2e_sekiro
     PROPERTIES LABELS "e2e;e2e_sekiro")
+set_tests_properties(
+    souls_formats_test_ds1r_helper_smoke
+    souls_formats_test_msb1_e2e_ds1r
+    souls_formats_test_bnd3_e2e_ds1r
+    souls_formats_test_param_e2e_ds1r
+    souls_formats_test_fmg_e2e_ds1r
+    souls_formats_test_emevd_e2e_ds1r
+    souls_formats_test_flver2_e2e_ds1r
+    souls_formats_test_mtd_e2e_ds1r
+    PROPERTIES LABELS "e2e;e2e_ds1r")
+set_tests_properties(
+    souls_formats_test_ds2s_helper_smoke
+    souls_formats_test_param_e2e_ds2s
+    PROPERTIES LABELS "e2e;e2e_ds2s")
+set_tests_properties(
+    souls_formats_test_ds3_helper_smoke
+    souls_formats_test_msb3_e2e_ds3
+    souls_formats_test_emevd_e2e_ds3
+    souls_formats_test_flver2_e2e_ds3
+    souls_formats_test_fmg_e2e_ds3
+    PROPERTIES LABELS "e2e;e2e_ds3")
+#-----------------------------------------------------------------------------
+# Legacy MSB variants — synthetic round-trip tests
+#-----------------------------------------------------------------------------
+sf_add_test(msb1_synthetic_rt    map/msb1/test_msb1_synthetic_rt.c    "legacy-msb")
+sf_add_test(msb2_synthetic_rt    map/msb2/test_msb2_synthetic_rt.c    "legacy-msb")
+sf_add_test(msb3_synthetic_rt    map/msb3/test_msb3_synthetic_rt.c    "legacy-msb")
+sf_add_test(msbac4_synthetic_rt  map/msbac4/test_msbac4_synthetic_rt.c "legacy-msb")
+sf_add_test(msbb_synthetic_rt    map/msbb/test_msbb_synthetic_rt.c    "legacy-msb")
+sf_add_test(msbd_synthetic_rt    map/msbd/test_msbd_synthetic_rt.c    "legacy-msb")
+sf_add_test(msbdr_synthetic_rt   map/msbdr/test_msbdr_synthetic_rt.c  "legacy-msb")
+sf_add_test(msbfa_synthetic_rt   map/msbfa/test_msbfa_synthetic_rt.c  "legacy-msb")
+sf_add_test(msbn_synthetic_rt    map/msbn/test_msbn_synthetic_rt.c    "legacy-msb")
+sf_add_test(msbv_synthetic_rt    map/msbv/test_msbv_synthetic_rt.c    "legacy-msb")
+sf_add_test(msbvd_synthetic_rt   map/msbvd/test_msbvd_synthetic_rt.c  "legacy-msb")
+
 set_tests_properties(
     souls_formats_test_nightreign_helper_smoke
     souls_formats_test_msbe_e2e_nr
