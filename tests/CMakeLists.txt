@@ -421,3 +421,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/probes/CMakeLists.txt)
 sf_add_test(souls_formats_test_golden golden/capture_golden.c "golden")
 target_include_directories(souls_formats_test_golden
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/golden)
+
+#-----------------------------------------------------------------------------
+# Phase 7 — animation + effects (gated by SF_ENABLE_PHASE7)
+#-----------------------------------------------------------------------------
+if(SF_ENABLE_PHASE7)
+    sf_add_test(souls_formats_test_tae_synthetic anim/test_tae_synthetic.c "anim")
+endif()

@@ -11,10 +11,9 @@
  * Wave 2 (T11-T13) implements the actual read/write logic.
  */
 
-#include "souls_formats/sf_io.h"
-#include "souls_formats/sf_tae.h"
-
+#include "effects/tae_internal.h"
 #include "internal/sf_internal.h"
+#include "souls_formats/sf_io.h"
 
 #include <limits.h>
 #include <stdbool.h>
@@ -23,43 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-struct sf_tae_event_group {
-    int32_t group_type;
-    int32_t *members;
-    size_t member_count;
-};
-
-struct sf_tae_event {
-    float start_time;
-    float end_time;
-    int32_t type;
-    int32_t unk04;
-    uint8_t *parameters;
-    size_t parameters_size;
-};
-
-struct sf_tae_animation {
-    int64_t id;
-    sf_tae_anim_mini_header_t mini_header;
-    sf_tae_event_t **events;
-    size_t event_count;
-    sf_tae_event_group_t **event_groups;
-    size_t event_group_count;
-    char *anim_file_name;
-};
-
-struct sf_tae {
-    const sf_allocator_t *alloc;
-    sf_tae_format_t format;
-    int32_t id;
-    uint8_t flags[8];
-    char *skeleton_name;
-    char *sib_name;
-    int64_t event_bank;
-    sf_tae_animation_t **animations;
-    size_t animation_count;
-};
 
 typedef struct tae_animation_record {
     int64_t id;
