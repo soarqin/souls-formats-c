@@ -79,6 +79,13 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_matbin.h
 )
 
+if(SF_ENABLE_PHASE7)
+    list(APPEND SF_PUBLIC_HEADERS
+        include/souls_formats/sf_tae.h
+        include/souls_formats/sf_fxr3.h
+    )
+endif()
+
 set(SF_SOURCES
     src/core/error.c
     src/core/encoding_win32.c
@@ -160,6 +167,15 @@ set(SF_SOURCES
     src/geom/mtd.c
     src/geom/matbin.c
 )
+
+if(SF_ENABLE_PHASE7)
+    list(APPEND SF_SOURCES
+        src/effects/tae.c
+        src/effects/fxr3.c
+        src/effects/fxr3_xml_read.c
+        src/effects/fxr3_xml_write.c
+    )
+endif()
 
 if(TARGET libzstd_static)
     set(SF_ZSTD_TARGET libzstd_static)

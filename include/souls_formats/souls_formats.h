@@ -36,6 +36,8 @@
 #include "souls_formats/sf_flver2.h"
 #include "souls_formats/sf_mtd.h"
 #include "souls_formats/sf_matbin.h"
+#include "souls_formats/sf_tae.h"
+#include "souls_formats/sf_fxr3.h"
 
 /* Format headers will be added here as each Phase lands.
  * Phase 1: io, math, encoding, hash  (DONE)
