@@ -441,39 +441,37 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/probes/CMakeLists.txt)
 #-----------------------------------------------------------------------------
 # Phase 7 — animation / effects (synthetic round-trips)
 #-----------------------------------------------------------------------------
-if(SF_ENABLE_PHASE7)
-    sf_add_test(souls_formats_test_fxr3_xml
-        anim/test_fxr3_xml.c "anim")
+sf_add_test(souls_formats_test_fxr3_xml
+    anim/test_fxr3_xml.c "anim")
 
-    sf_add_test(souls_formats_test_fxr3_synthetic
-        anim/test_fxr3_synthetic.c "anim")
+sf_add_test(souls_formats_test_fxr3_synthetic
+    anim/test_fxr3_synthetic.c "anim")
 
-    # T24 — TAE e2e against ER c0000.anibnd.dcx (in Data3).
-    # Includes the AES + RSA crypto source files because the anibnd lives
-    # in Data3, whose RSA key is not embedded in sf_bhd5_open; the test
-    # therefore carries its own copies of all four Data0..Data3 PEM keys.
-    sf_add_test(souls_formats_test_tae_e2e_er
-        anim/test_tae_e2e_er.c "e2e_er")
-    target_sources(souls_formats_test_tae_e2e_er PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/crypto/aes_cng.c
-        ${CMAKE_SOURCE_DIR}/src/crypto/rsa_cng.c)
-    target_link_libraries(souls_formats_test_tae_e2e_er PRIVATE crypt32)
-    target_compile_definitions(souls_formats_test_tae_e2e_er PRIVATE
-        SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
-        SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+# T24 — TAE e2e against ER c0000.anibnd.dcx (in Data3).
+# Includes the AES + RSA crypto source files because the anibnd lives
+# in Data3, whose RSA key is not embedded in sf_bhd5_open; the test
+# therefore carries its own copies of all four Data0..Data3 PEM keys.
+sf_add_test(souls_formats_test_tae_e2e_er
+    anim/test_tae_e2e_er.c "e2e_er")
+target_sources(souls_formats_test_tae_e2e_er PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/crypto/aes_cng.c
+    ${CMAKE_SOURCE_DIR}/src/crypto/rsa_cng.c)
+target_link_libraries(souls_formats_test_tae_e2e_er PRIVATE crypt32)
+target_compile_definitions(souls_formats_test_tae_e2e_er PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
-    # T25 — FXR3 e2e against ER sfxbnd_commoneffects.ffxbnd.dcx (in Data0).
-    # Uses er_extract_from_data0 from the shared er_test_helper.
-    sf_add_test(souls_formats_test_fxr3_e2e_er
-        anim/test_fxr3_e2e_er.c "e2e_er")
-    target_include_directories(souls_formats_test_fxr3_e2e_er PRIVATE
-        ${CMAKE_SOURCE_DIR}/tests/e2e)
-    target_sources(souls_formats_test_fxr3_e2e_er PRIVATE
-        e2e/er_test_helper.c)
-    target_compile_definitions(souls_formats_test_fxr3_e2e_er PRIVATE
-        SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
-        SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
-endif()
+# T25 — FXR3 e2e against ER sfxbnd_commoneffects.ffxbnd.dcx (in Data0).
+# Uses er_extract_from_data0 from the shared er_test_helper.
+sf_add_test(souls_formats_test_fxr3_e2e_er
+    anim/test_fxr3_e2e_er.c "e2e_er")
+target_include_directories(souls_formats_test_fxr3_e2e_er PRIVATE
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_sources(souls_formats_test_fxr3_e2e_er PRIVATE
+    e2e/er_test_helper.c)
+target_compile_definitions(souls_formats_test_fxr3_e2e_er PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 #-----------------------------------------------------------------------------
 # Pre-refactor SHA-256 baseline — pins deterministic byte outputs across
@@ -483,9 +481,4 @@ sf_add_test(souls_formats_test_golden golden/capture_golden.c "golden")
 target_include_directories(souls_formats_test_golden
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/golden)
 
-#-----------------------------------------------------------------------------
-# Phase 7 — animation + effects (gated by SF_ENABLE_PHASE7)
-#-----------------------------------------------------------------------------
-if(SF_ENABLE_PHASE7)
-    sf_add_test(souls_formats_test_tae_synthetic anim/test_tae_synthetic.c "anim")
-endif()
+sf_add_test(souls_formats_test_tae_synthetic anim/test_tae_synthetic.c "anim")

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(souls_formats_c
-    VERSION 0.3.0
+    VERSION 0.4.0
     DESCRIPTION "Pure C library for FromSoftware game file formats"
     HOMEPAGE_URL "https://github.com/soar/souls-formats-c"
     LANGUAGES C)
@@ -12,7 +12,6 @@ project(souls_formats_c
 option(SF_BUILD_TESTS       "Build the test suite"                ON)
 option(SF_BUILD_EXAMPLES    "Build the examples/ tools"           OFF)
 option(SF_ENABLE_SANITIZERS "Build with ASan/UBSan (Clang/GCC)"   OFF)
-option(SF_ENABLE_PHASE7     "Enable Phase 7 anim/effect formats"  OFF)
 
 #-----------------------------------------------------------------------------
 # Module path & helpers
@@ -79,12 +78,10 @@ set(SF_PUBLIC_HEADERS
     include/souls_formats/sf_matbin.h
 )
 
-if(SF_ENABLE_PHASE7)
-    list(APPEND SF_PUBLIC_HEADERS
-        include/souls_formats/sf_tae.h
-        include/souls_formats/sf_fxr3.h
-    )
-endif()
+list(APPEND SF_PUBLIC_HEADERS
+    include/souls_formats/sf_tae.h
+    include/souls_formats/sf_fxr3.h
+)
 
 set(SF_SOURCES
     src/core/error.c
@@ -168,14 +165,12 @@ set(SF_SOURCES
     src/geom/matbin.c
 )
 
-if(SF_ENABLE_PHASE7)
-    list(APPEND SF_SOURCES
-        src/effects/tae.c
-        src/effects/fxr3.c
-        src/effects/fxr3_xml_read.c
-        src/effects/fxr3_xml_write.c
-    )
-endif()
+list(APPEND SF_SOURCES
+    src/effects/tae.c
+    src/effects/fxr3.c
+    src/effects/fxr3_xml_read.c
+    src/effects/fxr3_xml_write.c
+)
 
 if(TARGET libzstd_static)
     set(SF_ZSTD_TARGET libzstd_static)
@@ -255,6 +250,5 @@ message(STATUS "  Target system     : ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_PROCES
 message(STATUS "  Build type        : ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Build tests       : ${SF_BUILD_TESTS}")
 message(STATUS "  Build examples    : ${SF_BUILD_EXAMPLES}")
-message(STATUS "  Sanitizers        : ${SF_ENABLE_SANITIZERS}")
-message(STATUS "  Phase 7 (anim/fx) : ${SF_ENABLE_PHASE7}")
-message(STATUS "")
+  message(STATUS "  Sanitizers        : ${SF_ENABLE_SANITIZERS}")
+  message(STATUS "")
