@@ -151,6 +151,8 @@ set(SF_SOURCES
     src/geom/flver_common.c
     src/geom/flver2.c
     src/geom/flver2_faceset.c
+    src/geom/flver2_material.c
+    src/geom/flver2_mesh.c
     src/geom/flver2_skeleton.c
     src/geom/flver2_vertex_buffer.c
     src/geom/mtd.c

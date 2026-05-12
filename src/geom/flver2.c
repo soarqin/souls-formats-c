@@ -170,7 +170,7 @@ static sf_result_t flver2_read_sections(sf_flver2_t *f, sf_binary_reader_t *br) 
         r = sfi_flver_dummy_read(br, &f->dummies[i]); if (r != SF_OK) return r;
     }
     for (int32_t i = 0; i < f->header.material_count; i++) {
-        r = sfi_flver2_material_read(br, &f->header, &f->materials[i], f->alloc);
+        r = sfi_flver2_material_read(br, f, &f->materials[i], f->alloc);
         if (r != SF_OK) return r;
     }
     for (int32_t i = 0; i < f->header.bone_count; i++) {
@@ -202,6 +202,9 @@ static sf_result_t flver2_read_sections(sf_flver2_t *f, sf_binary_reader_t *br) 
         r = sfi_flver2_skeleton_set_read(br, &f->header, &f->skeleton_set, f->alloc);
         if (r != SF_OK) return r;
     }
+
+    r = sfi_flver2_take_textures(f);
+    if (r != SF_OK) return r;
     return SF_OK;
 }
 
@@ -354,9 +357,14 @@ static sf_result_t flver2_write_to_writer(const sf_flver2_t *f, sf_binary_writer
         r = sfi_flver2_buffer_layout_write(bw, &f->header, &f->buffer_layouts[i], (size_t)i);
         if (r != SF_OK) return r;
     }
-    for (int32_t i = 0; i < f->header.texture_count; i++) {
-        r = sfi_flver2_texture_write(bw, &f->header, &f->textures[i], (size_t)i);
-        if (r != SF_OK) return r;
+    {
+        size_t texture_index = 0;
+        for (int32_t i = 0; i < f->header.material_count; i++) {
+            r = sfi_flver2_material_write_textures(bw, &f->header, &f->materials[i],
+                                                   (size_t)i, texture_index);
+            if (r != SF_OK) return r;
+            texture_index += f->materials[i].texture_count;
+        }
     }
     if (f->header.version >= 0x2001Au) {
         r = sfi_flver2_skeleton_set_write(bw, &f->header, f->skeleton_set);
@@ -371,23 +379,54 @@ static sf_result_t flver2_write_to_writer(const sf_flver2_t *f, sf_binary_writer
     }
 
     r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
+    int32_t *gx_offsets = NULL;
+    if (f->gx_list_count > 0) {
+        gx_offsets = (int32_t *)sf_xalloc(f->alloc, f->gx_list_count * sizeof(int32_t));
+        if (!gx_offsets) return SF_ERR_OOM;
+    }
     for (size_t i = 0; i < f->gx_list_count; i++) {
-        r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
+        gx_offsets[i] = (int32_t)sf_binary_writer_position(bw);
         for (size_t j = 0; j < f->gx_lists[i].count; j++) {
             const sf_flver2_gx_item_t *item = &f->gx_lists[i].items[j];
-            r = sf_binary_writer_write_u32(bw, item->id); if (r != SF_OK) return r;
-            r = sf_binary_writer_write_u32(bw, item->unk04); if (r != SF_OK) return r;
+            r = sf_binary_writer_write_u32(bw, item->id);
+            if (r != SF_OK) { sf_xfree(f->alloc, gx_offsets); return r; }
+            r = sf_binary_writer_write_u32(bw, item->unk04);
+            if (r != SF_OK) { sf_xfree(f->alloc, gx_offsets); return r; }
             r = sf_binary_writer_write_i32(bw, (int32_t)(item->data_size + 0x0C));
-            if (r != SF_OK) return r;
+            if (r != SF_OK) { sf_xfree(f->alloc, gx_offsets); return r; }
             r = sf_binary_writer_write_bytes(bw, item->data, item->data_size);
-            if (r != SF_OK) return r;
+            if (r != SF_OK) { sf_xfree(f->alloc, gx_offsets); return r; }
         }
-        r = sf_binary_writer_write_i32(bw, f->gx_lists[i].terminator_id); if (r != SF_OK) return r;
-        r = sf_binary_writer_write_i32(bw, 100); if (r != SF_OK) return r;
-        r = sf_binary_writer_write_i32(bw, f->gx_lists[i].terminator_length + 0x0C);
-        if (r != SF_OK) return r;
-        r = sf_binary_writer_write_pattern(bw, (size_t)f->gx_lists[i].terminator_length, 0);
-        if (r != SF_OK) return r;
+        if (f->header.version >= 0x20010u) {
+            r = sf_binary_writer_write_i32(bw, f->gx_lists[i].terminator_id);
+            if (r != SF_OK) { sf_xfree(f->alloc, gx_offsets); return r; }
+            r = sf_binary_writer_write_i32(bw, 100);
+            if (r != SF_OK) { sf_xfree(f->alloc, gx_offsets); return r; }
+            int32_t length_subtraction = (f->header.unk68 == 5) ? 0 : 0x0C;
+            r = sf_binary_writer_write_i32(bw,
+                f->gx_lists[i].terminator_length + length_subtraction);
+            if (r != SF_OK) { sf_xfree(f->alloc, gx_offsets); return r; }
+            r = sf_binary_writer_write_pattern(bw,
+                (size_t)f->gx_lists[i].terminator_length, 0);
+            if (r != SF_OK) { sf_xfree(f->alloc, gx_offsets); return r; }
+        }
+    }
+    for (int32_t i = 0; i < f->header.material_count; i++) {
+        r = sfi_flver2_material_fill_gx_offset(bw, (size_t)i, f->materials[i].gx_index,
+                                               gx_offsets, f->gx_list_count);
+        if (r != SF_OK) { sf_xfree(f->alloc, gx_offsets); return r; }
+    }
+    sf_xfree(f->alloc, gx_offsets);
+
+    r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
+    {
+        size_t texture_index = 0;
+        for (int32_t i = 0; i < f->header.material_count; i++) {
+            r = sfi_flver2_material_write_strings(bw, &f->header, &f->materials[i],
+                                                  (size_t)i, texture_index);
+            if (r != SF_OK) return r;
+            texture_index += f->materials[i].texture_count;
+        }
     }
 
     r = sf_binary_writer_pad(bw, 0x10); if (r != SF_OK) return r;
@@ -511,6 +550,7 @@ void sf_flver2_destroy(sf_flver2_t *f) {
     sf_xfree(a, f->buffer_layouts);
     sf_xfree(a, f->textures);
     sf_xfree(a, f->gx_lists);
+    sf_xfree(a, f->gx_offsets_internal);
     sf_xfree(a, f);
 }
 
@@ -573,32 +613,6 @@ const sf_flver2_face_set_t *sf_flver2_face_set(const sf_flver2_t *f, size_t i) {
 }
 const sf_flver2_texture_t *sf_flver2_texture(const sf_flver2_t *f, size_t i) {
     return (f && i < sf_flver2_texture_count(f)) ? &f->textures[i] : NULL;
-}
-
-bool sf_flver2_mesh_use_bone_weights(const sf_flver2_mesh_t *m) {
-    return m ? m->use_bone_weights : false;
-}
-int32_t sf_flver2_mesh_material_index(const sf_flver2_mesh_t *m) {
-    return m ? m->material_index : -1;
-}
-int32_t sf_flver2_mesh_node_index(const sf_flver2_mesh_t *m) { return m ? m->node_index : -1; }
-size_t sf_flver2_mesh_bone_index_count(const sf_flver2_mesh_t *m) {
-    return m ? m->bone_index_count : 0;
-}
-int32_t sf_flver2_mesh_bone_index(const sf_flver2_mesh_t *m, size_t i) {
-    return (m && i < m->bone_index_count) ? m->bone_indices[i] : -1;
-}
-size_t sf_flver2_mesh_face_set_index_count(const sf_flver2_mesh_t *m) {
-    return m ? m->face_set_index_count : 0;
-}
-int32_t sf_flver2_mesh_face_set_index(const sf_flver2_mesh_t *m, size_t i) {
-    return (m && i < m->face_set_index_count) ? m->face_set_indices[i] : -1;
-}
-size_t sf_flver2_mesh_vertex_buffer_index_count(const sf_flver2_mesh_t *m) {
-    return m ? m->vertex_buffer_index_count : 0;
-}
-int32_t sf_flver2_mesh_vertex_buffer_index(const sf_flver2_mesh_t *m, size_t i) {
-    return (m && i < m->vertex_buffer_index_count) ? m->vertex_buffer_indices[i] : -1;
 }
 
 const sf_flver2_gx_list_t *sf_flver2_gx_list(const sf_flver2_t *f, size_t mesh_index) {
@@ -668,56 +682,7 @@ void sf_flver2_decoded_mesh_free(sf_flver2_decoded_mesh_t *m, const sf_allocator
     memset(m, 0, sizeof(*m));
 }
 
-/* Stub — T13 will implement. */
-sf_result_t sfi_flver2_material_read(sf_binary_reader_t *br, const sf_flver2_header_t *hdr,
-                                     sf_flver2_material_t *out, const sf_allocator_t *a) {
-    (void)br; (void)hdr; (void)a;
-    if (out) { out->texture_index = 0; out->texture_count = 0; out->gx_index = -1; }
-    return SF_OK;
-}
-sf_result_t sfi_flver2_material_write(sf_binary_writer_t *bw, const sf_flver2_header_t *hdr,
-                                      const sf_flver2_material_t *m, size_t index) {
-    (void)bw; (void)hdr; (void)m; (void)index;
-    return SF_OK;
-}
-void sfi_flver2_material_destroy_inplace(sf_flver2_material_t *m, const sf_allocator_t *a) {
-    (void)m; (void)a;
-}
-
-/* Stub — T14 will implement. */
-sf_result_t sfi_flver2_mesh_read(sf_binary_reader_t *br, const sf_flver2_header_t *hdr,
-                                 sf_flver2_mesh_t *out, const sf_allocator_t *a) {
-    (void)br; (void)hdr; (void)a;
-    if (out) { out->material_index = -1; out->node_index = -1; }
-    return SF_OK;
-}
-sf_result_t sfi_flver2_mesh_write(sf_binary_writer_t *bw, const sf_flver2_header_t *hdr,
-                                  const sf_flver2_mesh_t *m, size_t index) {
-    (void)bw; (void)hdr; (void)m; (void)index;
-    return SF_OK;
-}
-void sfi_flver2_mesh_destroy_inplace(sf_flver2_mesh_t *m, const sf_allocator_t *a) {
-    if (!m) return;
-    sf_xfree(a, m->bone_indices);
-    sf_xfree(a, m->face_set_indices);
-    sf_xfree(a, m->vertex_buffer_indices);
-}
-
-/* Stub — T13 will implement. */
-sf_result_t sfi_flver2_texture_read(sf_binary_reader_t *br, const sf_flver2_header_t *hdr,
-                                    sf_flver2_texture_t *out, const sf_allocator_t *a) {
-    (void)br; (void)hdr; (void)out; (void)a;
-    return SF_OK;
-}
-sf_result_t sfi_flver2_texture_write(sf_binary_writer_t *bw, const sf_flver2_header_t *hdr,
-                                     const sf_flver2_texture_t *t, size_t index) {
-    (void)bw; (void)hdr; (void)t; (void)index;
-    return SF_OK;
-}
-void sfi_flver2_texture_destroy_inplace(sf_flver2_texture_t *t, const sf_allocator_t *a) {
-    if (!t) return;
-    sf_xfree(a, t->type);
-    sf_xfree(a, t->path);
-}
-
+/* Material / Texture / TakeTextures — implemented in src/geom/flver2_material.c (T13). */
 /* SkeletonSet / Bone — implemented in src/geom/flver2_skeleton.c (T18). */
+
+/* Mesh — implemented in src/geom/flver2_mesh.c (T14). */

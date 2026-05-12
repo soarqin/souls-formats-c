@@ -180,6 +180,45 @@ SF_API const sf_flver2_face_set_t       *sf_flver2_face_set     (const sf_flver2
 SF_API const sf_flver2_texture_t        *sf_flver2_texture      (const sf_flver2_t *f, size_t i);
 
 /*===========================================================================
+ * Material field accessors
+ *
+ * Mirrors upstream Material.cs:
+ *   Name      -> sf_flver2_material_name(m)
+ *   MTD       -> sf_flver2_material_mtd(m)
+ *   Textures  -> sf_flver2_material_texture_count / sf_flver2_material_texture
+ *   GXIndex   -> sf_flver2_material_gx_index(m)
+ *   Index     -> sf_flver2_material_index(m)
+ *
+ * String pointers are owned by the FLVER2 and remain valid until destroy.
+ *===========================================================================*/
+
+SF_API const char *sf_flver2_material_name(const sf_flver2_material_t *m);
+SF_API const char *sf_flver2_material_mtd (const sf_flver2_material_t *m);
+SF_API int32_t     sf_flver2_material_index(const sf_flver2_material_t *m);
+SF_API int32_t     sf_flver2_material_gx_index(const sf_flver2_material_t *m);
+SF_API size_t      sf_flver2_material_texture_count(const sf_flver2_material_t *m);
+SF_API const sf_flver2_texture_t *sf_flver2_material_texture(
+    const sf_flver2_material_t *m, size_t i);
+
+/*===========================================================================
+ * Texture field accessors
+ *
+ * Mirrors upstream Texture.cs (note: upstream field `ParamName` is the
+ * texture map's parameter name; we expose it via `_param_name`).
+ *===========================================================================*/
+
+SF_API const char *sf_flver2_texture_param_name(const sf_flver2_texture_t *t);
+SF_API const char *sf_flver2_texture_path      (const sf_flver2_texture_t *t);
+SF_API sf_vec2_t   sf_flver2_texture_tiling_scale(const sf_flver2_texture_t *t);
+SF_API sf_flver2_tiling_type_t sf_flver2_texture_tiling_type_u(
+    const sf_flver2_texture_t *t);
+SF_API sf_flver2_tiling_type_t sf_flver2_texture_tiling_type_v(
+    const sf_flver2_texture_t *t);
+SF_API float sf_flver2_texture_unk14(const sf_flver2_texture_t *t);
+SF_API float sf_flver2_texture_unk18(const sf_flver2_texture_t *t);
+SF_API float sf_flver2_texture_unk1c(const sf_flver2_texture_t *t);
+
+/*===========================================================================
  * Mesh field accessors
  *
  * Meshes carry indices into the global pools above, not direct pointers.

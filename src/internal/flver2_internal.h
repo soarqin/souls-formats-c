@@ -63,17 +63,51 @@ typedef struct sf_flver2_gx_list {
     int32_t              terminator_length;
 } sf_flver2_gx_list_t;
 
+/* Texture — mirrors upstream Texture.cs.
+ *
+ * Upstream field names map to ours as:
+ *   ParamName       -> param_name
+ *   Path            -> path
+ *   TilingScale     -> tiling_scale
+ *   TilingTypeU/V   -> tiling_type_u / tiling_type_v
+ *   Unk14/Unk18/Unk1C -> unk14 / unk18 / unk1c
+ */
 struct sf_flver2_texture {
-    char *type;
-    char *path;
-    sf_flver2_tiling_type_t scale_u;
-    sf_flver2_tiling_type_t scale_v;
+    char *param_name; /* UTF-8 heap-owned, upstream ParamName */
+    char *path;       /* UTF-8 heap-owned */
+    sf_vec2_t tiling_scale;
+    sf_flver2_tiling_type_t tiling_type_u;
+    sf_flver2_tiling_type_t tiling_type_v;
+    float unk14;
+    float unk18;
+    float unk1c;
 };
 
+/* Material — mirrors upstream Material.cs.
+ *
+ * Upstream field names map to ours as:
+ *   Name      -> name
+ *   MTD       -> mtd
+ *   Textures  -> textures (post-TakeTextures); count in texture_count
+ *   GXIndex   -> gx_index    (index into flver2->gx_lists; -1 if none)
+ *   Index     -> index
+ *
+ * pretake_texture_index / pretake_texture_count are scratch fields used
+ * between material_read() and take_textures() to remember the wire-format
+ * texture-index / texture-count range. After take_textures runs, both are
+ * set to -1 (mirrors upstream's `textureIndex = textureCount = -1` reset).
+ */
 struct sf_flver2_material {
-    int32_t texture_index;
-    int32_t texture_count;
-    int32_t gx_index;
+    char *name;
+    char *mtd;
+    sf_flver2_texture_t *textures;
+    size_t               texture_count;
+    int32_t              gx_index;
+    int32_t              index;
+
+    /* Read-only scratch: cleared by take_textures. */
+    int32_t pretake_texture_index;
+    int32_t pretake_texture_count;
 };
 
 struct sf_flver2_face_set {
@@ -111,15 +145,22 @@ struct sf_flver2_vertex_buffer {
 };
 
 struct sf_flver2_mesh {
-    bool     use_bone_weights;
-    int32_t  material_index;
-    int32_t  node_index;
-    int32_t *bone_indices;
-    size_t   bone_index_count;
-    int32_t *face_set_indices;
-    size_t   face_set_index_count;
-    int32_t *vertex_buffer_indices;
-    size_t   vertex_buffer_index_count;
+    bool      use_bone_weights;
+    int32_t   material_index;
+    int32_t   node_index;
+    int32_t  *bone_indices;
+    size_t    bone_index_count;
+    int32_t  *face_set_indices;
+    size_t    face_set_index_count;
+    int32_t  *vertex_buffer_indices;
+    size_t    vertex_buffer_index_count;
+    /* Optional BoundingBoxes sub-struct (Mesh.cs:269). Only present when
+     * the on-disk `boundingBoxOffset` is non-zero. `bbox_unk` is only
+     * meaningful (and only present in the file) for version >= 0x2001A. */
+    bool      has_bounding_box;
+    sf_vec3_t bbox_min;
+    sf_vec3_t bbox_max;
+    sf_vec3_t bbox_unk;
 };
 
 struct sf_flver2_bone {
@@ -151,24 +192,51 @@ typedef struct sf_flver2 {
     sf_flver2_skeleton_set_t   *skeleton_set;
     sf_flver2_gx_list_t        *gx_lists;
     size_t                      gx_list_count;
+    int32_t                    *gx_offsets_internal;
 } sf_flver2_t;
 
 /* Future submodule contracts. T13-T18 replace the current flver2.c stubs. */
 sf_result_t sfi_flver2_material_read(sf_binary_reader_t *br,
-                                     const sf_flver2_header_t *hdr,
+                                     sf_flver2_t *flver,
                                      sf_flver2_material_t *out,
                                      const sf_allocator_t *a);
 sf_result_t sfi_flver2_material_write(sf_binary_writer_t *bw,
                                       const sf_flver2_header_t *hdr,
                                       const sf_flver2_material_t *m,
                                       size_t index);
+sf_result_t sfi_flver2_material_write_textures(sf_binary_writer_t *bw,
+                                               const sf_flver2_header_t *hdr,
+                                               const sf_flver2_material_t *m,
+                                               size_t mat_index,
+                                               size_t texture_index);
+sf_result_t sfi_flver2_material_fill_gx_offset(sf_binary_writer_t *bw,
+                                               size_t mat_index, int32_t gx_index,
+                                               const int32_t *gx_offsets,
+                                               size_t gx_offset_count);
+sf_result_t sfi_flver2_material_write_strings(sf_binary_writer_t *bw,
+                                              const sf_flver2_header_t *hdr,
+                                              const sf_flver2_material_t *m,
+                                              size_t mat_index,
+                                              size_t texture_index);
 void sfi_flver2_material_destroy_inplace(sf_flver2_material_t *m,
                                          const sf_allocator_t *a);
+
+sf_result_t sfi_flver2_take_textures(sf_flver2_t *f);
 
 sf_result_t sfi_flver2_mesh_read(sf_binary_reader_t *br, const sf_flver2_header_t *hdr,
                                  sf_flver2_mesh_t *out, const sf_allocator_t *a);
 sf_result_t sfi_flver2_mesh_write(sf_binary_writer_t *bw, const sf_flver2_header_t *hdr,
                                   const sf_flver2_mesh_t *m, size_t index);
+sf_result_t sfi_flver2_mesh_write_bounding_box(sf_binary_writer_t *bw,
+                                               const sf_flver2_header_t *hdr,
+                                               const sf_flver2_mesh_t *m, size_t index);
+sf_result_t sfi_flver2_mesh_write_bone_indices(sf_binary_writer_t *bw,
+                                               const sf_flver2_mesh_t *m, size_t index,
+                                               int32_t bone_indices_start);
+sf_result_t sfi_flver2_mesh_fill_face_set_indices(sf_binary_writer_t *bw,
+                                                  const sf_flver2_mesh_t *m, size_t index);
+sf_result_t sfi_flver2_mesh_fill_vertex_buffer_indices(sf_binary_writer_t *bw,
+                                                       const sf_flver2_mesh_t *m, size_t index);
 void sfi_flver2_mesh_destroy_inplace(sf_flver2_mesh_t *m, const sf_allocator_t *a);
 
 sf_result_t sfi_flver2_face_set_read(sf_binary_reader_t *br,
@@ -233,6 +301,10 @@ sf_result_t sfi_flver2_texture_write(sf_binary_writer_t *bw,
                                      const sf_flver2_header_t *hdr,
                                      const sf_flver2_texture_t *t,
                                      size_t index);
+sf_result_t sfi_flver2_texture_write_strings(sf_binary_writer_t *bw,
+                                              const sf_flver2_header_t *hdr,
+                                              const sf_flver2_texture_t *t,
+                                              size_t index);
 void sfi_flver2_texture_destroy_inplace(sf_flver2_texture_t *t,
                                         const sf_allocator_t *a);
 
