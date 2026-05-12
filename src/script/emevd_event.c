@@ -148,7 +148,7 @@ sf_result_t sfi_emevd_event_write(sf_binary_writer_t *bw, sf_emevd_format_t form
     if (r != SF_OK) return r;
     r = emevd_event_name(name, sizeof(name), "InstrsOffset", event_index);
     if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
     r = sf_binary_writer_write_varint(bw, (int64_t)event->parameter_count);
     if (r != SF_OK) return r;
 
@@ -157,7 +157,7 @@ sf_result_t sfi_emevd_event_write(sf_binary_writer_t *bw, sf_emevd_format_t form
     if (format < SF_EMEVD_FORMAT_BLOODBORNE) {
         r = sf_binary_writer_reserve_i32(bw, name);
     } else if (format < SF_EMEVD_FORMAT_DARK_SOULS_3) {
-        r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
         r = sf_binary_writer_write_i32(bw, 0);
     } else {
         r = sf_binary_writer_reserve_i64(bw, name);
@@ -180,7 +180,7 @@ sf_result_t sfi_emevd_event_write_instructions(sf_binary_writer_t *bw,
     int64_t offset = event->instruction_count > 0
         ? sf_binary_writer_position(bw) - offsets->instructions
         : -1;
-    r = sf_binary_writer_fill_varint(bw, name, offset); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, offset), return r);
 
     for (size_t i = 0; i < event->instruction_count; i++) {
         r = sfi_emevd_instruction_write(bw, format, &event->instructions[i], event_index, i);

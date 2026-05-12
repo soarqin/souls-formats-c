@@ -404,23 +404,23 @@ sf_result_t sfi_emevd_write(sf_binary_writer_t *bw, const sf_emevd_t *emevd,
     sf_binary_writer_set_varint_long(bw, props.is_64_bit);
 
     r = sf_binary_writer_write_i32(bw, props.version); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_i32(bw, "FileSize"); if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "FileSize"), goto cleanup);
     r = sf_binary_writer_write_varint(bw, event_count); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_varint(bw, "EventsOffset"); if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "EventsOffset"), goto cleanup);
     r = sf_binary_writer_write_varint(bw, instruction_count); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_varint(bw, "InstructionsOffset"); if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "InstructionsOffset"), goto cleanup);
     r = sf_binary_writer_write_varint(bw, 0); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_varint(bw, "Offset3"); if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "Offset3"), goto cleanup);
     r = sf_binary_writer_write_varint(bw, layer_count_i64); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_varint(bw, "LayersOffset"); if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "LayersOffset"), goto cleanup);
     r = sf_binary_writer_write_varint(bw, parameter_count); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_varint(bw, "ParametersOffset"); if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "ParametersOffset"), goto cleanup);
     r = sf_binary_writer_write_varint(bw, linked_file_count); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_varint(bw, "LinkedFilesOffset"); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_varint(bw, "ArgumentsLength"); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_varint(bw, "ArgumentsOffset"); if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "LinkedFilesOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "ArgumentsLength"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "ArgumentsOffset"), goto cleanup);
     r = sf_binary_writer_write_varint(bw, string_data_size); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_reserve_varint(bw, "StringsOffset"); if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "StringsOffset"), goto cleanup);
     if (!props.is_64_bit) {
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) goto cleanup;
     }
@@ -428,27 +428,24 @@ sf_result_t sfi_emevd_write(sf_binary_writer_t *bw, const sf_emevd_t *emevd,
     sf_emevd_offsets_t offsets;
     memset(&offsets, 0, sizeof(offsets));
     offsets.events = sf_binary_writer_position(bw);
-    r = sf_binary_writer_fill_varint(bw, "EventsOffset", offsets.events); if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "EventsOffset", offsets.events), goto cleanup);
     for (size_t i = 0; i < emevd->event_count; i++) {
         r = sfi_emevd_event_write(bw, emevd->format, &emevd->events[i], i);
         if (r != SF_OK) goto cleanup;
     }
 
     offsets.instructions = sf_binary_writer_position(bw);
-    r = sf_binary_writer_fill_varint(bw, "InstructionsOffset", offsets.instructions);
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "InstructionsOffset", offsets.instructions), goto cleanup);
     for (size_t i = 0; i < emevd->event_count; i++) {
         r = sfi_emevd_event_write_instructions(bw, emevd->format, &offsets,
                                                &emevd->events[i], i);
         if (r != SF_OK) goto cleanup;
     }
 
-    r = sf_binary_writer_fill_varint(bw, "Offset3", sf_binary_writer_position(bw));
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "Offset3", sf_binary_writer_position(bw)), goto cleanup);
 
     offsets.layers = sf_binary_writer_position(bw);
-    r = sf_binary_writer_fill_varint(bw, "LayersOffset", offsets.layers);
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "LayersOffset", offsets.layers), goto cleanup);
     for (size_t i = 0; i < layer_count; i++) {
         layer_offsets[i] = sf_binary_writer_position(bw) - offsets.layers;
         sf_emevd_layer_t layer = {.mask = layers[i]};
@@ -466,8 +463,7 @@ sf_result_t sfi_emevd_write(sf_binary_writer_t *bw, const sf_emevd_t *emevd,
     }
 
     offsets.arguments = sf_binary_writer_position(bw);
-    r = sf_binary_writer_fill_varint(bw, "ArgumentsOffset", offsets.arguments);
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "ArgumentsOffset", offsets.arguments), goto cleanup);
     for (size_t i = 0; i < emevd->event_count; i++) {
         const sf_emevd_event_t *event = &emevd->events[i];
         for (size_t j = 0; j < event->instruction_count; j++) {
@@ -477,13 +473,10 @@ sf_result_t sfi_emevd_write(sf_binary_writer_t *bw, const sf_emevd_t *emevd,
         }
     }
     r = sf_binary_writer_pad_relative(bw, offsets.arguments, 0x10); if (r != SF_OK) goto cleanup;
-    r = sf_binary_writer_fill_varint(bw, "ArgumentsLength",
-                                     sf_binary_writer_position(bw) - offsets.arguments);
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "ArgumentsLength", sf_binary_writer_position(bw) - offsets.arguments), goto cleanup);
 
     offsets.parameters = sf_binary_writer_position(bw);
-    r = sf_binary_writer_fill_varint(bw, "ParametersOffset", offsets.parameters);
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "ParametersOffset", offsets.parameters), goto cleanup);
     for (size_t i = 0; i < emevd->event_count; i++) {
         r = sfi_emevd_event_write_parameters(bw, emevd->format, &offsets,
                                              &emevd->events[i], i);
@@ -491,16 +484,14 @@ sf_result_t sfi_emevd_write(sf_binary_writer_t *bw, const sf_emevd_t *emevd,
     }
 
     offsets.linked_files = sf_binary_writer_position(bw);
-    r = sf_binary_writer_fill_varint(bw, "LinkedFilesOffset", offsets.linked_files);
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "LinkedFilesOffset", offsets.linked_files), goto cleanup);
     for (size_t i = 0; i < emevd->linked_file_count; i++) {
         r = sf_binary_writer_write_varint(bw, emevd->linked_file_offsets[i]);
         if (r != SF_OK) goto cleanup;
     }
 
     offsets.strings = sf_binary_writer_position(bw);
-    r = sf_binary_writer_fill_varint(bw, "StringsOffset", offsets.strings);
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "StringsOffset", offsets.strings), goto cleanup);
     if (emevd->string_data_size > 0) {
         r = sf_binary_writer_write_bytes(bw, emevd->string_data, emevd->string_data_size);
         if (r != SF_OK) goto cleanup;

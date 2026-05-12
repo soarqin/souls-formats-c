@@ -100,44 +100,44 @@ static sf_result_t msbe_region_write_one(sf_binary_writer_t *w, const msbe_regio
     snprintf(unk_key, sizeof unk_key, "MsbeRegionUnk%d", index);
     int64_t start = sf_binary_writer_position(w);
     sf_result_t rc;
-    rc = sf_binary_writer_reserve_i64(w, name_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_key), return rc);
     rc = sf_binary_writer_write_u32(w, region->type); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, id); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, region->shape_type); if (rc != SF_OK) return rc;
     for (int i = 0; i < 6; i++) { rc = sf_binary_writer_write_f32(w, 0.0f); if (rc != SF_OK) return rc; }
     rc = sf_binary_writer_write_i32(w, region->region_id); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, base1_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, base2_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, base1_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, base2_key), return rc);
     rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, UINT32_MAX); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, shape_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, base3_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, type_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, unk_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, shape_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, base3_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, type_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, unk_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, region->name ? region->name : "", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 4); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, base1_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, base1_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_i16(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 4); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, base2_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, base2_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_i16(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, shape_key, 0); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, base3_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, shape_key, 0), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, base3_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_i32(w, -1); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc;
     if (region->type > 26 && region->type != UINT32_MAX) { rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc; }
     if (msbe_region_has_type_data(region->type)) {
-        rc = sf_binary_writer_fill_i64(w, type_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, type_key, sf_binary_writer_position(w) - start), return rc);
         for (int i = 0; i < 8; i++) { rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc; }
     } else {
-        rc = sf_binary_writer_fill_i64(w, type_key, 0); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, type_key, 0), return rc);
     }
     if (region->type <= 26 || region->type == UINT32_MAX) { rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc; }
-    rc = sf_binary_writer_fill_i64(w, unk_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, unk_key, sf_binary_writer_position(w) - start), return rc);
     for (int i = 0; i < 8; i++) { rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc; }
     return sf_binary_writer_pad(w, 8);
 }
@@ -147,18 +147,18 @@ sf_result_t msbe_point_param_write(sf_binary_writer_t *w, const sf_msbe_t *msbe)
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, 73); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, msbe->region_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNameOff2"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNameOff2"), return rc);
     for (int32_t i = 0; i < msbe->region_count; i++) {
         char entry_key[32]; snprintf(entry_key, sizeof entry_key, "MsbeRegionEntry%d", i);
-        rc = sf_binary_writer_reserve_i64(w, entry_key); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entry_key), return rc);
     }
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNextList2"); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, "MsbeNameOff2", sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNextList2"), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbeNameOff2", sf_binary_writer_position(w)), return rc);
     rc = sf_binary_writer_write_utf16(w, "POINT_PARAM_ST", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
     for (int32_t i = 0; i < msbe->region_count; i++) {
         char entry_key[32]; snprintf(entry_key, sizeof entry_key, "MsbeRegionEntry%d", i);
-        rc = sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)), return rc);
         rc = msbe_region_write_one(w, &msbe->regions[i].data, i, i); if (rc != SF_OK) return rc;
     }
     return SF_OK;

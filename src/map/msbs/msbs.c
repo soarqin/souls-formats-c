@@ -96,11 +96,10 @@ static sf_result_t msbs_write_empty_param(sf_binary_writer_t *w, const char *nam
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, version); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, 1);       if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, name_offset_name); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, next_name);        if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_offset_name), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, next_name), return rc);
 
-    rc = sf_binary_writer_fill_i64(w, name_offset_name, sf_binary_writer_position(w));
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_offset_name, sf_binary_writer_position(w)), return rc);
     rc = sf_binary_writer_write_utf16(w, name, true); if (rc != SF_OK) return rc;
     return sf_binary_writer_pad(w, 8);
 }

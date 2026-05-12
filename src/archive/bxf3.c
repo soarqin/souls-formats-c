@@ -651,13 +651,11 @@ static sf_result_t bxf3_write_file_data(sf_binary_writer_t              *bhd_bw,
     char name[64];
     sf_result_t r;
     bxf3_format_index_name(name, sizeof name, "FileCompressedSize", entry_index);
-    r = sf_binary_writer_fill_i32(bhd_bw, name, (int32_t)compressed);
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bhd_bw, name, (int32_t)compressed), return r);
 
     if (sf_binder_format_has_compression(f)) {
         bxf3_format_index_name(name, sizeof name, "FileUncompressedSize", entry_index);
-        r = sf_binary_writer_fill_i32(bhd_bw, name, (int32_t)h->uncompressed_size);
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bhd_bw, name, (int32_t)h->uncompressed_size), return r);
     }
 
     bxf3_format_index_name(name, sizeof name, "FileDataOffset", entry_index);

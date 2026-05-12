@@ -535,7 +535,7 @@ static sf_result_t bnd3_write_to_writer(const sf_bnd3_t *b, sf_binary_writer_t *
     r = sf_binary_writer_write_u8  (bw, 0);                 if (r != SF_OK) return r;
 
     r = sf_binary_writer_write_i32(bw, (int32_t)b->file_count); if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i32(bw, "FileHeadersEnd");     if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "FileHeadersEnd"), return r);
     r = sf_binary_writer_write_i32 (bw, b->unk18);              if (r != SF_OK) return r;
     r = sf_binary_writer_write_i32 (bw, 0);                     if (r != SF_OK) return r;
 
@@ -564,9 +564,7 @@ static sf_result_t bnd3_write_to_writer(const sf_bnd3_t *b, sf_binary_writer_t *
         if (r != SF_OK) goto cleanup;
     }
 
-    r = sf_binary_writer_fill_i32(bw, "FileHeadersEnd",
-        b->write_file_headers_end ? (int32_t)sf_binary_writer_position(bw) : 0);
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, "FileHeadersEnd", b->write_file_headers_end ? (int32_t)sf_binary_writer_position(bw) : 0), goto cleanup);
 
     for (size_t i = 0; i < b->file_count; i++) {
         const sf_binder_file_t *f = &b->files[i];

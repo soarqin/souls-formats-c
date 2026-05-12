@@ -542,35 +542,33 @@ static sf_result_t msbs_part_write_one(sf_binary_writer_t *w, const msbs_part_t 
 
     int64_t start = sf_binary_writer_position(w);
     sf_result_t rc;
-    rc = sf_binary_writer_reserve_i64(w, name_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_key), return rc);
     rc = sf_binary_writer_write_u32(w, (uint32_t)part->type); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, id); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, part->model_index); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, sib_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, sib_key), return rc);
     rc = sf_binary_writer_write_vec3(w, part->position); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_vec3(w, part->rotation); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_vec3(w, part->scale); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, -1); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, -1); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, unk1_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, unk2_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, entity_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, type_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, gparam_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, scene_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, unk7_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, unk1_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, unk2_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entity_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, type_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, gparam_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, scene_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, unk7_key), return rc);
     rc = sf_binary_writer_write_i64(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i64(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i64(w, 0); if (rc != SF_OK) return rc;
 
-    rc = sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start);
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, part->name ? part->name : "", true);
     if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, sib_key, sf_binary_writer_position(w) - start);
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, sib_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, part->sib_path ? part->sib_path : "", true);
     if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
@@ -581,11 +579,9 @@ static sf_result_t msbs_part_write_one(sf_binary_writer_t *w, const msbs_part_t 
     rc = msbs_part_fill_optional_offset(w, unk2_key, start, msbs_part_has_unk2(part->type));
     if (rc != SF_OK) return rc;
     if (msbs_part_has_unk2(part->type)) { rc = msbs_part_write_unk2(w, &part->unk2); if (rc != SF_OK) return rc; }
-    rc = sf_binary_writer_fill_i64(w, entity_key, sf_binary_writer_position(w) - start);
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entity_key, sf_binary_writer_position(w) - start), return rc);
     rc = msbs_part_write_entity_data(w, part); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, type_key, sf_binary_writer_position(w) - start);
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, type_key, sf_binary_writer_position(w) - start), return rc);
     rc = msbs_part_write_type_data(w, part); if (rc != SF_OK) return rc;
     rc = msbs_part_fill_optional_offset(w, gparam_key, start, msbs_part_has_gparam(part->type));
     if (rc != SF_OK) return rc;
@@ -604,22 +600,20 @@ sf_result_t msbs_parts_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs)
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, 35); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, msbs->part_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbsPartsNameOff0"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbsPartsNameOff0"), return rc);
     for (int32_t i = 0; i < msbs->part_count; i++) {
         char entry_key[32];
         snprintf(entry_key, sizeof entry_key, "MsbsPartEntry%d", i);
-        rc = sf_binary_writer_reserve_i64(w, entry_key); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entry_key), return rc);
     }
-    rc = sf_binary_writer_reserve_i64(w, "MsbsNextList5"); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, "MsbsPartsNameOff0", sf_binary_writer_position(w));
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbsNextList5"), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbsPartsNameOff0", sf_binary_writer_position(w)), return rc);
     rc = sf_binary_writer_write_utf16(w, "PARTS_PARAM_ST", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
     for (int32_t i = 0; i < msbs->part_count; i++) {
         char entry_key[32];
         snprintf(entry_key, sizeof entry_key, "MsbsPartEntry%d", i);
-        rc = sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w));
-        if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)), return rc);
         rc = msbs_part_write_one(w, &msbs->parts[i].data, i, i);
         if (rc != SF_OK) return rc;
     }

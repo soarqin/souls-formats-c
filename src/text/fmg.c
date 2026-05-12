@@ -433,8 +433,7 @@ static sf_result_t write_strings_reuse_offsets(sf_binary_writer_t *bw,
         }
         const char *text = view[i].text_utf8;
         if (!text) {
-            r = sf_binary_writer_fill_varint(bw, name, 0);
-            if (r != SF_OK) goto out;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, 0), goto out);
             continue;
         }
 
@@ -451,13 +450,11 @@ static sf_result_t write_strings_reuse_offsets(sf_binary_writer_t *bw,
             table[table_size].text = text;
             table[table_size].offset = offset;
             table_size++;
-            r = sf_binary_writer_fill_varint(bw, name, offset);
-            if (r != SF_OK) goto out;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, offset), goto out);
             r = write_one_string(bw, unicode, text);
             if (r != SF_OK) goto out;
         } else {
-            r = sf_binary_writer_fill_varint(bw, name, found);
-            if (r != SF_OK) goto out;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, found), goto out);
         }
     }
 
@@ -479,7 +476,7 @@ static sf_result_t fmg_write_body(sf_binary_writer_t *bw, const sf_fmg_t *fmg,
     r = sf_binary_writer_write_u8(bw, (uint8_t)fmg->version);   if (r != SF_OK) return r;
     r = sf_binary_writer_write_u8(bw, 0);                       if (r != SF_OK) return r;
 
-    r = sf_binary_writer_reserve_i32(bw, "FileSize");           if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "FileSize"), return r);
     r = sf_binary_writer_write_bool(bw, fmg->unicode);          if (r != SF_OK) return r;
     r = sf_binary_writer_write_u8(bw,
         (uint8_t)(fmg->version == SF_FMG_VERSION_DEMONS_SOULS ? 0xFFu : 0x00u));
@@ -488,7 +485,7 @@ static sf_result_t fmg_write_body(sf_binary_writer_t *bw, const sf_fmg_t *fmg,
     r = sf_binary_writer_write_u8(bw, 0);                       if (r != SF_OK) return r;
 
     if (fmg->entry_count > (size_t)INT32_MAX) return SF_ERR_OUT_OF_RANGE;
-    r = sf_binary_writer_reserve_i32(bw, "GroupCount");         if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "GroupCount"), return r);
     r = sf_binary_writer_write_i32(bw, (int32_t)fmg->entry_count);
     if (r != SF_OK) return r;
 
@@ -497,7 +494,7 @@ static sf_result_t fmg_write_body(sf_binary_writer_t *bw, const sf_fmg_t *fmg,
         if (r != SF_OK) return r;
     }
 
-    r = sf_binary_writer_reserve_varint(bw, "StringOffsets");   if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "StringOffsets"), return r);
     r = sf_binary_writer_write_varint(bw, 0);                   if (r != SF_OK) return r;
 
     sf_fmg_sort_view_t *view = NULL;
@@ -537,11 +534,8 @@ static sf_result_t fmg_write_body(sf_binary_writer_t *bw, const sf_fmg_t *fmg,
         }
     }
 
-    r = sf_binary_writer_fill_i32(bw, "GroupCount", group_count);
-    if (r != SF_OK) goto fail;
-    r = sf_binary_writer_fill_varint(bw, "StringOffsets",
-                                     sf_binary_writer_position(bw));
-    if (r != SF_OK) goto fail;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, "GroupCount", group_count), goto fail);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "StringOffsets", sf_binary_writer_position(bw)), goto fail);
 
     {
         char name[32];
@@ -549,8 +543,7 @@ static sf_result_t fmg_write_body(sf_binary_writer_t *bw, const sf_fmg_t *fmg,
             if (format_offset_name(name, sizeof(name), k) != 0) {
                 r = SF_ERR_INTERNAL; goto fail;
             }
-            r = sf_binary_writer_reserve_varint(bw, name);
-            if (r != SF_OK) goto fail;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), goto fail);
         }
     }
 

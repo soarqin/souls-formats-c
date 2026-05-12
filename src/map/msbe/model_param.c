@@ -116,27 +116,24 @@ static sf_result_t msbe_model_write_one(sf_binary_writer_t *w, const msbe_model_
     snprintf(type_res, sizeof type_res, "MsbeModelType%lld", (long long)start);
 
     sf_result_t rc;
-    rc = sf_binary_writer_reserve_i64(w, name_res);             if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_res), return rc);
     rc = sf_binary_writer_write_u32(w, model->type);            if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, id);                     if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, sib_res);              if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, sib_res), return rc);
     rc = sf_binary_writer_write_i32(w, model->instance_count);  if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, model->unk1c);           if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, type_res);             if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, type_res), return rc);
 
-    rc = sf_binary_writer_fill_i64(w, name_res, sf_binary_writer_position(w) - start);
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_res, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, model->name ? model->name : "", true);
     if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, sib_res, sf_binary_writer_position(w) - start);
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, sib_res, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, model->sib_path ? model->sib_path : "", true);
     if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
 
     if (msbe_model_has_type_data(model->type)) {
-        rc = sf_binary_writer_fill_i64(w, type_res, sf_binary_writer_position(w) - start);
-        if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, type_res, sf_binary_writer_position(w) - start), return rc);
         rc = sf_binary_writer_write_u8(w, 0); if (rc != SF_OK) return rc;
         rc = sf_binary_writer_write_u8(w, 0); if (rc != SF_OK) return rc;
         rc = sf_binary_writer_write_u8(w, 0); if (rc != SF_OK) return rc;
@@ -156,24 +153,21 @@ sf_result_t msbe_model_param_write(sf_binary_writer_t *w, const sf_msbe_t *msbe)
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, 73); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, msbe->model_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNameOff0"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNameOff0"), return rc);
     for (int32_t i = 0; i < msbe->model_count; i++) {
         char off_name[32];
         snprintf(off_name, sizeof off_name, "MsbeModelOff%d", i);
-        rc = sf_binary_writer_reserve_i64(w, off_name);
-        if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, off_name), return rc);
     }
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNextList0"); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, "MsbeNameOff0", sf_binary_writer_position(w));
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNextList0"), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbeNameOff0", sf_binary_writer_position(w)), return rc);
     rc = sf_binary_writer_write_utf16(w, "MODEL_PARAM_ST", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
 
     for (int32_t i = 0; i < msbe->model_count; i++) {
         char off_name[32];
         snprintf(off_name, sizeof off_name, "MsbeModelOff%d", i);
-        rc = sf_binary_writer_fill_i64(w, off_name, sf_binary_writer_position(w));
-        if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, off_name, sf_binary_writer_position(w)), return rc);
         rc = msbe_model_write_one(w, &msbe->models[i].data, i);
         if (rc != SF_OK) return rc;
     }

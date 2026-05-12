@@ -82,29 +82,29 @@ static sf_result_t msbe_part_write_one(sf_binary_writer_t *w, const msbe_part_t 
     snprintf(type_key, sizeof type_key, "MsbePartType%d", index);
     int64_t start = sf_binary_writer_position(w);
     sf_result_t rc;
-    rc = sf_binary_writer_reserve_i64(w, name_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_key), return rc);
     rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, part->type); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, part->other_id != -1 ? part->other_id : id); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, part->model_index); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, sib_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, sib_key), return rc);
     for (int i = 0; i < 9; i++) { rc = sf_binary_writer_write_f32(w, (i >= 6) ? 1.0f : 0.0f); if (rc != SF_OK) return rc; }
     rc = sf_binary_writer_write_u32(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, UINT32_MAX); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i64(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i64(w, 0); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, entity_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, type_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entity_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, type_key), return rc);
     for (int i = 0; i < 10; i++) { rc = sf_binary_writer_write_i64(w, 0); if (rc != SF_OK) return rc; }
-    rc = sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, part->name ? part->name : "", true); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, sib_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, sib_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, "", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, entity_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entity_key, sf_binary_writer_position(w) - start), return rc);
     for (int i = 0; i < 22; i++) { rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc; }
-    rc = sf_binary_writer_fill_i64(w, type_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, type_key, sf_binary_writer_position(w) - start), return rc);
     for (int i = 0; i < 16; i++) { rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc; }
     return sf_binary_writer_pad(w, 8);
 }
@@ -114,18 +114,18 @@ sf_result_t msbe_parts_param_write(sf_binary_writer_t *w, const sf_msbe_t *msbe)
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, 73); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, msbe->part_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNameOff5"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNameOff5"), return rc);
     for (int32_t i = 0; i < msbe->part_count; i++) {
         char entry_key[32]; snprintf(entry_key, sizeof entry_key, "MsbePartEntry%d", i);
-        rc = sf_binary_writer_reserve_i64(w, entry_key); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entry_key), return rc);
     }
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNextList5"); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, "MsbeNameOff5", sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNextList5"), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbeNameOff5", sf_binary_writer_position(w)), return rc);
     rc = sf_binary_writer_write_utf16(w, "PARTS_PARAM_ST", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
     for (int32_t i = 0; i < msbe->part_count; i++) {
         char entry_key[32]; snprintf(entry_key, sizeof entry_key, "MsbePartEntry%d", i);
-        rc = sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)), return rc);
         rc = msbe_part_write_one(w, &msbe->parts[i].data, i, i); if (rc != SF_OK) return rc;
     }
     return SF_OK;

@@ -328,7 +328,7 @@ sf_result_t sfi_flver_node_write(sf_binary_writer_t *bw, const sf_flver_node_t *
     if (written < 0 || (size_t)written >= sizeof(name_buf)) return SF_ERR_INTERNAL;
 
     if ((e = sf_binary_writer_write_vec3 (bw, n->translation))              != SF_OK) return e;
-    if ((e = sf_binary_writer_reserve_i32(bw, name_buf))                    != SF_OK) return e;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, name_buf), return e);
     if ((e = sf_binary_writer_write_vec3 (bw, n->rotation))                 != SF_OK) return e;
     if ((e = sf_binary_writer_write_i16  (bw, n->parent_index))             != SF_OK) return e;
     if ((e = sf_binary_writer_write_i16  (bw, n->first_child_index))        != SF_OK) return e;

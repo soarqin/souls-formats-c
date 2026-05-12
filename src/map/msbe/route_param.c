@@ -70,7 +70,7 @@ static sf_result_t msbe_route_write_one(sf_binary_writer_t *w, const msbe_route_
     snprintf(name_key, sizeof name_key, "MsbeRouteName%d", index);
     int64_t start = sf_binary_writer_position(w);
     sf_result_t rc;
-    rc = sf_binary_writer_reserve_i64(w, name_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_key), return rc);
     rc = sf_binary_writer_write_i32(w, route->unk08); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, route->unk0c); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, route->type); if (rc != SF_OK) return rc;
@@ -79,7 +79,7 @@ static sf_result_t msbe_route_write_one(sf_binary_writer_t *w, const msbe_route_
         rc = sf_binary_writer_write_u8(w, 0);
         if (rc != SF_OK) return rc;
     }
-    rc = sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, route->name ? route->name : "", true); if (rc != SF_OK) return rc;
     return sf_binary_writer_pad(w, 8);
 }
@@ -89,18 +89,18 @@ sf_result_t msbe_route_param_write(sf_binary_writer_t *w, const sf_msbe_t *msbe)
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, 73); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, msbe->route_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNameOff3"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNameOff3"), return rc);
     for (int32_t i = 0; i < msbe->route_count; i++) {
         char entry_key[32]; snprintf(entry_key, sizeof entry_key, "MsbeRouteEntry%d", i);
-        rc = sf_binary_writer_reserve_i64(w, entry_key); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entry_key), return rc);
     }
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNextList3"); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, "MsbeNameOff3", sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNextList3"), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbeNameOff3", sf_binary_writer_position(w)), return rc);
     rc = sf_binary_writer_write_utf16(w, "ROUTE_PARAM_ST", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
     for (int32_t i = 0; i < msbe->route_count; i++) {
         char entry_key[32]; snprintf(entry_key, sizeof entry_key, "MsbeRouteEntry%d", i);
-        rc = sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)), return rc);
         rc = msbe_route_write_one(w, &msbe->routes[i].data, i, i); if (rc != SF_OK) return rc;
     }
     return SF_OK;

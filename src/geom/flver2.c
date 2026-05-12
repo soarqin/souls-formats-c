@@ -270,8 +270,8 @@ static sf_result_t flver2_write_header(sf_binary_writer_t *bw, const sf_flver2_t
     r = sf_binary_writer_write_bytes(bw, "FLVER\0", 6); if (r != SF_OK) return r;
     r = sf_binary_writer_write_bytes(bw, "L\0", 2);     if (r != SF_OK) return r;
     r = sf_binary_writer_write_u32(bw, h->version);      if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i32(bw, "DataOffset"); if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i32(bw, "DataSize");   if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "DataOffset"), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "DataSize"), return r);
     r = sf_binary_writer_write_i32(bw, h->dummy_count);         if (r != SF_OK) return r;
     r = sf_binary_writer_write_i32(bw, h->material_count);      if (r != SF_OK) return r;
     r = sf_binary_writer_write_i32(bw, h->bone_count);          if (r != SF_OK) return r;
@@ -469,7 +469,7 @@ static sf_result_t flver2_write_to_writer(const sf_flver2_t *f, sf_binary_writer
     }
 
     int32_t data_start = (int32_t)sf_binary_writer_position(bw);
-    r = sf_binary_writer_fill_i32(bw, "DataOffset", data_start); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, "DataOffset", data_start), return r);
     for (int32_t i = 0; i < f->header.face_set_count; i++) {
         r = sfi_flver2_face_set_write_indices(bw, &f->face_sets[i], (size_t)i, data_start);
         if (r != SF_OK) return r;
@@ -481,9 +481,7 @@ static sf_result_t flver2_write_to_writer(const sf_flver2_t *f, sf_binary_writer
         if (r != SF_OK) return r;
     }
     r = sf_binary_writer_pad(bw, align); if (r != SF_OK) return r;
-    r = sf_binary_writer_fill_i32(bw, "DataSize",
-                                  (int32_t)sf_binary_writer_position(bw) - data_start);
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, "DataSize", (int32_t)sf_binary_writer_position(bw) - data_start), return r);
     if (f->header.version == 0x2000Fu || f->header.version == 0x20010u) {
         r = sf_binary_writer_pad(bw, 0x20); if (r != SF_OK) return r;
     }

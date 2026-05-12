@@ -107,7 +107,7 @@ sf_result_t sfi_emevd_instruction_write(sf_binary_writer_t *bw, sf_emevd_format_
     if (format < SF_EMEVD_FORMAT_BLOODBORNE) {
         r = sf_binary_writer_reserve_i32(bw, name);
     } else if (format < SF_EMEVD_FORMAT_SEKIRO) {
-        r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
         r = sf_binary_writer_write_i32(bw, 0);
     } else {
         r = sf_binary_writer_reserve_i64(bw, name);
@@ -117,7 +117,7 @@ sf_result_t sfi_emevd_instruction_write(sf_binary_writer_t *bw, sf_emevd_format_
     r = emevd_instr_name(name, sizeof(name), "LayerOffset", event_index, instr_index);
     if (r != SF_OK) return r;
     if (format < SF_EMEVD_FORMAT_DARK_SOULS_3) {
-        r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
         r = sf_binary_writer_write_i32(bw, 0);
     } else {
         r = sf_binary_writer_reserve_i64(bw, name);

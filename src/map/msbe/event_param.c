@@ -135,32 +135,32 @@ static sf_result_t msbe_event_write_one(sf_binary_writer_t *w, const msbe_event_
 
     int64_t start = sf_binary_writer_position(w);
     sf_result_t rc;
-    rc = sf_binary_writer_reserve_i64(w, name_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_key), return rc);
     rc = sf_binary_writer_write_i32(w, event->event_id); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, event->type); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, event->other_id != -1 ? event->other_id : id); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, event->unk14); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, base_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, type_key); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, unk_key); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, base_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, type_key), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, unk_key), return rc);
 
-    rc = sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, event->name ? event->name : "", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, base_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, base_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_i32(w, -1); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, -1); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, 0); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc;
 
     if (msbe_event_has_type_data(event->type)) {
-        rc = sf_binary_writer_fill_i64(w, type_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, type_key, sf_binary_writer_position(w) - start), return rc);
         rc = msbe_event_write_type_data(w, event->type); if (rc != SF_OK) return rc;
     } else {
-        rc = sf_binary_writer_fill_i64(w, type_key, 0); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, type_key, 0), return rc);
     }
     rc = sf_binary_writer_pad(w, event->type == MSBE_EVENT_PSEUDO_MULTIPLAYER ? 4 : 8); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, unk_key, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, unk_key, sf_binary_writer_position(w) - start), return rc);
     for (int i = 0; i < 8; i++) {
         rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc;
     }
@@ -172,20 +172,20 @@ sf_result_t msbe_event_param_write(sf_binary_writer_t *w, const sf_msbe_t *msbe)
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, 73); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, msbe->event_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNameOff1"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNameOff1"), return rc);
     for (int32_t i = 0; i < msbe->event_count; i++) {
         char entry_key[32];
         snprintf(entry_key, sizeof entry_key, "MsbeEventEntry%d", i);
-        rc = sf_binary_writer_reserve_i64(w, entry_key); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entry_key), return rc);
     }
-    rc = sf_binary_writer_reserve_i64(w, "MsbeNextList1"); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, "MsbeNameOff1", sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbeNextList1"), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbeNameOff1", sf_binary_writer_position(w)), return rc);
     rc = sf_binary_writer_write_utf16(w, "EVENT_PARAM_ST", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
     for (int32_t i = 0; i < msbe->event_count; i++) {
         char entry_key[32];
         snprintf(entry_key, sizeof entry_key, "MsbeEventEntry%d", i);
-        rc = sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)), return rc);
         rc = msbe_event_write_one(w, &msbe->events[i].data, i, i); if (rc != SF_OK) return rc;
     }
     return SF_OK;

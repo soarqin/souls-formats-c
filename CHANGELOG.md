@@ -8,6 +8,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Internal
+- Reserve/fill scaffold refactor (T2.3): added `SF_RESERVE_FILL_PAIR` and
+  converted 356 reserve/fill checks across 39 source files, reducing source LOC
+  by 162 lines before evidence/changelog notes; direct-return helper wrappers,
+  status-chain assignments, and writer implementation definitions were skipped.
 - Reserve/fill audit (T0.2): 247 reserve calls vs 238 fill calls — all mismatches confirmed Legit (dynamic name patterns via snprintf/helper functions). No bugs found.
 - Magic-check helper audit (T2.2): sampled 20 diverse `SF_ERR_BAD_MAGIC` sites; only 7/20 matched the proposed return-on-fail `assert_ascii` pattern, so `SF_ASSERT_MAGIC` extraction was skipped.
 - `SF_ENABLE_PHASE7` was never landed as a CMake option; Phase 7 (TAE/FXR3) is permanently compiled in since v0.4.0. The option reference in v0.4.0 changelog was erroneous and has been removed.

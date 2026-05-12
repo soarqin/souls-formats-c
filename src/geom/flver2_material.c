@@ -252,8 +252,8 @@ sf_result_t sfi_flver2_texture_write(sf_binary_writer_t *bw,
     n = snprintf(type_name, sizeof(type_name), "TextureType%zu", index);
     if (n < 0 || (size_t)n >= sizeof(type_name)) return SF_ERR_INTERNAL;
 
-    if ((r = sf_binary_writer_reserve_i32(bw, path_name))                 != SF_OK) return r;
-    if ((r = sf_binary_writer_reserve_i32(bw, type_name))                 != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, path_name), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, type_name), return r);
     if ((r = sf_binary_writer_write_vec2 (bw, t->tiling_scale))           != SF_OK) return r;
 
     if ((r = sf_binary_writer_write_u8(bw, (uint8_t)t->tiling_type_u))    != SF_OK) return r;
@@ -401,12 +401,12 @@ sf_result_t sfi_flver2_material_write(sf_binary_writer_t *bw,
     }
     int32_t num_str_bytes = (int32_t)(num_str_chars * 2u);
 
-    if ((r = sf_binary_writer_reserve_i32(bw, name_reserve))               != SF_OK) return r;
-    if ((r = sf_binary_writer_reserve_i32(bw, mtd_reserve))                != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name_reserve), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, mtd_reserve), return r);
     if ((r = sf_binary_writer_write_i32  (bw, (int32_t)m->texture_count))  != SF_OK) return r;
-    if ((r = sf_binary_writer_reserve_i32(bw, tex_reserve))                != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, tex_reserve), return r);
     if ((r = sf_binary_writer_write_i32  (bw, num_str_bytes))              != SF_OK) return r;
-    if ((r = sf_binary_writer_reserve_i32(bw, gx_reserve))                 != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, gx_reserve), return r);
     if ((r = sf_binary_writer_write_i32  (bw, m->index))                   != SF_OK) return r;
     return sf_binary_writer_write_i32(bw, 0);
 }

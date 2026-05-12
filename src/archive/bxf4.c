@@ -668,7 +668,7 @@ static sf_result_t bxf4_write_bhf_header(sf_binary_writer_t              *bw,
     r = sf_binary_writer_write_u8(bw, 0);                if (r != SF_OK) return r;
 
     r = sf_binary_writer_write_i32(bw, 0);               if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i64(bw, "HashTableOffset"); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, "HashTableOffset"), return r);
 
     for (size_t i = 0; i < b->file_count; i++) {
         r = sfi_binder4_write_file_header(bw, b->format, b->bit_big_endian,
@@ -683,14 +683,11 @@ static sf_result_t bxf4_write_bhf_header(sf_binary_writer_t              *bw,
 
     if (b->extended == 4) {
         r = sf_binary_writer_pad(bw, 0x8); if (r != SF_OK) return r;
-        r = sf_binary_writer_fill_i64(bw, "HashTableOffset",
-                                      sf_binary_writer_position(bw));
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, "HashTableOffset", sf_binary_writer_position(bw)), return r);
         r = sfi_binder_hash_table_write(bw, b->files, b->file_count, b->alloc);
         if (r != SF_OK) return r;
     } else {
-        r = sf_binary_writer_fill_i64(bw, "HashTableOffset", 0);
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, "HashTableOffset", 0), return r);
     }
 
     return SF_OK;
@@ -743,13 +740,11 @@ static sf_result_t bxf4_write_file_data(sf_binary_writer_t              *bhd_bw,
     char name[64];
     sf_result_t r;
     bxf4_format_index_name(name, sizeof name, "FileCompressedSize", entry_index);
-    r = sf_binary_writer_fill_i64(bhd_bw, name, (int64_t)compressed);
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bhd_bw, name, (int64_t)compressed), return r);
 
     if (sf_binder_format_has_compression(f)) {
         bxf4_format_index_name(name, sizeof name, "FileUncompressedSize", entry_index);
-        r = sf_binary_writer_fill_i64(bhd_bw, name, (int64_t)h->uncompressed_size);
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bhd_bw, name, (int64_t)h->uncompressed_size), return r);
     }
 
     bxf4_format_index_name(name, sizeof name, "FileDataOffset", entry_index);

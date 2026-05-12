@@ -186,24 +186,20 @@ sf_result_t sfi_flver2_skeleton_set_write(sf_binary_writer_t *bw,
     sf_result_t r;
     r = sf_binary_writer_write_i16(bw, (int16_t)base_count); if (r != SF_OK) return r;
     r = sf_binary_writer_write_i16(bw, (int16_t)all_count);  if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_u32(bw, "BaseSkeletonOffset");    if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_u32(bw, "ControlSkeletonOffset"); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_u32(bw, "BaseSkeletonOffset"), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_u32(bw, "ControlSkeletonOffset"), return r);
     for (size_t i = 0; i < SF_FLVER2_SKELETON_HEADER_ZERO_COUNT; i++) {
         r = sf_binary_writer_write_i32(bw, 0);
         if (r != SF_OK) return r;
     }
 
-    r = sf_binary_writer_fill_u32(bw, "BaseSkeletonOffset",
-                                  (uint32_t)sf_binary_writer_position(bw));
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_u32(bw, "BaseSkeletonOffset", (uint32_t)sf_binary_writer_position(bw)), return r);
     for (size_t i = 0; i < base_count; i++) {
         r = flver2_skeleton_bone_write(bw, &set->base_bones[i]);
         if (r != SF_OK) return r;
     }
 
-    r = sf_binary_writer_fill_u32(bw, "ControlSkeletonOffset",
-                                  (uint32_t)sf_binary_writer_position(bw));
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_u32(bw, "ControlSkeletonOffset", (uint32_t)sf_binary_writer_position(bw)), return r);
     for (size_t i = 0; i < all_count; i++) {
         r = flver2_skeleton_bone_write(bw, &set->all_bones[i]);
         if (r != SF_OK) return r;

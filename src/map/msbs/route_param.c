@@ -106,15 +106,14 @@ static sf_result_t msbs_route_write_one(sf_binary_writer_t *w, const msbs_route_
 
     int64_t start = sf_binary_writer_position(w);
     sf_result_t rc;
-    rc = sf_binary_writer_reserve_i64(w, name_offset_key);    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_offset_key), return rc);
     rc = sf_binary_writer_write_i32(w, route->unk08);         if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, route->unk0c);         if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, (uint32_t)route->type); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, id);                   if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_pattern(w, 0x68, 0x00);       if (rc != SF_OK) return rc;
 
-    rc = sf_binary_writer_fill_i64(w, name_offset_key, sf_binary_writer_position(w) - start);
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_offset_key, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, route->name ? route->name : "", true);
     if (rc != SF_OK) return rc;
     return sf_binary_writer_pad(w, 8);
@@ -126,25 +125,23 @@ sf_result_t msbs_route_param_write(sf_binary_writer_t *w, const sf_msbs_t *msbs)
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, 35); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, msbs->route_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbsNameOff3"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbsNameOff3"), return rc);
 
     for (int32_t i = 0; i < msbs->route_count; i++) {
         char entry_key[32];
         snprintf(entry_key, sizeof entry_key, "MsbsRouteEntry%d", i);
-        rc = sf_binary_writer_reserve_i64(w, entry_key); if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, entry_key), return rc);
     }
-    rc = sf_binary_writer_reserve_i64(w, "MsbsNextList3"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbsNextList3"), return rc);
 
-    rc = sf_binary_writer_fill_i64(w, "MsbsNameOff3", sf_binary_writer_position(w));
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbsNameOff3", sf_binary_writer_position(w)), return rc);
     rc = sf_binary_writer_write_utf16(w, "ROUTE_PARAM_ST", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
 
     for (int32_t i = 0; i < msbs->route_count; i++) {
         char entry_key[32];
         snprintf(entry_key, sizeof entry_key, "MsbsRouteEntry%d", i);
-        rc = sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w));
-        if (rc != SF_OK) return rc;
+        SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, entry_key, sf_binary_writer_position(w)), return rc);
         rc = msbs_route_write_one(w, &msbs->routes[i].data, i, i);
         if (rc != SF_OK) return rc;
     }

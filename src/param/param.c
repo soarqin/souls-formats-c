@@ -575,11 +575,11 @@ static sf_result_t param_write(sf_binary_writer_t *bw, const sf_param_t *param) 
 
     if (has_flag1(param->format2d, SF_PARAM_FORMAT_FLAGS1_OFFSET_PARAM_TYPE)) {
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
-        r = sf_binary_writer_reserve_i64(bw, "ParamTypeOffset"); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, "ParamTypeOffset"), return r);
         r = sf_binary_writer_write_pattern(bw, 0x14, 0); if (r != SF_OK) return r;
     } else if (has_flag1(param->format2d, SF_PARAM_FORMAT_FLAGS1_INT_DATA_OFFSET) ||
                has_flag1(param->format2d, SF_PARAM_FORMAT_FLAGS1_LONG_DATA_OFFSET)) {
-        r = sf_binary_writer_reserve_u32(bw, "ParamTypeOffset32"); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_u32(bw, "ParamTypeOffset32"), return r);
         r = sf_binary_writer_write_pattern(bw, 0x1C, 0); if (r != SF_OK) return r;
     } else {
         uint8_t padding = has_flag1(param->format2d, SF_PARAM_FORMAT_FLAGS1_FLAG01) ? 0x20 : 0x00;
@@ -595,12 +595,12 @@ static sf_result_t param_write(sf_binary_writer_t *bw, const sf_param_t *param) 
 
     if (has_flag1(param->format2d, SF_PARAM_FORMAT_FLAGS1_FLAG01) &&
         has_flag1(param->format2d, SF_PARAM_FORMAT_FLAGS1_INT_DATA_OFFSET)) {
-        r = sf_binary_writer_reserve_u32(bw, "DataStart"); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_u32(bw, "DataStart"), return r);
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
     } else if (has_flag1(param->format2d, SF_PARAM_FORMAT_FLAGS1_LONG_DATA_OFFSET)) {
-        r = sf_binary_writer_reserve_i64(bw, "DataStart"); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, "DataStart"), return r);
         r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
     }
 
@@ -623,12 +623,10 @@ static sf_result_t param_write(sf_binary_writer_t *bw, const sf_param_t *param) 
     uint32_t strings_offset32 = 0;
     r = checked_u32(strings_offset, &strings_offset32);
     if (r != SF_OK) return r;
-    r = sf_binary_writer_fill_u32(bw, "StringsOffset", strings_offset32);
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_u32(bw, "StringsOffset", strings_offset32), return r);
 
     if (has_flag1(param->format2d, SF_PARAM_FORMAT_FLAGS1_OFFSET_PARAM_TYPE)) {
-        r = sf_binary_writer_fill_i64(bw, "ParamTypeOffset", sf_binary_writer_position(bw));
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, "ParamTypeOffset", sf_binary_writer_position(bw)), return r);
         r = sf_binary_writer_write_ascii(bw, param->param_type ? param->param_type : "", true);
         if (r != SF_OK) return r;
     } else if (has_flag1(param->format2d, SF_PARAM_FORMAT_FLAGS1_INT_DATA_OFFSET) ||
@@ -636,8 +634,7 @@ static sf_result_t param_write(sf_binary_writer_t *bw, const sf_param_t *param) 
         uint32_t param_type_offset32 = 0;
         r = checked_u32(sf_binary_writer_position(bw), &param_type_offset32);
         if (r != SF_OK) return r;
-        r = sf_binary_writer_fill_u32(bw, "ParamTypeOffset32", param_type_offset32);
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_u32(bw, "ParamTypeOffset32", param_type_offset32), return r);
         r = sf_binary_writer_write_shift_jis(bw, param->param_type ? param->param_type : "", true);
         if (r != SF_OK) return r;
     }

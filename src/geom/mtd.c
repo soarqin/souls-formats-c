@@ -228,8 +228,7 @@ static sf_result_t mtd_block_write(sf_binary_writer_t *bw, int32_t type, int32_t
 
     char name[32];
     (void)snprintf(name, sizeof(name), "Block%llX", (unsigned long long)out->start);
-    r = sf_binary_writer_reserve_u32(bw, name);
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_u32(bw, name), return r);
     r = sf_binary_writer_write_i32(bw, type);
     if (r != SF_OK) return r;
     r = sf_binary_writer_write_i32(bw, version);

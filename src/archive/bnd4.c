@@ -501,14 +501,14 @@ static sf_result_t bnd4_write_to_writer(const sf_bnd4_t *b, sf_binary_writer_t *
     if (r != SF_OK) return r;
     r = sf_binary_writer_write_i64(bw, (int64_t)sfi_binder_get_bnd4_file_header_size(b->format));
     if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i64(bw, "HeadersEnd"); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, "HeadersEnd"), return r);
 
     r = sf_binary_writer_write_bool(bw, b->unicode); if (r != SF_OK) return r;
     sfi_binder_write_format(bw, b->format, b->bit_big_endian);
     r = sf_binary_writer_write_u8(bw, b->extended); if (r != SF_OK) return r;
     r = sf_binary_writer_write_u8(bw, 0);           if (r != SF_OK) return r;
     r = sf_binary_writer_write_i32(bw, 0);          if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i64(bw, "HashTableOffset"); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, "HashTableOffset"), return r);
 
     sfi_binder_file_header_t *hdrs = NULL;
     if (b->file_count > 0) {
@@ -537,18 +537,14 @@ static sf_result_t bnd4_write_to_writer(const sf_bnd4_t *b, sf_binary_writer_t *
 
     if (b->extended == 4) {
         r = sf_binary_writer_pad(bw, 0x8); if (r != SF_OK) goto cleanup;
-        r = sf_binary_writer_fill_i64(bw, "HashTableOffset",
-                                      sf_binary_writer_position(bw));
-        if (r != SF_OK) goto cleanup;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, "HashTableOffset", sf_binary_writer_position(bw)), goto cleanup);
         r = sfi_binder_hash_table_write(bw, b->files, b->file_count, b->alloc);
         if (r != SF_OK) goto cleanup;
     } else {
-        r = sf_binary_writer_fill_i64(bw, "HashTableOffset", 0);
-        if (r != SF_OK) goto cleanup;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, "HashTableOffset", 0), goto cleanup);
     }
 
-    r = sf_binary_writer_fill_i64(bw, "HeadersEnd", sf_binary_writer_position(bw));
-    if (r != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, "HeadersEnd", sf_binary_writer_position(bw)), goto cleanup);
 
     for (size_t i = 0; i < b->file_count; i++) {
         const sf_binder_file_t *f = &b->files[i];

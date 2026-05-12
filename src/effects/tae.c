@@ -752,9 +752,7 @@ static sf_result_t tae_write_header(sf_binary_writer_t *bw, const sf_tae_t *t) {
     r = sf_binary_writer_write_i32(bw, 0x1000D);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_reserve_i32(bw, "FileSize");
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "FileSize"), return r);
     r = sf_binary_writer_write_varint(bw, 0x40);
     if (r != SF_OK)
         return r;
@@ -793,21 +791,15 @@ static sf_result_t tae_write_header(sf_binary_writer_t *bw, const sf_tae_t *t) {
     r = sf_binary_writer_write_i32(bw, (int32_t)anim_count);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_reserve_varint(bw, "AnimsOffset");
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_writer_reserve_varint(bw, "AnimGroupsHeaderOffset");
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "AnimsOffset"), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "AnimGroupsHeaderOffset"), return r);
     r = sf_binary_writer_write_varint(bw, 0xA0);
     if (r != SF_OK)
         return r;
     r = sf_binary_writer_write_varint(bw, anim_count);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_reserve_varint(bw, "FirstAnimOffset");
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "FirstAnimOffset"), return r);
     r = sf_binary_writer_write_varint(bw, 1);
     if (r != SF_OK)
         return r;
@@ -829,12 +821,8 @@ static sf_result_t tae_write_header(sf_binary_writer_t *bw, const sf_tae_t *t) {
     r = sf_binary_writer_write_varint(bw, 0xB0);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_reserve_varint(bw, "SkeletonName");
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_writer_reserve_varint(bw, "SibName");
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "SkeletonName"), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "SibName"), return r);
     r = sf_binary_writer_write_varint(bw, 0);
     if (r != SF_OK)
         return r;
@@ -846,9 +834,7 @@ static sf_result_t tae_write_optional_utf16(sf_binary_writer_t *bw, const char *
     sf_result_t r;
     if (!value)
         return sf_binary_writer_fill_varint(bw, reserve_name, 0);
-    r = sf_binary_writer_fill_varint(bw, reserve_name, sf_binary_writer_position(bw));
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, reserve_name, sf_binary_writer_position(bw)), return r);
     if (value[0] == '\0')
         return SF_OK;
     r = sf_binary_writer_write_utf16(bw, value, true);
@@ -860,13 +846,9 @@ static sf_result_t tae_write_optional_utf16(sf_binary_writer_t *bw, const char *
 static sf_result_t tae_write_animation_table(sf_binary_writer_t *bw, const sf_tae_t *t) {
     sf_result_t r;
     if (t->animation_count == 0) {
-        r = sf_binary_writer_fill_varint(bw, "AnimsOffset", 0);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "AnimsOffset", 0), return r);
     } else {
-        r = sf_binary_writer_fill_varint(bw, "AnimsOffset", sf_binary_writer_position(bw));
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "AnimsOffset", sf_binary_writer_position(bw)), return r);
         for (size_t i = 0; i < t->animation_count; i++) {
             char name[64];
             r = tae_make_name1(name, sizeof(name), "AnimationOffset", i);
@@ -875,21 +857,13 @@ static sf_result_t tae_write_animation_table(sf_binary_writer_t *bw, const sf_ta
             r = sf_binary_writer_write_varint(bw, t->animations[i]->id);
             if (r != SF_OK)
                 return r;
-            r = sf_binary_writer_reserve_varint(bw, name);
-            if (r != SF_OK)
-                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
         }
     }
 
-    r = sf_binary_writer_fill_varint(bw, "AnimGroupsHeaderOffset", sf_binary_writer_position(bw));
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_writer_reserve_varint(bw, "TopAnimGroupsCount");
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_writer_reserve_varint(bw, "TopAnimGroupsOffset");
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "AnimGroupsHeaderOffset", sf_binary_writer_position(bw)), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "TopAnimGroupsCount"), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "TopAnimGroupsOffset"), return r);
     size_t group_count = 0;
     int64_t group_start = sf_binary_writer_position(bw);
     for (size_t i = 0; i < t->animation_count; i++) {
@@ -903,18 +877,14 @@ static sf_result_t tae_write_animation_table(sf_binary_writer_t *bw, const sf_ta
         r = tae_make_name1(name, sizeof(name), "TopAnimationOffset", i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_reserve_varint(bw, name);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
         group_count++;
     }
     int64_t group_count_i64 = 0;
     r = tae_size_to_i64(group_count, &group_count_i64);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_fill_varint(bw, "TopAnimGroupsCount", group_count_i64);
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "TopAnimGroupsCount", group_count_i64), return r);
     return sf_binary_writer_fill_varint(bw, "TopAnimGroupsOffset",
                                         group_count == 0 ? 0 : group_start);
 }
@@ -923,9 +893,7 @@ static sf_result_t tae_write_animation_bodies(sf_binary_writer_t *bw, const sf_t
     sf_result_t r;
     if (t->animation_count == 0)
         return sf_binary_writer_fill_varint(bw, "FirstAnimOffset", 0);
-    r = sf_binary_writer_fill_varint(bw, "FirstAnimOffset", sf_binary_writer_position(bw));
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "FirstAnimOffset", sf_binary_writer_position(bw)), return r);
     for (size_t i = 0; i < t->animation_count; i++) {
         const sf_tae_animation_t *anim = t->animations[i];
         char name[64];
@@ -933,39 +901,27 @@ static sf_result_t tae_write_animation_bodies(sf_binary_writer_t *bw, const sf_t
         if (r != SF_OK)
             return r;
         int64_t body_pos = sf_binary_writer_position(bw);
-        r = sf_binary_writer_fill_varint(bw, name, body_pos);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, body_pos), return r);
         r = tae_make_name1(name, sizeof(name), "TopAnimationOffset", i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_fill_varint(bw, name, body_pos);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, body_pos), return r);
         r = tae_make_name1(name, sizeof(name), "EventHeadersOffset", i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_reserve_varint(bw, name);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
         r = tae_make_name1(name, sizeof(name), "EventGroupHeadersOffset", i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_reserve_varint(bw, name);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
         r = tae_make_name1(name, sizeof(name), "TimesOffset", i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_reserve_varint(bw, name);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
         r = tae_make_name1(name, sizeof(name), "AnimFileOffset", i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_reserve_varint(bw, name);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
         if (anim->event_count > INT32_MAX || anim->event_group_count > INT32_MAX)
             return SF_ERR_OUT_OF_RANGE;
         r = sf_binary_writer_write_i32(bw, (int32_t)anim->event_count);
@@ -977,9 +933,7 @@ static sf_result_t tae_write_animation_bodies(sf_binary_writer_t *bw, const sf_t
         r = tae_make_name1(name, sizeof(name), "TimesCount", i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_reserve_i32(bw, name);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
         r = sf_binary_writer_write_i32(bw, 0);
         if (r != SF_OK)
             return r;
@@ -993,9 +947,7 @@ static sf_result_t tae_write_anim_file(sf_binary_writer_t *bw, const sf_tae_anim
     sf_result_t r = tae_make_name1(name, sizeof(name), "AnimFileOffset", i);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
     r = sf_binary_writer_write_varint(bw, anim->mini_header.type);
     if (r != SF_OK)
         return r;
@@ -1005,18 +957,12 @@ static sf_result_t tae_write_anim_file(sf_binary_writer_t *bw, const sf_tae_anim
     if (anim->mini_header.is_null_header) {
         return sf_binary_writer_write_varint(bw, 0);
     }
-    r = sf_binary_writer_reserve_varint(bw, name);
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
     r = tae_make_name1(name, sizeof(name), "AnimFileNameOffset", i);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_reserve_varint(bw, name);
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
     if (anim->mini_header.type == SF_TAE_MINI_HEADER_STANDARD) {
         const sf_tae_anim_mini_header_standard_t *h = &anim->mini_header.payload.standard;
         r = sf_binary_writer_write_bool(bw, h->is_loop_by_default);
@@ -1054,9 +1000,7 @@ static sf_result_t tae_write_anim_file(sf_binary_writer_t *bw, const sf_tae_anim
     r = tae_make_name1(name, sizeof(name), "AnimFileNameOffset", i);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
-    if (r != SF_OK)
-        return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
     if (anim->anim_file_name && anim->anim_file_name[0] != '\0') {
         r = sf_binary_writer_write_utf16(bw, anim->anim_file_name, true);
         if (r != SF_OK)
@@ -1125,15 +1069,11 @@ static sf_result_t tae_write_times(sf_binary_writer_t *bw, const sf_tae_animatio
         r = SF_ERR_OUT_OF_RANGE;
         goto cleanup;
     }
-    r = sf_binary_writer_fill_i32(bw, name, (int32_t)*out_count);
-    if (r != SF_OK)
-        goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, name, (int32_t)*out_count), goto cleanup);
     r = tae_make_name1(name, sizeof(name), "TimesOffset", anim_index);
     if (r != SF_OK)
         goto cleanup;
-    r = sf_binary_writer_fill_varint(bw, name, *out_count == 0 ? 0 : sf_binary_writer_position(bw));
-    if (r != SF_OK)
-        goto cleanup;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, *out_count == 0 ? 0 : sf_binary_writer_position(bw)), goto cleanup);
     r = tae_alloc_array(alloc, *out_count, sizeof(**out_offsets), (void **)out_offsets);
     if (r != SF_OK)
         goto cleanup;
@@ -1181,9 +1121,7 @@ static sf_result_t tae_write_event_headers(sf_binary_writer_t *bw, const sf_tae_
         r = tae_make_name(name, sizeof(name), "EventDataOffset", anim_index, i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_reserve_varint(bw, name);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
     }
     return SF_OK;
 }
@@ -1196,9 +1134,7 @@ static sf_result_t tae_write_event_data(sf_binary_writer_t *bw, const sf_tae_ani
         sf_result_t r = tae_make_name(name, sizeof(name), "EventDataOffset", anim_index, i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
         r = sf_binary_writer_write_i32(bw, ev->type);
         if (r != SF_OK)
             return r;
@@ -1214,12 +1150,8 @@ static sf_result_t tae_write_event_data(sf_binary_writer_t *bw, const sf_tae_ani
             if (r != SF_OK)
                 return r;
         } else {
-            r = sf_binary_writer_reserve_varint(bw, name);
-            if (r != SF_OK)
-                return r;
-            r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
-            if (r != SF_OK)
-                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
         }
         r = sf_binary_writer_write_bytes(bw, ev->parameters, ev->parameters_size);
         if (r != SF_OK)
@@ -1254,15 +1186,11 @@ static sf_result_t tae_write_event_group_headers(sf_binary_writer_t *bw,
         r = tae_make_name(name, sizeof(name), "EventGroupValuesOffset", anim_index, i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_reserve_varint(bw, name);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
         r = tae_make_name(name, sizeof(name), "EventGroupTypeOffset", anim_index, i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_reserve_varint(bw, name);
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
         r = sf_binary_writer_write_varint(bw, 0);
         if (r != SF_OK)
             return r;
@@ -1279,9 +1207,7 @@ static sf_result_t tae_write_event_group_data(sf_binary_writer_t *bw,
         sf_result_t r = tae_make_name(name, sizeof(name), "EventGroupTypeOffset", anim_index, i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
         r = sf_binary_writer_write_i32(bw, g->group_type);
         if (r != SF_OK)
             return r;
@@ -1294,9 +1220,7 @@ static sf_result_t tae_write_event_group_data(sf_binary_writer_t *bw,
         r = tae_make_name(name, sizeof(name), "EventGroupValuesOffset", anim_index, i);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
-        if (r != SF_OK)
-            return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
         for (size_t j = 0; j < g->member_count; j++) {
             if (g->members[j] < 0 || (size_t)g->members[j] >= anim->event_count)
                 return SF_ERR_OUT_OF_RANGE;

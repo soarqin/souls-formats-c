@@ -193,14 +193,14 @@ sf_result_t sfi_binder3_write_file_header(sf_binary_writer_t              *bw,
     char name[64];
 
     sfi_format_index_name(name, sizeof name, "FileCompressedSize", entry_index);
-    r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
 
     if (sf_binder_format_has_long_offsets(f)) {
         sfi_format_index_name(name, sizeof name, "FileDataOffset", entry_index);
-        r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, name), return r);
     } else {
         sfi_format_index_name(name, sizeof name, "FileDataOffset", entry_index);
-        r = sf_binary_writer_reserve_u32(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_u32(bw, name), return r);
     }
 
     if (sf_binder_format_has_ids(f)) {
@@ -209,12 +209,12 @@ sf_result_t sfi_binder3_write_file_header(sf_binary_writer_t              *bw,
 
     if (sf_binder_format_has_names1(f) || sf_binder_format_has_names2(f)) {
         sfi_format_index_name(name, sizeof name, "FileNameOffset", entry_index);
-        r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
     }
 
     if (sf_binder_format_has_compression(f)) {
         sfi_format_index_name(name, sizeof name, "FileUncompressedSize", entry_index);
-        r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
     }
 
     return SF_OK;
@@ -286,12 +286,11 @@ sf_result_t sfi_binder3_write_file_data(sf_binary_writer_t              *bw,
 
     char name[64];
     sfi_format_index_name(name, sizeof name, "FileCompressedSize", entry_index);
-    r = sf_binary_writer_fill_i32(bw, name, (int32_t)compressed); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, name, (int32_t)compressed), return r);
 
     if (sf_binder_format_has_compression(f)) {
         sfi_format_index_name(name, sizeof name, "FileUncompressedSize", entry_index);
-        r = sf_binary_writer_fill_i32(bw, name, (int32_t)h->uncompressed_size);
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, name, (int32_t)h->uncompressed_size), return r);
     }
 
     sfi_format_index_name(name, sizeof name, "FileDataOffset", entry_index);
@@ -427,19 +426,19 @@ sf_result_t sfi_binder4_write_file_header(sf_binary_writer_t              *bw,
     char name[64];
 
     sfi_format_index_name(name, sizeof name, "FileCompressedSize", entry_index);
-    r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, name), return r);
 
     if (sf_binder_format_has_compression(f)) {
         sfi_format_index_name(name, sizeof name, "FileUncompressedSize", entry_index);
-        r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, name), return r);
     }
 
     if (sf_binder_format_has_long_offsets(f)) {
         sfi_format_index_name(name, sizeof name, "FileDataOffset", entry_index);
-        r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, name), return r);
     } else {
         sfi_format_index_name(name, sizeof name, "FileDataOffset", entry_index);
-        r = sf_binary_writer_reserve_u32(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_u32(bw, name), return r);
     }
 
     if (sf_binder_format_has_ids(f)) {
@@ -448,7 +447,7 @@ sf_result_t sfi_binder4_write_file_header(sf_binary_writer_t              *bw,
 
     if (sf_binder_format_has_names1(f) || sf_binder_format_has_names2(f)) {
         sfi_format_index_name(name, sizeof name, "FileNameOffset", entry_index);
-        r = sf_binary_writer_reserve_i32(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
     }
 
     if (f == SF_BINDER_FORMAT_NAMES1) {
@@ -474,12 +473,11 @@ sf_result_t sfi_binder4_write_file_data(sf_binary_writer_t              *bw,
 
     char name[64];
     sfi_format_index_name(name, sizeof name, "FileCompressedSize", entry_index);
-    r = sf_binary_writer_fill_i64(bw, name, (int64_t)compressed); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, name, (int64_t)compressed), return r);
 
     if (sf_binder_format_has_compression(f)) {
         sfi_format_index_name(name, sizeof name, "FileUncompressedSize", entry_index);
-        r = sf_binary_writer_fill_i64(bw, name, (int64_t)h->uncompressed_size);
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, name, (int64_t)h->uncompressed_size), return r);
     }
 
     sfi_format_index_name(name, sizeof name, "FileDataOffset", entry_index);
@@ -638,7 +636,7 @@ sf_result_t sfi_binder_hash_table_write(sf_binary_writer_t       *bw,
     }
 
     sf_result_t r;
-    r = sf_binary_writer_reserve_i64(bw, "HashesOffset"); if (r != SF_OK) goto done;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, "HashesOffset"), goto done);
     r = sf_binary_writer_write_u32  (bw, group_count);    if (r != SF_OK) goto done;
     r = sf_binary_writer_write_u8   (bw, 0x10);           if (r != SF_OK) goto done;
     r = sf_binary_writer_write_u8   (bw, 0x08);           if (r != SF_OK) goto done;
@@ -657,9 +655,7 @@ sf_result_t sfi_binder_hash_table_write(sf_binary_writer_t       *bw,
         }
     }
 
-    r = sf_binary_writer_fill_i64(bw, "HashesOffset",
-                                  (int64_t)sf_binary_writer_position(bw));
-    if (r != SF_OK) goto done;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, "HashesOffset", (int64_t)sf_binary_writer_position(bw)), goto done);
 
     /* PathHash entries: {Hash, Index} (BinderHashTable.cs:98-102). */
     for (size_t i = 0; i < file_count; i++) {

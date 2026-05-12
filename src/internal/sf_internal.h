@@ -82,6 +82,20 @@ sf_result_t sfi_ostream_to_array(const sf_ostream_t *s, const sf_allocator_t *a,
 #define SF_RETURN_IF(cond, code) do { if ((cond)) return (code); } while (0)
 #define SF_CHECK_ARG(cond)       SF_RETURN_IF(!(cond), SF_ERR_INVALID_ARG)
 
+/*
+ * Reserve/fill call helper for BinaryWriterEx-style backpatches.
+ *
+ * Reserve and fill are intentionally not bundled together: callers reserve a
+ * named placeholder, write intervening payload, then fill the same typed name
+ * later. This macro only captures the common "assign result, check SF_OK, run
+ * caller-specific error path" scaffold while preserving return-vs-goto
+ * semantics at each call site.
+ */
+#define SF_RESERVE_FILL_PAIR(result_var, call_expr, on_error) do {            \
+    (result_var) = (call_expr);                                                \
+    if ((result_var) != SF_OK) { on_error; }                                   \
+} while (0)
+
 /*===========================================================================
  * Heap string duplicate via allocator.
  *===========================================================================*/

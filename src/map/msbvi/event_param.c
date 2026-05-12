@@ -91,20 +91,18 @@ static sf_result_t msbvi_event_write_one(sf_binary_writer_t *w, const msbvi_even
     snprintf(common_res, sizeof common_res, "MsbviEventCommon%lld", (long long)start);
     snprintf(type_res, sizeof type_res, "MsbviEventType%lld", (long long)start);
     sf_result_t rc;
-    rc = sf_binary_writer_reserve_i64(w, name_res);          if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, name_res), return rc);
     rc = sf_binary_writer_write_i32(w, event->event_id);     if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_u32(w, event->type);         if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, event->type_index);   if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, 0);                   if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, common_res);        if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, type_res);          if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, name_res, sf_binary_writer_position(w) - start);
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, common_res), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, type_res), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_res, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, event->name ? event->name : "", true);
     if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, common_res, sf_binary_writer_position(w) - start);
-    if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, common_res, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_i32(w, -1);              if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, -1);              if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, event->entity_id); if (rc != SF_OK) return rc;
@@ -120,10 +118,10 @@ sf_result_t msbvi_event_param_write(sf_binary_writer_t *w, const sf_msbvi_t *msb
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, 52); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, msbvi->event_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbviNameOff1"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbviNameOff1"), return rc);
     for (int32_t i = 0; i < msbvi->event_count; i++) { char n[32]; snprintf(n, sizeof n, "MsbviEventOff%d", i); rc = sf_binary_writer_reserve_i64(w, n); if (rc != SF_OK) return rc; }
-    rc = sf_binary_writer_reserve_i64(w, "MsbviNextList1"); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_fill_i64(w, "MsbviNameOff1", sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbviNextList1"), return rc);
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, "MsbviNameOff1", sf_binary_writer_position(w)), return rc);
     rc = sf_binary_writer_write_utf16(w, "EVENT_PARAM_ST", true); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;
     for (int32_t i = 0; i < msbvi->event_count; i++) { char n[32]; snprintf(n, sizeof n, "MsbviEventOff%d", i); rc = sf_binary_writer_fill_i64(w, n, sf_binary_writer_position(w)); if (rc != SF_OK) return rc; rc = msbvi_event_write_one(w, &msbvi->events[i].data, i); if (rc != SF_OK) return rc; }

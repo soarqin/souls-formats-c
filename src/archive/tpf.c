@@ -589,9 +589,9 @@ static sf_result_t tpf_write_one_header(sf_binary_writer_t *bw, const sf_tpf_t *
     }
 
     tpf_reservation_label(label, sizeof(label), "FileData", i);
-    r = sf_binary_writer_reserve_u32(bw, label); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_u32(bw, label), return r);
     tpf_reservation_label(label, sizeof(label), "FileSize", i);
-    r = sf_binary_writer_reserve_i32(bw, label); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, label), return r);
 
     r = sf_binary_writer_write_u8(bw, t->format);                      if (r != SF_OK) return r;
     r = sf_binary_writer_write_u8(bw, out_cubemap ? 1 : 0);            if (r != SF_OK) return r;
@@ -600,7 +600,7 @@ static sf_result_t tpf_write_one_header(sf_binary_writer_t *bw, const sf_tpf_t *
 
     /* PC variant: no console metadata between flags1 and nameOffset. */
     tpf_reservation_label(label, sizeof(label), "FileName", i);
-    r = sf_binary_writer_reserve_u32(bw, label); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_u32(bw, label), return r);
     /* hasFloatStruct: we don't carry FloatStruct → always 0. */
     r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
     return SF_OK;
@@ -626,9 +626,7 @@ static sf_result_t tpf_write_one_data(sf_binary_writer_t *bw, const sf_tpf_t *b,
     char label[32];
     sf_result_t r;
     tpf_reservation_label(label, sizeof(label), "FileData", i);
-    r = sf_binary_writer_fill_u32(bw, label,
-                                  (uint32_t)sf_binary_writer_position(bw));
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_u32(bw, label, (uint32_t)sf_binary_writer_position(bw)), return r);
 
     const uint8_t *bytes = t->bytes;
     size_t         size  = t->size;
@@ -668,7 +666,7 @@ static sf_result_t tpf_write_to_writer(const sf_tpf_t *b, sf_binary_writer_t *bw
     sf_binary_writer_set_big_endian(bw, be);
 
     r = sf_binary_writer_write_bytes(bw, "TPF\0", 4);                if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i32(bw, "DataSize");                if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "DataSize"), return r);
     r = sf_binary_writer_write_i32 (bw, (int32_t)b->texture_count);  if (r != SF_OK) return r;
     r = sf_binary_writer_write_u8  (bw, (uint8_t)b->platform);       if (r != SF_OK) return r;
     r = sf_binary_writer_write_u8  (bw, b->flag2);                   if (r != SF_OK) return r;

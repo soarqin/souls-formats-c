@@ -117,8 +117,7 @@ sf_result_t sfi_flver2_vertex_buffer_write_data(sf_binary_writer_t *bw,
     if (r != SF_OK) return r;
     int64_t pos = sf_binary_writer_position(bw);
     if (pos < data_start || pos - (int64_t)data_start > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
-    r = sf_binary_writer_fill_i32(bw, name, (int32_t)(pos - (int64_t)data_start));
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, name, (int32_t)(pos - (int64_t)data_start)), return r);
     return sf_binary_writer_write_bytes(bw, vb->vertex_bytes, vb->vertex_bytes_size);
 }
 
@@ -219,8 +218,7 @@ sf_result_t sfi_flver2_buffer_layout_write_members(sf_binary_writer_t *bw,
     if (r != SF_OK) return r;
     int64_t pos = sf_binary_writer_position(bw);
     if (pos > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
-    r = sf_binary_writer_fill_i32(bw, name, (int32_t)pos);
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, name, (int32_t)pos), return r);
 
     int32_t struct_offset = 0;
     bool is_speedtree = hdr->special_modifier == -32768;

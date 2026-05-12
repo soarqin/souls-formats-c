@@ -140,11 +140,11 @@ sf_result_t sfi_flver2_mesh_write(sf_binary_writer_t *bw, const sf_flver2_header
     r = sf_binary_writer_write_i32(bw, 0);                            if (r != SF_OK) return r;
     r = sf_binary_writer_write_i32(bw, m->node_index);                if (r != SF_OK) return r;
     r = sf_binary_writer_write_i32(bw, (int32_t)m->bone_index_count); if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i32(bw, bbox_label);                 if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i32(bw, bone_label);                 if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, bbox_label), return r);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, bone_label), return r);
     r = sf_binary_writer_write_i32(bw, (int32_t)m->face_set_index_count);
     if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i32(bw, face_label);                 if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, face_label), return r);
     r = sf_binary_writer_write_i32(bw, (int32_t)m->vertex_buffer_index_count);
     if (r != SF_OK) return r;
     return sf_binary_writer_reserve_i32(bw, vb_label);
@@ -162,7 +162,7 @@ sf_result_t sfi_flver2_mesh_write_bounding_box(sf_binary_writer_t *bw,
     }
     int64_t pos = sf_binary_writer_position(bw);
     if (pos < 0 || pos > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
-    r = sf_binary_writer_fill_i32(bw, label, (int32_t)pos);    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, label, (int32_t)pos), return r);
     r = sf_binary_writer_write_vec3(bw, m->bbox_min);          if (r != SF_OK) return r;
     r = sf_binary_writer_write_vec3(bw, m->bbox_max);          if (r != SF_OK) return r;
     if (hdr->version >= 0x2001Au) {
@@ -184,8 +184,7 @@ sf_result_t sfi_flver2_mesh_write_bone_indices(sf_binary_writer_t *bw,
     }
     int64_t pos = sf_binary_writer_position(bw);
     if (pos < 0 || pos > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
-    r = sf_binary_writer_fill_i32(bw, label, (int32_t)pos);
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, label, (int32_t)pos), return r);
     return sf_binary_writer_write_i32s(bw, m->bone_index_count, m->bone_indices);
 }
 
@@ -198,8 +197,7 @@ sf_result_t sfi_flver2_mesh_fill_face_set_indices(sf_binary_writer_t *bw,
     if (r != SF_OK) return r;
     int64_t pos = sf_binary_writer_position(bw);
     if (pos < 0 || pos > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
-    r = sf_binary_writer_fill_i32(bw, label, (int32_t)pos);
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, label, (int32_t)pos), return r);
     return sf_binary_writer_write_i32s(bw, m->face_set_index_count, m->face_set_indices);
 }
 
@@ -214,8 +212,7 @@ sf_result_t sfi_flver2_mesh_fill_vertex_buffer_indices(sf_binary_writer_t *bw,
     if (r != SF_OK) return r;
     int64_t pos = sf_binary_writer_position(bw);
     if (pos < 0 || pos > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
-    r = sf_binary_writer_fill_i32(bw, label, (int32_t)pos);
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, label, (int32_t)pos), return r);
     return sf_binary_writer_write_i32s(bw, m->vertex_buffer_index_count,
                                        m->vertex_buffer_indices);
 }

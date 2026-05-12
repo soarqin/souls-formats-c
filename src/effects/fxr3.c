@@ -696,7 +696,7 @@ static sf_result_t write_state_map_header(sf_binary_writer_t *bw, const sf_fxr3_
     if (e != SF_OK) return e;
     e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
     e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) return e;
-    e = sf_binary_writer_reserve_i32(bw, "StateMapStatesOffset"); if (e != SF_OK) return e;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "StateMapStatesOffset"), return e);
     return sf_binary_writer_write_i32(bw, 0);
 }
 
@@ -916,42 +916,42 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
     e = sf_binary_writer_write_u16(bw, (uint16_t)f->version); if (e != SF_OK) goto cleanup;
     e = sf_binary_writer_write_i32(bw, 1); if (e != SF_OK) goto cleanup;
     e = sf_binary_writer_write_i32(bw, f->id); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "StateMapOffset"); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "StateMapOffset"), goto cleanup);
     e = sf_binary_writer_write_i32(bw, 1); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "StateOffset"); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "StateOffset"), goto cleanup);
     e = count_to_i32(f->root_state_map->state_count, &count); if (e != SF_OK) goto cleanup;
     e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "TransitionOffset"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "TransitionCount"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "ContainerOffset"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "ContainerCount"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "EffectOffset"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "EffectCount"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "ActionOffset"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "ActionCount"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "PropertyOffset"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "PropertyCount"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "ModifierOffset"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "ModifierCount"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "ConditionalPropertyOffset"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "ConditionalPropertyCount"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "UnkFieldListOffset"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "UnkFieldListCount"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "FieldOffset"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_reserve_i32(bw, "FieldCount"); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "TransitionOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "TransitionCount"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ContainerOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ContainerCount"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "EffectOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "EffectCount"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ActionOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ActionCount"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "PropertyOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "PropertyCount"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ModifierOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ModifierCount"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ConditionalPropertyOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ConditionalPropertyCount"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "UnkFieldListOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "UnkFieldListCount"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "FieldOffset"), goto cleanup);
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "FieldCount"), goto cleanup);
     e = sf_binary_writer_write_i32(bw, 1); if (e != SF_OK) goto cleanup;
     e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) goto cleanup;
     if (f->version == SF_FXR3_VERSION_SEKIRO) {
-        e = sf_binary_writer_reserve_i32(bw, "ReferenceOffset"); if (e != SF_OK) goto cleanup;
+        SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ReferenceOffset"), goto cleanup);
         e = count_to_i32(f->reference_count, &count); if (e != SF_OK) goto cleanup;
         e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) goto cleanup;
-        e = sf_binary_writer_reserve_i32(bw, "ExternalValueOffset"); if (e != SF_OK) goto cleanup;
+        SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "ExternalValueOffset"), goto cleanup);
         e = count_to_i32(f->external_value_count, &count); if (e != SF_OK) goto cleanup;
         e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) goto cleanup;
-        e = sf_binary_writer_reserve_i32(bw, "UnkBloodEnablerOffset"); if (e != SF_OK) goto cleanup;
+        SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "UnkBloodEnablerOffset"), goto cleanup);
         e = count_to_i32(f->unk_blood_enabler_count, &count); if (e != SF_OK) goto cleanup;
         e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) goto cleanup;
-        e = sf_binary_writer_reserve_i32(bw, "UnkEmptyOffset"); if (e != SF_OK) goto cleanup;
+        SF_RESERVE_FILL_PAIR(e, sf_binary_writer_reserve_i32(bw, "UnkEmptyOffset"), goto cleanup);
         e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) goto cleanup;
     }
 
@@ -969,14 +969,14 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
         for (size_t j = 0; j < s->condition_count; j++) { e = write_condition_header(bw, s->conditions[j], &transitions); if (e != SF_OK) goto cleanup; }
     }
     e = count_to_i32(transitions.count, &count); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_fill_i32(bw, "TransitionCount", count); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "TransitionCount", count), goto cleanup);
     e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
 
     e = fill_pos(bw, "ContainerOffset"); if (e != SF_OK) goto cleanup;
     e = write_container_header(bw, f->root_container, &containers); if (e != SF_OK) goto cleanup;
     e = write_container_children(bw, f->root_container, &containers); if (e != SF_OK) goto cleanup;
     e = count_to_i32(containers.count, &count); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_fill_i32(bw, "ContainerCount", count); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "ContainerCount", count), goto cleanup);
     e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
 
     e = fill_pos(bw, "EffectOffset"); if (e != SF_OK) goto cleanup;
@@ -991,7 +991,7 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
         }
     }
     e = count_to_i32(effect_count, &count); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_fill_i32(bw, "EffectCount", count); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "EffectCount", count), goto cleanup);
     e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
 
     e = fill_pos(bw, "ActionOffset"); if (e != SF_OK) goto cleanup;
@@ -1007,7 +1007,7 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
         effect_count += c->effect_count;
     }
     e = count_to_i32(actions.count, &count); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_fill_i32(bw, "ActionCount", count); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "ActionCount", count), goto cleanup);
     e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
 
     e = fill_pos(bw, "PropertyOffset"); if (e != SF_OK) goto cleanup;
@@ -1017,7 +1017,7 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
         for (size_t j = 0; j < act->property_count; j++) { e = write_property_header(bw, act->properties[j], false, &properties); if (e != SF_OK) goto cleanup; }
     }
     e = count_to_i32(properties.count, &count); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_fill_i32(bw, "PropertyCount", count); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "PropertyCount", count), goto cleanup);
     e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
 
     e = fill_pos(bw, "ModifierOffset"); if (e != SF_OK) goto cleanup;
@@ -1027,7 +1027,7 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
         for (size_t j = 0; j < p->modifier_count; j++) { e = write_modifier_header(bw, p->modifiers[j], &modifiers); if (e != SF_OK) goto cleanup; }
     }
     e = count_to_i32(modifiers.count, &count); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_fill_i32(bw, "ModifierCount", count); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "ModifierCount", count), goto cleanup);
     e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
 
     e = fill_pos(bw, "ConditionalPropertyOffset"); if (e != SF_OK) goto cleanup;
@@ -1037,7 +1037,7 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
         for (size_t j = 0; j < m->property_count; j++) { e = write_property_header(bw, m->properties[j], true, &conditional_properties); if (e != SF_OK) goto cleanup; }
     }
     e = count_to_i32(conditional_properties.count, &count); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_fill_i32(bw, "ConditionalPropertyCount", count); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "ConditionalPropertyCount", count), goto cleanup);
     e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
 
     e = fill_pos(bw, "UnkFieldListOffset"); if (e != SF_OK) goto cleanup;
@@ -1047,7 +1047,7 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
         for (size_t j = 0; j < act->unk_field_list_count; j++) { e = write_unk_field_list_header(bw, act->unk_field_lists[j], &field_lists); if (e != SF_OK) goto cleanup; }
     }
     e = count_to_i32(field_lists.count, &count); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_fill_i32(bw, "UnkFieldListCount", count); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "UnkFieldListCount", count), goto cleanup);
     e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
 
     e = fill_pos(bw, "FieldOffset"); if (e != SF_OK) goto cleanup;
@@ -1082,7 +1082,7 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
         else { e = fillf_pos(bw, "ConditionalPropertyFieldsOffset[%zu]", i); if (e != SF_OK) goto cleanup; e = write_fields(bw, p->fields, p->field_count, &field_count); if (e != SF_OK) goto cleanup; }
     }
     for (size_t i = 0; i < field_lists.count; i++) { const sf_fxr3_unk_field_list_t *l = (const sf_fxr3_unk_field_list_t *)field_lists.items[i]; e = fillf_pos(bw, "UnkFieldListFieldsOffset[%zu]", i); if (e != SF_OK) goto cleanup; e = write_fields(bw, l->fields, l->field_count, &field_count); if (e != SF_OK) goto cleanup; }
-    e = sf_binary_writer_fill_i32(bw, "FieldCount", field_count); if (e != SF_OK) goto cleanup;
+    SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "FieldCount", field_count), goto cleanup);
     e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
 
     if (f->version == SF_FXR3_VERSION_SEKIRO) {
@@ -1095,7 +1095,7 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
         e = fill_pos(bw, "UnkBloodEnablerOffset"); if (e != SF_OK) goto cleanup;
         e = sf_binary_writer_write_i32s(bw, f->unk_blood_enabler_count, f->unk_blood_enablers); if (e != SF_OK) goto cleanup;
         e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
-        e = sf_binary_writer_fill_i32(bw, "UnkEmptyOffset", 0); if (e != SF_OK) goto cleanup;
+        SF_RESERVE_FILL_PAIR(e, sf_binary_writer_fill_i32(bw, "UnkEmptyOffset", 0), goto cleanup);
     }
 
 cleanup:

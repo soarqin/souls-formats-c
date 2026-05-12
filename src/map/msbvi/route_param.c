@@ -53,7 +53,7 @@ static sf_result_t msbvi_route_write_one(sf_binary_writer_t *w, const msbvi_rout
     rc = sf_binary_writer_write_i32(w, route->unk0c); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, -1); if (rc != SF_OK) return rc;
     for (int i = 0; i < 27; i++) { rc = sf_binary_writer_write_i32(w, 0); if (rc != SF_OK) return rc; }
-    rc = sf_binary_writer_fill_i64(w, name_res, sf_binary_writer_position(w) - start); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_fill_i64(w, name_res, sf_binary_writer_position(w) - start), return rc);
     rc = sf_binary_writer_write_utf16(w, route->name ? route->name : "", true); if (rc != SF_OK) return rc;
     return sf_binary_writer_pad(w, 8);
 }
@@ -63,7 +63,7 @@ sf_result_t msbvi_route_param_write(sf_binary_writer_t *w, const sf_msbvi_t *msb
     sf_result_t rc;
     rc = sf_binary_writer_write_i32(w, 52); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_i32(w, msbvi->route_count + 1); if (rc != SF_OK) return rc;
-    rc = sf_binary_writer_reserve_i64(w, "MsbviNameOff3"); if (rc != SF_OK) return rc;
+    SF_RESERVE_FILL_PAIR(rc, sf_binary_writer_reserve_i64(w, "MsbviNameOff3"), return rc);
     for (int32_t i = 0; i < msbvi->route_count; i++) { char n[32]; snprintf(n, sizeof n, "MsbviRouteOff%d", i); rc = sf_binary_writer_reserve_i64(w, n); if (rc != SF_OK) return rc; }
     rc = sf_binary_writer_reserve_i64(w, "MsbviNextList3"); if (rc != SF_OK) return rc; rc = sf_binary_writer_fill_i64(w, "MsbviNameOff3", sf_binary_writer_position(w)); if (rc != SF_OK) return rc;
     rc = sf_binary_writer_write_utf16(w, "ROUTE_PARAM_ST", true); if (rc != SF_OK) return rc; rc = sf_binary_writer_pad(w, 8); if (rc != SF_OK) return rc;

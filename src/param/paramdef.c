@@ -723,7 +723,7 @@ static sf_result_t write_field_record(sf_binary_writer_t *bw, const sf_paramdef_
 
     if (indirect_strings) {
         r = reserve_name(name, "DisplayNameOffset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
     } else if (def->unicode) {
         r = sf_binary_writer_write_fix_str_w(bw, field->display_name, 0x40,
                                              (uint8_t)(version >= 104 ? 0x00 : 0x20));
@@ -767,11 +767,11 @@ static sf_result_t write_field_record(sf_binary_writer_t *bw, const sf_paramdef_
     if (def->basic_fields) return SF_OK;
 
     r = reserve_name(name, "DescriptionOffset", index); if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
 
     if (indirect_strings) {
         r = reserve_name(name, "InternalTypeOffset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
     } else {
         r = sf_binary_writer_write_fix_str(bw, field->internal_type, 0x20, padding);
         if (r != SF_OK) return r;
@@ -779,7 +779,7 @@ static sf_result_t write_field_record(sf_binary_writer_t *bw, const sf_paramdef_
 
     if (indirect_strings) {
         r = reserve_name(name, "InternalNameOffset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_reserve_varint(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
     } else if (version >= 102) {
         char *internal_name = NULL;
         r = make_internal_name(field, &internal_name, def->alloc); if (r != SF_OK) return r;
@@ -795,11 +795,11 @@ static sf_result_t write_field_record(sf_binary_writer_t *bw, const sf_paramdef_
     if (version >= 200) {
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
         r = reserve_name(name, "UnkB8Offset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, name), return r);
         r = reserve_name(name, "UnkC0Offset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, name), return r);
         r = reserve_name(name, "UnkC8Offset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_reserve_i64(bw, name); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i64(bw, name), return r);
     } else if (version >= 106) {
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
@@ -826,8 +826,7 @@ static sf_result_t write_field_strings(sf_binary_writer_t *bw, const sf_paramdef
 
     if (indirect_strings) {
         r = reserve_name(name, "DisplayNameOffset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
         r = sf_binary_writer_write_utf16(bw, field->display_name, true); if (r != SF_OK) return r;
     }
 
@@ -841,12 +840,11 @@ static sf_result_t write_field_strings(sf_binary_writer_t *bw, const sf_paramdef
         if (r != SF_OK) return r;
     }
     r = reserve_name(name, "DescriptionOffset", index); if (r != SF_OK) return r;
-    r = sf_binary_writer_fill_varint(bw, name, description_offset); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, description_offset), return r);
 
     if (indirect_strings) {
         r = reserve_name(name, "InternalTypeOffset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw));
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
         r = sf_binary_writer_write_ascii(bw, field->internal_type, true); if (r != SF_OK) return r;
 
         char *internal_name = NULL;
@@ -860,11 +858,11 @@ static sf_result_t write_field_strings(sf_binary_writer_t *bw, const sf_paramdef
 
     if (version >= 200) {
         r = reserve_name(name, "UnkB8Offset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_fill_i64(bw, name, 0); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, name, 0), return r);
         r = reserve_name(name, "UnkC0Offset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_fill_i64(bw, name, 0); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, name, 0), return r);
         r = reserve_name(name, "UnkC8Offset", index); if (r != SF_OK) return r;
-        r = sf_binary_writer_fill_i64(bw, name, 0); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i64(bw, name, 0), return r);
     }
 
     return SF_OK;
@@ -882,7 +880,7 @@ static sf_result_t paramdef_write_to_writer(const sf_paramdef_t *def, sf_binary_
     const int16_t version = def->format_version;
     const bool indirect_param_type = version >= 202 || (version >= 106 && version < 200);
 
-    r = sf_binary_writer_reserve_i32(bw, "FileSize"); if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "FileSize"), return r);
     r = sf_binary_writer_write_i16(bw, (int16_t)(version >= 200 ? 0xFF : 0x30));
     if (r != SF_OK) return r;
     r = sf_binary_writer_write_i16(bw, def->data_version); if (r != SF_OK) return r;
@@ -891,12 +889,12 @@ static sf_result_t paramdef_write_to_writer(const sf_paramdef_t *def, sf_binary_
 
     if (version >= 202) {
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
-        r = sf_binary_writer_reserve_varint(bw, "ParamTypeOffset"); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "ParamTypeOffset"), return r);
         r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
         r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
         r = sf_binary_writer_write_i32(bw, 0); if (r != SF_OK) return r;
     } else if (version >= 106 && version < 200) {
-        r = sf_binary_writer_reserve_varint(bw, "ParamTypeOffset"); if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "ParamTypeOffset"), return r);
         r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
         r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
         r = sf_binary_writer_write_i64(bw, 0); if (r != SF_OK) return r;
@@ -919,8 +917,7 @@ static sf_result_t paramdef_write_to_writer(const sf_paramdef_t *def, sf_binary_
     }
 
     if (indirect_param_type) {
-        r = sf_binary_writer_fill_varint(bw, "ParamTypeOffset", sf_binary_writer_position(bw));
-        if (r != SF_OK) return r;
+        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "ParamTypeOffset", sf_binary_writer_position(bw)), return r);
         r = sf_binary_writer_write_shift_jis(bw, def->param_type, true); if (r != SF_OK) return r;
     }
 

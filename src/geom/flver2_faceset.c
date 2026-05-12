@@ -123,7 +123,7 @@ sf_result_t sfi_flver2_face_set_write(sf_binary_writer_t *bw,
     r = sf_binary_writer_write_u8(bw, fs->unk06);                 if (r != SF_OK) return r;
     r = sf_binary_writer_write_u8(bw, fs->unk07);                 if (r != SF_OK) return r;
     r = sf_binary_writer_write_i32(bw, (int32_t)fs->index_count); if (r != SF_OK) return r;
-    r = sf_binary_writer_reserve_i32(bw, label);                  if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, label), return r);
     r = sf_binary_writer_write_u8(bw, index_size);                if (r != SF_OK) return r;
     r = sf_binary_writer_write_u8(bw, 0);                         if (r != SF_OK) return r;
     r = sf_binary_writer_write_i16(bw, 0);                        if (r != SF_OK) return r;
@@ -146,8 +146,7 @@ sf_result_t sfi_flver2_face_set_write_indices(sf_binary_writer_t *bw,
     char label[48];
     sf_result_t r = faceset_index_label(label, sizeof(label), index);
     if (r != SF_OK) return r;
-    r = sf_binary_writer_fill_i32(bw, label, (int32_t)(pos - data_start));
-    if (r != SF_OK) return r;
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, label, (int32_t)(pos - data_start)), return r);
 
     if (fs->index_size == 16) {
         for (size_t i = 0; i < fs->index_count; i++) {

@@ -1,0 +1,48 @@
+T2.3 Reserve/fill scaffold macro extraction
+Date: 2026-05-12
+
+Verdict: GO — extracted safe scaffold only.
+
+Decision:
+- Added `SF_RESERVE_FILL_PAIR(result_var, call_expr, on_error)` in
+  `src/internal/sf_internal.h`.
+- Did not bundle reserve and fill as adjacent operations because the writer
+  state machine reserves named typed placeholders, writes intervening payload,
+  and fills by matching the same `name + type` later.
+- Preserved caller-specific error flow: call sites still pass `return r`,
+  `return rc`, `return e`, `goto cleanup`, or `goto done` explicitly.
+
+Replacement summary:
+- Converted 356 reserve/fill error-check scaffolds across 39 production `.c`
+  files, plus the macro definition header.
+- Reserve coverage relative to the T0.2 baseline: 203 / 247 = 82.2%.
+- Production reserve/fill occurrences in `src`: 509 total, including 13 writer
+  implementation definitions and 39 direct-return helper wrappers.
+- Source LOC delta before evidence/changelog notes: 40 files changed,
+  370 insertions(+), 532 deletions(-), net -162 LOC.
+
+Skipped categories:
+- Direct-return helper wrappers such as `return sf_binary_writer_fill_i32(...)`:
+  already minimal; wrapping would require introducing temporary result variables.
+- `src/core/binary_writer.c` reserve/fill implementation definitions and the
+  `DEFINE_FILL` generator: not call-site scaffold.
+- `if (r == SF_OK) r = ...` chains: intentionally preserve chained status flow.
+- Local declaration+call forms such as `sf_result_t r = sf_binary_writer_fill...`:
+  wrapping would broaden variable scope.
+- Tests were left unchanged; this refactor targets internal production call-site
+  scaffolding only.
+
+Verification:
+- `lsp_diagnostics` was clean on representative changed macro users:
+  `src/internal/sf_internal.h`, `src/effects/fxr3.c`,
+  `src/archive/binder_common.c`, and `src/geom/flver2_material.c` after macro
+  include visibility and malformed-call checks were corrected.
+- `lsp_diagnostics src/script/esd_write.c` reports the known clangd
+  include-resolution failure for `souls_formats/sf_esd.h`; the MinGW build
+  compiles this file, so this is treated as pre-existing LSP tooling noise.
+- Build command: `cmake --build build-mingw`.
+- Test command: `ctest --test-dir build-mingw -L 'archive|param|script|map|geom|anim'
+  --output-on-failure`.
+- Export count command: `x86_64-w64-mingw32-nm -g build-mingw/libsouls_formats.dll
+  | grep ' T sf_' | wc -l` = 894. (`objdump -p ... | grep -c 'sf_'` reports
+  891 in this checkout, but no public headers or `SF_API` declarations changed.)
