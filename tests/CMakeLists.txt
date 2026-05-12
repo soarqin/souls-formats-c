@@ -415,6 +415,14 @@ set_target_properties(probe_matbin_paramtypes PROPERTIES RUNTIME_OUTPUT_DIRECTOR
 include(${CMAKE_CURRENT_SOURCE_DIR}/probes/CMakeLists.txt)
 
 #-----------------------------------------------------------------------------
+# Phase 7 — animation / effects (synthetic round-trips)
+#-----------------------------------------------------------------------------
+if(SF_ENABLE_PHASE7)
+    sf_add_test(souls_formats_test_fxr3_synthetic
+        anim/test_fxr3_synthetic.c "anim")
+endif()
+
+#-----------------------------------------------------------------------------
 # Pre-refactor SHA-256 baseline — pins deterministic byte outputs across
 # the api-realignment effort. See tests/golden/golden_hashes.h.
 #-----------------------------------------------------------------------------

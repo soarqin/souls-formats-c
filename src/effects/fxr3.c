@@ -1011,8 +1011,6 @@ static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t
     e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) goto cleanup;
     e = sf_binary_writer_reserve_i32(bw, "TransitionOffset"); if (e != SF_OK) goto cleanup;
     e = sf_binary_writer_reserve_i32(bw, "TransitionCount"); if (e != SF_OK) goto cleanup;
-    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) goto cleanup; /* Section 3 offset */
-    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) goto cleanup; /* Section 3 count */
     e = sf_binary_writer_reserve_i32(bw, "ContainerOffset"); if (e != SF_OK) goto cleanup;
     e = sf_binary_writer_reserve_i32(bw, "ContainerCount"); if (e != SF_OK) goto cleanup;
     e = sf_binary_writer_reserve_i32(bw, "EffectOffset"); if (e != SF_OK) goto cleanup;
