@@ -1,0 +1,35 @@
+Test project /home/soar/src/souls-formats-c/build-mingw
+      Start 10: souls_formats_test_dcx_dflt
+ 1/13 Test #10: souls_formats_test_dcx_dflt .........   Passed    0.90 sec
+      Start 11: souls_formats_test_dcx_edge
+ 2/13 Test #11: souls_formats_test_dcx_edge .........   Passed    0.24 sec
+      Start 12: souls_formats_test_dcx_zstd
+ 3/13 Test #12: souls_formats_test_dcx_zstd .........   Passed    0.50 sec
+      Start 13: souls_formats_test_dcx_krak
+ 4/13 Test #13: souls_formats_test_dcx_krak .........   Passed    0.45 sec
+      Start 14: souls_formats_test_dcx_sniff
+ 5/13 Test #14: souls_formats_test_dcx_sniff ........   Passed    0.26 sec
+      Start 20: souls_formats_test_binder_common
+ 6/13 Test #20: souls_formats_test_binder_common ....   Passed    0.28 sec
+      Start 21: souls_formats_test_bhd5_synthetic
+ 7/13 Test #21: souls_formats_test_bhd5_synthetic ...   Passed    0.13 sec
+      Start 22: souls_formats_test_bnd3_synthetic
+ 8/13 Test #22: souls_formats_test_bnd3_synthetic ...   Passed    0.31 sec
+      Start 23: souls_formats_test_bnd4_synthetic
+ 9/13 Test #23: souls_formats_test_bnd4_synthetic ...   Passed    0.33 sec
+      Start 24: souls_formats_test_bxf3_synthetic
+10/13 Test #24: souls_formats_test_bxf3_synthetic ...   Passed    0.30 sec
+      Start 25: souls_formats_test_bxf4_synthetic
+11/13 Test #25: souls_formats_test_bxf4_synthetic ...   Passed    0.29 sec
+      Start 26: souls_formats_test_enfl_synthetic
+12/13 Test #26: souls_formats_test_enfl_synthetic ...   Passed    0.18 sec
+      Start 27: souls_formats_test_tpf_synthetic
+13/13 Test #27: souls_formats_test_tpf_synthetic ....   Passed    0.24 sec
+
+100% tests passed, 0 tests failed out of 13
+
+Label Time Summary:
+archive        =   2.06 sec*proc (8 tests)
+compression    =   2.34 sec*proc (5 tests)
+
+Total Test time (real) =   4.41 sec

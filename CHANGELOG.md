@@ -11,6 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Reserve/fill audit (T0.2): 247 reserve calls vs 238 fill calls — all mismatches confirmed Legit (dynamic name patterns via snprintf/helper functions). No bugs found.
 - Magic-check helper audit (T2.2): sampled 20 diverse `SF_ERR_BAD_MAGIC` sites; only 7/20 matched the proposed return-on-fail `assert_ascii` pattern, so `SF_ASSERT_MAGIC` extraction was skipped.
 - `SF_ENABLE_PHASE7` was never landed as a CMake option; Phase 7 (TAE/FXR3) is permanently compiled in since v0.4.0. The option reference in v0.4.0 changelog was erroneous and has been removed.
+- `sf_get_decompressed_reader` adoption audit (T2.1): of the 7 files invoking DCX decompression, 8 top-level read paths in `bnd3/bnd4/bxf3/bxf4` already use the helper (since initial Phase 3 port). The remaining 5 inline `sf_dcx_decompress_from_buffer` callsites — 4 per-binder-file decoders (`bnd3/bnd4/bxf3/bxf4`) plus 1 per-texture DCP_EDGE decoder (`tpf`) — operate on raw bytes/explicit offset/flag-driven semantics that diverge from the helper's reader/sniff/wrap contract; forcing adoption would add ~30 LOC/site plus a redundant heap copy. Documented as divergent per QA Scenario 2; no source changes. Evidence: `.sisyphus/evidence/task-2.1-skipped-callers.md`, `task-2.1-ctest.log`.
 
 ---
 
