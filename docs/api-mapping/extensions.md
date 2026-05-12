@@ -53,3 +53,33 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 - **C API or behavior description**: Read: if FaceSet.Flags includes EdgeCompressed → `SF_ERR_UNSUPPORTED_VERSION`. Write: does not accept any Edge-related input
 - **Rationale**: Edge geometry is explicitly OUT-of-scope for v1; silent data loss would be worse than a clear error
 - **Impact**: EdgeCompressed FaceSets cannot be read or written in v1
+
+## Phase 7: Animation + Effects
+
+### TAE Template subsystem deferral
+- **Type**: Functional divergence (C-side v1.1 does not implement)
+- **Upstream Ref**: `Formats/TAE/Template.cs` (801 LOC); `TAE.cs:ApplyTemplate(Template, bool)`
+- **C API**: None — `sf_tae_template_t`, `sf_tae_bank_template_t`, `sf_tae_event_template_t`, `sf_tae_param_template_t`, `sf_tae_param_type_t` are not exposed
+- **Rationale**: Template is a friendly typed parameter access layer; v1.1 scope is round-trip only. Typed parameter access deferred to v1.2.
+- **Impact**: `sf_tae_event_parameters()` returns opaque `uint8_t*` + size; consumers must parse parameter bytes themselves.
+
+### mxml default allocator (no sf_allocator_t override)
+- **Type**: C-style adaptation (known limitation)
+- **Upstream Ref**: Upstream uses .NET XmlSerializer; allocation managed by GC
+- **C API**: `sf_fxr3_to_xml(...)` / `sf_fxr3_from_xml(...)` use mxml's default `malloc/free` internally; the fxr3 object itself is controlled by `sf_allocator_t`
+- **Rationale**: mxml 4.0.4 does not support thread-local allocator hooks; v1.1 does not bridge this.
+- **Impact**: XML pipeline memory does not flow through the user allocator; XML strings must be freed via mxml-style `free()`.
+
+### FXR3 XML round-trip equivalence policy
+- **Type**: Functional adaptation
+- **Upstream Ref**: `FXR3.cs:1488 FXR3ToXML` / `FXR3.cs:1480 XMLToFXR3` use .NET XmlSerializer
+- **C API**: `sf_fxr3_to_xml` / `sf_fxr3_from_xml`
+- **Rationale**: XmlSerializer output contains unstable whitespace / attribute ordering / namespace declarations; C-side cannot produce byte-equal output.
+- **Impact**: Tests use structural in-memory equality (XML write → re-read → field-by-field comparison), not byte-equal raw XML comparison.
+
+### TAE format coverage limited to SDT in v1.1
+- **Type**: Functional divergence
+- **Upstream Ref**: `TAE.cs:202-260` — 7 TAEFormat branches (DS1/SOTFS/DS3/SDT/DES/DESR/AC6-TBD)
+- **C API**: `sf_tae_read_from_memory` returns `SF_ERR_UNSUPPORTED_VERSION` when version ≠ 0x1000D
+- **Rationale**: v1.1 target games (Sekiro / Elden Ring / Nightreign) all use SDT format; legacy formats deferred to v2. AC6 TBD pending probe.
+- **Impact**: DS1 / SOTFS / DS3 / BB / DES / DESR / AC6 (TBD) `.tae` files cannot be read.
