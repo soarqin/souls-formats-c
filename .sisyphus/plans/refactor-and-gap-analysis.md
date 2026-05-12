@@ -1993,7 +1993,7 @@ Parallel-execution metrics:
 
   **Commit**: `refactor(map): extract msb_entry_list_read/write scaffolding` — `src/map/msb_common.c include/souls_formats/sf_msb.h docs/api-mapping/POLICY.md` — pre-commit: map ctest.
 
-- [ ] 5.2 **Apply `msb_entry_list_*` to msbs/msbe/msbvi**
+- [x] 5.2 **Apply `msb_entry_list_*` to msbs/msbe/msbvi**
 
   **What to do**: For each of the 19 MSB .c files matching `src/map/msb{s,e,vi}/*.c` (6 msbs + 6 msbe + 7 msbvi), replace the per-file scaffold copy with calls to the new helpers from T5.1. Do this in three sub-PRs (one per game variant) so each is reversible. Per-subtype field reads remain untouched.
 
@@ -2025,7 +2025,7 @@ Parallel-execution metrics:
 
   **Commit**: 3 commits — `refactor(map/msbs): use msb_entry_list_* helpers`, ditto msbe, ditto msbvi — files per game — pre-commit: per-game ctest.
 
-- [ ] 5.3 **Document MSB shared-engine technique in POLICY.md / extensions.md**
+- [x] 5.3 **Document MSB shared-engine technique in POLICY.md / extensions.md**
 
   **What to do**: Write a section in `docs/api-mapping/POLICY.md` (or a new entry in `extensions.md`) explaining the chosen technique (callback-table vs X-macro), why it was chosen, and how it maps to upstream's C# `Param<T>` generic. Include the per-module LOC delta as evidence.
 
@@ -2181,7 +2181,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `audit(upstream): enumerate Formats/ and Utilities/ surface; add cluster-plan-validator.sh` — `.sisyphus/evidence/upstream-inventory.md tests/cluster-plan-validator.sh tests/cluster-plan-validator-self-test.md` — pre-commit: `bash tests/cluster-plan-validator.sh tests/cluster-plan-validator-self-test.md`.
 
-- [ ] 6.1 **Write `next-batch-legacy-binder.md`**
+- [x] 6.1 **Write `next-batch-legacy-binder.md`**
 
   **What to do**: Per T6.0 inventory, draft the cluster plan covering BND, BND2, and any legacy Binder helpers missing from our v1 (the BinderHashTable variants for older games, BNDDataEntry layout differences). Each plan has these sections: TL;DR, Upstream formats covered (with .cs paths + LOC + one-line description), Must Have (formats, methods, fixtures), Must NOT Have, Dependencies on prior clusters, Acceptance criteria (executable build/test commands), STRICT UPSTREAM REFERENCE table, and an estimated effort + risk note.
 
@@ -2223,7 +2223,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `docs(plan): next-batch-legacy-binder.md` — `.sisyphus/plans/next-batch-legacy-binder.md` — pre-commit: `bash tests/cluster-plan-validator.sh .sisyphus/plans/next-batch-legacy-binder.md`.
 
-- [ ] 6.2 **Write `next-batch-legacy-msb.md`**
+- [x] 6.2 **Write `next-batch-legacy-msb.md`**
 
   **What to do**: Cover MSB1, MSB2, MSB3, MSBAC4, MSBB, MSBD, MSBDR, MSBFA, MSBN, MSBV, MSBVD. Note interdependencies (MSBB is similar to MSB3; MSBDR extends MSBD; etc.). Acceptance commands include enumerating per-game .cs file paths and the corresponding game-fixture availability matrix.
 
@@ -2263,7 +2263,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `docs(plan): next-batch-legacy-msb.md` — `.sisyphus/plans/next-batch-legacy-msb.md` — pre-commit: `bash tests/cluster-plan-validator.sh .sisyphus/plans/next-batch-legacy-msb.md`.
 
-- [ ] 6.3 **Write `next-batch-legacy-flver.md`**
+- [x] 6.3 **Write `next-batch-legacy-flver.md`**
 
   **What to do**: Cover FLVER0, Edge Geometry / SPU vertex format / RSX vertex format (PS3-era console-specific), and any FLVER0-vs-FLVER2 layout divergences. Note that FLVER0 likely shares header/Node infrastructure with FLVER2 — call out reuse opportunities.
 
@@ -2295,7 +2295,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `docs(plan): next-batch-legacy-flver.md` — pre-commit: validator.
 
-- [ ] 6.4 **Write `next-batch-tae-templates.md`**
+- [x] 6.4 **Write `next-batch-tae-templates.md`**
 
   **What to do**: Cover the TAE Template subsystem (`Template.cs` 801 LOC: `ApplyTemplate / BankTemplate / EventTemplate / ParameterTemplate`) plus the non-SDT TAE format dispatches (DS1, SOTFS, DS3, BB, DES, DESR). Note that this was explicitly deferred in PLAN.md to v1.1+/v1.2.
 
@@ -2325,7 +2325,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `docs(plan): next-batch-tae-templates.md` — pre-commit: validator.
 
-- [ ] 6.5 **Write `next-batch-lighting.md`**
+- [x] 6.5 **Write `next-batch-lighting.md`**
 
   **What to do**: Cover BTAB, BTL, BTPB, GPARAM (DS3+ lighting param), PMDCL. Note that GPARAM is non-trivial.
 
@@ -2356,7 +2356,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `docs(plan): next-batch-lighting.md` — pre-commit: validator.
 
-- [ ] 6.6 **Write `next-batch-navmesh.md`**
+- [x] 6.6 **Write `next-batch-navmesh.md`**
 
   **What to do**: Cover NVA, NVM, NGP, MCG, MCP, EDGE. Note that EDGE is shared geometry compression used in multiple formats.
 
@@ -2387,7 +2387,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `docs(plan): next-batch-navmesh.md` — pre-commit: validator.
 
-- [ ] 6.7 **Write `next-batch-text-script-misc.md`**
+- [x] 6.7 **Write `next-batch-text-script-misc.md`**
 
   **What to do**: Cover LUAGNL, LUAINFO, EMELD, FMB. Note relationship to existing EMEVD/ESD (in v1).
 
@@ -2417,7 +2417,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `docs(plan): next-batch-text-script-misc.md` — pre-commit: validator.
 
-- [ ] 6.8 **Write `next-batch-effects-misc.md`**
+- [x] 6.8 **Write `next-batch-effects-misc.md`**
 
   **What to do**: Cover FXR1, FFXDLSE, ANI, MQB (ER cutscene format), Morpheme.
 
@@ -2447,7 +2447,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `docs(plan): next-batch-effects-misc.md` — pre-commit: validator.
 
-- [ ] 6.9 **Write `next-batch-ac-specific.md`**
+- [x] 6.9 **Write `next-batch-ac-specific.md`**
 
   **What to do**: Cover AcParts (variants per AC game), MLB_AC4 / MLB_AC5, FSDATA, FSLIBLZS. These are AC-series-specific formats deferred to v3.
 
@@ -2477,7 +2477,7 @@ echo "VALIDATOR PASS: $CLUSTER_FILE"
 
   **Commit**: `docs(plan): next-batch-ac-specific.md` — pre-commit: validator.
 
-- [ ] 6.10 **Write `next-batch-uncategorized-deferred.md` (10th catch-all cluster)**
+- [x] 6.10 **Write `next-batch-uncategorized-deferred.md` (10th catch-all cluster)**
 
   **What to do**: Cover the stragglers Metis flagged: DRB (UI layout), ACB, CCM, RMB, GRASS, F2TR, EDD, AIP, SMD4, CLM2. Plus anything else T6.0 inventory failed to assign cleanly.
 
