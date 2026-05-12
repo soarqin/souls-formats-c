@@ -280,6 +280,14 @@ sf_add_test(souls_formats_test_mtd_synthetic
     geom/test_mtd_synthetic.c "geom")
 sf_add_test(souls_formats_test_matbin_synthetic
     geom/test_matbin_synthetic.c "geom")
+sf_add_test(souls_formats_test_flver2_decode
+    geom/test_flver2_decode.c "geom")
+
+sf_add_test(souls_formats_test_flver2_e2e_er
+    geom/test_flver2_e2e_er.c "e2e_er")
+target_compile_definitions(souls_formats_test_flver2_e2e_er PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
 
 #-----------------------------------------------------------------------------
 # Phase 5 — Sekiro e2e helper
