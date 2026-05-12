@@ -389,7 +389,7 @@ Parallel-execution metrics:
 > No source code changes in Wave 0. Each task produces an `.sisyphus/evidence/*.md` audit file that
 > either GREEN-LIGHTS or RED-LIGHTS its downstream tasks. Run all 7 tasks in parallel.
 
-- [ ] 0.1 **klib 3-toolchain compile spike**
+- [x] 0.1 **klib 3-toolchain compile spike**
 
   **What to do**:
   1. Create a throwaway `tests/spike/test_klib_compile.c` that instantiates `KHASH_MAP_INIT_INT64(bhd5_map, void*)` with a tiny put/get sequence.
@@ -452,7 +452,7 @@ Parallel-execution metrics:
   - Files: `tests/spike/test_klib_compile.c tests/CMakeLists.txt .sisyphus/evidence/klib-toolchain-spike.md`
   - Pre-commit: `cmake --build build-mingw --target souls_formats_test_klib_spike`
 
-- [ ] 0.2 **Reserve/fill 10-entry mismatch audit**
+- [x] 0.2 **Reserve/fill 10-entry mismatch audit**
 
   **What to do**:
   1. Grep the codebase for every `sf_binary_writer_reserve_*(...)` call site and the corresponding `sf_binary_writer_fill_*(...)` call site, keyed by the literal name string passed as the placeholder identifier (`"entry_count"`, `"data_offset"`, etc.).
@@ -523,7 +523,7 @@ Parallel-execution metrics:
   - Files: `.sisyphus/evidence/reserve-fill-audit.md`
   - Pre-commit: none (no code changed)
 
-- [ ] 0.3 **PARAMDEF apply caller-pattern audit**
+- [x] 0.3 **PARAMDEF apply caller-pattern audit**
 
   **What to do**:
   1. Find all callers of `sf_param_apply_paramdef(...)` in `src/`, `tests/`, and `examples/` (the public entry point per `include/souls_formats/sf_param.h`).
@@ -590,7 +590,7 @@ Parallel-execution metrics:
   - Files: `.sisyphus/evidence/paramdef-apply-callers.md`
   - Pre-commit: none
 
-- [ ] 0.4 **binary_reader endian-toggle audit**
+- [x] 0.4 **binary_reader endian-toggle audit**
 
   **What to do**:
   1. Find all in-tree assignments to `r->big_endian` (or via `sf_binary_reader_set_big_endian()`) across `src/` to enumerate **our** mid-stream toggle sites.
@@ -660,7 +660,7 @@ Parallel-execution metrics:
   - Files: `tests/microbench/test_flver2_decode_endian.c tests/CMakeLists.txt .sisyphus/evidence/endian-toggle-sites.md`
   - Pre-commit: `cmake --build build-mingw --target souls_formats_microbench_endian`
 
-- [ ] 0.5 **MSB scaffolding-vs-subtype LOC breakdown**
+- [x] 0.5 **MSB scaffolding-vs-subtype LOC breakdown**
 
   **What to do**:
   1. For each of `src/map/msbs/*.c`, `src/map/msbe/*.c`, `src/map/msbvi/*.c`, classify each function body into:
@@ -728,7 +728,7 @@ Parallel-execution metrics:
   - Files: `.sisyphus/evidence/msb-scaffold-vs-subtype.md`
   - Pre-commit: none
 
-- [ ] 0.6 **Per-entry vs per-archive alloc-site audit**
+- [x] 0.6 **Per-entry vs per-archive alloc-site audit**
 
   **What to do**:
   1. For each of the top alloc-heavy files (`fxr3_xml_read.c`, `fxr3.c`, `bnd3.c`, `bxf3.c`, `bxf4.c`, `bnd4.c`, `tae.c`, `bhd5.c`, `encoding_win32.c`, `esd.c`, `matbin.c`, `binary_reader.c`, `flver2.c`, `tpf.c`, `dcx.c`), enumerate each `sf_xalloc`/`sf_xrealloc`/`sf_strdup` site.
@@ -795,7 +795,7 @@ Parallel-execution metrics:
   - Files: `.sisyphus/evidence/alloc-site-audit.md`
   - Pre-commit: none
 
-- [ ] 0.7 **`emevd_internal.h` cross-module use audit**
+- [x] 0.7 **`emevd_internal.h` cross-module use audit**
 
   **What to do**:
   1. Grep all `#include` lines anywhere in `src/`, `include/`, `tests/`, `examples/` that reference `emevd_internal.h`.
@@ -858,7 +858,7 @@ Parallel-execution metrics:
 > Wave 1 establishes the baselines every later wave verifies against, does the mandatory CMake
 > reorg, and lands all the cheap independent fixes Metis surfaced. Runs in parallel after Wave 0.
 
-- [ ] 1.1 **Capture symbol / test / skip / sanitizer baselines**
+- [x] 1.1 **Capture symbol / test / skip / sanitizer baselines**
 
   **What to do**:
   1. Build clean: `cmake -B build-mingw -G Ninja --toolchain cmake/toolchain-mingw-w64.cmake -DCMAKE_BUILD_TYPE=Debug && cmake --build build-mingw`.
@@ -932,7 +932,7 @@ Parallel-execution metrics:
   - Files: `.sisyphus/evidence/symbols-baseline.txt .sisyphus/evidence/test-counts-baseline.txt .sisyphus/evidence/skip-count-baseline.txt .sisyphus/evidence/sanitizer-baseline.txt`
   - Pre-commit: build + ctest must already be green at HEAD
 
-- [ ] 1.2 **CMake: `BUILD_TESTING` default `${PROJECT_IS_TOP_LEVEL}` + `SF_BUILD_TESTS` alias**
+- [x] 1.2 **CMake: `BUILD_TESTING` default `${PROJECT_IS_TOP_LEVEL}` + `SF_BUILD_TESTS` alias**
 
   **What to do**:
   1. In top-level `CMakeLists.txt`, replace the `option(SF_BUILD_TESTS ... ON)` line (line 12) with:
@@ -1016,7 +1016,7 @@ Parallel-execution metrics:
   - Files: `CMakeLists.txt AGENTS.md`
   - Pre-commit: all four acceptance build variants run
 
-- [ ] 1.3 **CI workflow: update to BUILD_TESTING flag**
+- [x] 1.3 **CI workflow: update to BUILD_TESTING flag**
 
   **What to do**:
   1. Read `.github/workflows/ci.yml`. Find every line passing `-DSF_BUILD_TESTS=ON` (or `=OFF`).
@@ -1077,7 +1077,7 @@ Parallel-execution metrics:
   - Files: `.github/workflows/ci.yml`
   - Pre-commit: `cmake -B /tmp/wave1-ci-check -G Ninja --toolchain cmake/toolchain-mingw-w64.cmake -DBUILD_TESTING=ON && cmake --build /tmp/wave1-ci-check --target souls_formats_static`
 
-- [ ] 1.4 **`sf_sl2.h` add to `SF_PUBLIC_HEADERS` + examples target alias harmonization**
+- [x] 1.4 **`sf_sl2.h` add to `SF_PUBLIC_HEADERS` + examples target alias harmonization**
 
   **What to do**:
   1. Open `CMakeLists.txt`. In `SF_PUBLIC_HEADERS` (lines 46-84), add `include/souls_formats/sf_sl2.h` alphabetically-or-categorically-ordered with the other crypto-adjacent headers (next to `sf_regulation.h`).
@@ -1139,7 +1139,7 @@ Parallel-execution metrics:
   - Files: `CMakeLists.txt examples/CMakeLists.txt`
   - Pre-commit: install dry-run + examples build
 
-- [ ] 1.5 **Probe gating behind `SF_BUILD_PROBES=OFF` + CTest label unification**
+- [x] 1.5 **Probe gating behind `SF_BUILD_PROBES=OFF` + CTest label unification**
 
   **What to do**:
   1. Add to top-level `CMakeLists.txt`: `option(SF_BUILD_PROBES "Build one-shot diagnostic probes (debug aids)" OFF)`.
@@ -1207,7 +1207,7 @@ Parallel-execution metrics:
   - Files: `CMakeLists.txt tests/CMakeLists.txt tests/probes/CMakeLists.txt`
   - Pre-commit: both build variants + ctest -L e2e -N
 
-- [ ] 1.6 **`SF_ENABLE_PHASE7` CHANGELOG drift cleanup + stale-build-dir doc trail**
+- [x] 1.6 **`SF_ENABLE_PHASE7` CHANGELOG drift cleanup + stale-build-dir doc trail**
 
   **What to do**:
   1. Read `CHANGELOG.md`. Find every mention of `SF_ENABLE_PHASE7`.
@@ -1269,7 +1269,7 @@ Parallel-execution metrics:
   - Files: `CHANGELOG.md .gitignore? AGENTS.md?`
   - Pre-commit: none
 
-- [ ] 1.7 **Apply `emevd_internal.h` relocation decision from T0.7**
+- [x] 1.7 **Apply `emevd_internal.h` relocation decision from T0.7**
 
   **What to do**:
   1. Read `.sisyphus/evidence/emevd-internal-use.md` produced by T0.7.
@@ -1333,7 +1333,7 @@ Parallel-execution metrics:
   - Files: per verdict
   - Pre-commit: build + script ctest
 
-- [ ] 1.8 **Fix reserve/fill bugs surfaced by T0.2**
+- [x] 1.8 **Fix reserve/fill bugs surfaced by T0.2**
 
   **What to do**:
   1. Read `.sisyphus/evidence/reserve-fill-audit.md`. Pull out the "Bug" rows.
@@ -1401,7 +1401,7 @@ Parallel-execution metrics:
 > Wave 2 extracts cross-module helpers — but only those that survived a Wave 0 audit OR a per-task
 > mini-audit at the start of the wave. The principle is **evidence before extraction**.
 
-- [ ] 2.1 **Adopt `sf_get_decompressed_reader` at the 7 caller sites**
+- [x] 2.1 **Adopt `sf_get_decompressed_reader` at the 7 caller sites**
 
   **What to do**:
   1. For each of the 7 callers found by Wave 0 (`src/compression/dcx.c`, `src/core/sf_util.c`, `src/archive/bxf3.c`, `src/archive/bxf4.c`, `src/archive/tpf.c`, `src/archive/bnd4.c`, `src/archive/bnd3.c`), inspect the surrounding code that decides between "DCX-wrapped input" and "raw input".
@@ -1466,7 +1466,7 @@ Parallel-execution metrics:
   - Files: per caller
   - Pre-commit: `ctest --test-dir build-mingw -L <area> --output-on-failure`
 
-- [ ] 2.2 **Magic-check helper macro (only if ≥80% sites are uniform after a quick audit)**
+- [x] 2.2 **Magic-check helper macro (only if ≥80% sites are uniform after a quick audit)**
 
   **What to do**:
   1. Sample 20 of the 123 `SF_ERR_BAD_MAGIC` sites across diverse formats (BND3/BND4/BXF3/BXF4/BHD5/TPF/FMG/PARAM/MSBE/FLVER2/EMEVD/ESD/TAE/FXR3 — pick widely).
@@ -1532,7 +1532,7 @@ Parallel-execution metrics:
   - Files: per outcome
   - Pre-commit: `ctest --test-dir build-mingw -L 'archive|param|script|map|geom|anim'`
 
-- [ ] 2.3 **Reserve/fill scaffold macro (gated by T0.2 clearance + T1.8 fixes)**
+- [x] 2.3 **Reserve/fill scaffold macro (gated by T0.2 clearance + T1.8 fixes)**
 
   **What to do**: After T0.2 verdict shows the 10-entry mismatch is fully explained AND T1.8 has fixed any bugs, extract a `SF_RESERVE_FILL_PAIR(writer, name, type, value)` style macro/inline helper that bundles the common reserve/fill convention. Replace ≥80% of the 249 sites if uniform; document any skipped sites. Verify ctest covers all affected formats.
 
@@ -1570,7 +1570,7 @@ Parallel-execution metrics:
 
   **Commit**: `refactor(internal): SF_RESERVE_FILL macro (-NN LOC across <K> sites)` — `src/internal/sf_internal.h` + per-file replacements — pre-commit: full ctest.
 
-- [ ] 2.4 **e2e test helper consolidation into a static lib target**
+- [x] 2.4 **e2e test helper consolidation into a static lib target**
 
   **What to do**: Currently each e2e test target uses `target_sources(... e2e/er_test_helper.c)` (recompiling the helper per target — ~30 recompilations). Create a CMake static lib `souls_formats_e2e_helpers` containing all of `er_test_helper.c`, `nightreign_test_helper.c`, `ac6_test_helper.c`, `sekiro_test_helper.c`. Each e2e test target instead `target_link_libraries(... PRIVATE souls_formats_e2e_helpers)`. Verify build time delta (`time cmake --build build-mingw` before vs after; report in CHANGELOG note). Verify all e2e tests still build and pass.
 
@@ -1607,7 +1607,7 @@ Parallel-execution metrics:
 
   **Commit**: `build(tests): consolidate e2e helpers into souls_formats_e2e_helpers static lib` — `tests/CMakeLists.txt tests/e2e/CMakeLists.txt` — pre-commit: full e2e ctest.
 
-- [ ] 2.5 **Document goto-cleanup convention (no global macro; documentation only)**
+- [x] 2.5 **Document goto-cleanup convention (no global macro; documentation only)**
 
   **What to do**: With 812 `goto cleanup` / `fail` / `err` sites across src/, a global cleanup-macro abstraction would be too invasive. Instead: write a `docs/api-mapping/POLICY.md §X "Error cleanup convention"` documenting the established pattern (the prevalent name → file:line:N typical occurrences) so future contributors know not to invent new ad-hoc patterns. No source changes.
 
