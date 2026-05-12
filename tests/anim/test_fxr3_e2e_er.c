@@ -25,9 +25,11 @@
 
 #include "er_test_helper.h"
 
+#include "souls_formats/sf_bhd5.h"
 #include "souls_formats/sf_binder.h"
 #include "souls_formats/sf_bnd4.h"
 #include "souls_formats/sf_common.h"
+#include "souls_formats/sf_dcx.h"
 #include "souls_formats/sf_fxr3.h"
 #include "souls_formats/sf_io.h"
 
@@ -91,6 +93,67 @@ static bool name_ends_with(const char *name, const char *suffix)
     return memcmp(name + n - s, suffix, s) == 0;
 }
 
+/* ER stores some Data0 entries under a 64-bit folded path hash that the
+ * production sf_path_hash_64 (zero-extended 32-bit, 37u multiplier) does
+ * not compute. Mirrors the workaround used by tests/geom/test_matbin_e2e_er.c
+ * and tests/probes/probe_fxr3_format.c. */
+static uint64_t er_path_hash_64_alt(const char *path)
+{
+    uint64_t h = 0;
+    for (const unsigned char *p = (const unsigned char *)path; *p; ++p) {
+        unsigned char c = (*p == '\\') ? '/' : *p;
+        if (c >= 'A' && c <= 'Z') {
+            c = (unsigned char)(c - 'A' + 'a');
+        }
+        h = (uint64_t)c + 133u * h;
+    }
+    return h;
+}
+
+static sf_result_t er_extract_with_fallback(const char *path,
+                                            void **out, size_t *out_size)
+{
+    sf_result_t r = er_extract_from_data0(path, out, out_size);
+    if (r == SF_OK) {
+        return r;
+    }
+    if (r != SF_ERR_NOT_FOUND) {
+        return r;
+    }
+
+    void  *raw      = NULL;
+    size_t raw_size = 0;
+    r = sf_bhd5_extract_by_hash_64(er_helper_get_bhd5_for_testing(),
+                                   er_path_hash_64_alt(path),
+                                   &raw, &raw_size, NULL);
+    if (r != SF_OK) {
+        return r;
+    }
+
+    sf_dcx_type_t     type    = SF_DCX_TYPE_UNKNOWN;
+    const sf_result_t sniff_r = sf_dcx_sniff(raw, raw_size, &type);
+    const bool        is_dcx  = sniff_r == SF_OK && type != SF_DCX_TYPE_NONE &&
+                                type != SF_DCX_TYPE_UNKNOWN;
+
+    if (is_dcx) {
+        void         *decompressed = NULL;
+        size_t        decomp_size  = 0;
+        sf_dcx_type_t out_type     = SF_DCX_TYPE_UNKNOWN;
+        r = sf_dcx_decompress(raw, raw_size, &decompressed, &decomp_size,
+                              &out_type, NULL);
+        sf_free(NULL, raw);
+        if (r != SF_OK) {
+            return r;
+        }
+        *out      = decompressed;
+        *out_size = decomp_size;
+    } else {
+        *out      = raw;
+        *out_size = raw_size;
+    }
+    return SF_OK;
+}
+
 /* Recursive search of the container tree for at least one effect. The
  * T5 probe confirms ER ffxbnd entries all have ≥3 effects, so this is a
  * conservative existence check rather than a structural assertion. */
@@ -121,7 +184,7 @@ static void test_fxr3_e2e_parse_first_commoneffects_fxr(void)
 
     void       *bnd_bytes = NULL;
     size_t      bnd_size  = 0;
-    sf_result_t r = er_extract_from_data0(FFXBND_PATH, &bnd_bytes, &bnd_size);
+    sf_result_t r = er_extract_with_fallback(FFXBND_PATH, &bnd_bytes, &bnd_size);
     if (r == SF_ERR_OODLE_NOT_FOUND) {
         TEST_IGNORE_MESSAGE("Oodle DLL missing; cannot decompress DCX_KRAK");
     }

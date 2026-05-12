@@ -1,0 +1,18 @@
+Test project /home/soar/src/souls-formats-c/build-on
+    Start 101: souls_formats_test_tae_e2e_er
+1/2 Test #101: souls_formats_test_tae_e2e_er ....   Passed    6.45 sec
+    Start 102: souls_formats_test_fxr3_e2e_er
+2/2 Test #102: souls_formats_test_fxr3_e2e_er ...   Passed    0.99 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Label Time Summary:
+e2e_er    =   7.44 sec*proc (2 tests)
+
+Total Test time (real) =   7.45 sec
+---T25 detail---
+/home/soar/src/souls-formats-c/tests/anim/test_fxr3_e2e_er.c:268:test_fxr3_e2e_parse_first_commoneffects_fxr:PASS
+
+-----------------------
+1 Tests 0 Failures 0 Ignored 
+OK
