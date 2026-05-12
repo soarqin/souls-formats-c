@@ -1,0 +1,60 @@
+FOUND_IN_DATA: 0
+BND_ENTRY_COUNT: 14959
+SAMPLE[1]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000001.fxr
+FXR_VERSION: 5
+FXR_ID: 1
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=1 transition=1 container=4 effect=3 action=52 property=114 modifier=0 condprop=0 unkfieldlist=3 field=372 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+SAMPLE[2]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000002.fxr
+FXR_VERSION: 5
+FXR_ID: 2
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=2 transition=2 container=28 effect=32 action=497 property=1489 modifier=92 condprop=0 unkfieldlist=27 field=3450 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+SAMPLE[3]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000003.fxr
+FXR_VERSION: 5
+FXR_ID: 3
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=2 transition=2 container=28 effect=42 action=647 property=2245 modifier=162 condprop=0 unkfieldlist=27 field=5236 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+SAMPLE[4]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000004.fxr
+FXR_VERSION: 5
+FXR_ID: 4
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=2 transition=2 container=28 effect=32 action=497 property=1489 modifier=92 condprop=0 unkfieldlist=27 field=3450 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+SAMPLE[5]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000005.fxr
+FXR_VERSION: 5
+FXR_ID: 5
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=2 transition=2 container=28 effect=32 action=497 property=1489 modifier=92 condprop=0 unkfieldlist=27 field=3450 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+SAMPLE[6]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000007.fxr
+FXR_VERSION: 5
+FXR_ID: 7
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=2 transition=2 container=28 effect=32 action=497 property=1489 modifier=92 condprop=0 unkfieldlist=27 field=3440 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+SAMPLE[7]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000008.fxr
+FXR_VERSION: 5
+FXR_ID: 8
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=2 transition=2 container=28 effect=32 action=497 property=1489 modifier=92 condprop=0 unkfieldlist=27 field=3444 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+SAMPLE[8]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000009.fxr
+FXR_VERSION: 5
+FXR_ID: 9
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=2 transition=2 container=28 effect=34 action=527 property=1657 modifier=110 condprop=0 unkfieldlist=27 field=3902 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+SAMPLE[9]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000010.fxr
+FXR_VERSION: 5
+FXR_ID: 10
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=2 transition=2 container=28 effect=32 action=497 property=1501 modifier=92 condprop=0 unkfieldlist=27 field=3478 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+SAMPLE[10]: N:\GR\data\INTERROOT_win64\sfx\effect\f000000011.fxr
+FXR_VERSION: 5
+FXR_ID: 11
+HEADER_SENTINELS: zero04=0 header_one=1 state_map_offset=144 post_one=1 post_zero=0
+SECTION_COUNTS: statemap=1 state=2 transition=2 container=28 effect=32 action=497 property=1489 modifier=92 condprop=0 unkfieldlist=27 field=3450 reference=0 external_value=1 unk_blood_enabler=0 section15=0
+FXR_ENTRY_COUNT: 7138
+FXR_VERSION_HIST: DS3=0 Sekiro=10
+SMALLEST_FXR: N:\GR\data\INTERROOT_win64\sfx\effect\f000002117.fxr size=224
+HEX_DUMP_64:
+0000: 46 58 52 00 00 00 05 00 01 00 00 00 45 08 00 00
+0010: 90 00 00 00 01 00 00 00 A0 00 00 00 01 00 00 00
+0020: B0 00 00 00 00 00 00 00 B0 00 00 00 01 00 00 00
+0030: E0 00 00 00 00 00 00 00 E0 00 00 00 00 00 00 00

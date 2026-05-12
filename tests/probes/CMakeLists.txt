@@ -16,3 +16,18 @@ set_target_properties(probe_flver2_layouts PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
 sf_apply_warnings(probe_flver2_layouts)
 sf_apply_sanitizers(probe_flver2_layouts)
+
+add_executable(probe_fxr3_format
+    ${CMAKE_SOURCE_DIR}/tests/probes/probe_fxr3_format.c
+    ${CMAKE_SOURCE_DIR}/tests/e2e/er_test_helper.c)
+target_link_libraries(probe_fxr3_format PRIVATE souls_formats_static bcrypt)
+target_include_directories(probe_fxr3_format PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/tests/e2e)
+target_compile_definitions(probe_fxr3_format PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+set_target_properties(probe_fxr3_format PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests/probes")
+sf_apply_warnings(probe_fxr3_format)
+sf_apply_sanitizers(probe_fxr3_format)
