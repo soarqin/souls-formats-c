@@ -5,11 +5,13 @@
  */
 
 #include "souls_formats/sf_fxr3.h"
+#include "souls_formats/sf_io.h"
 #include "internal/sf_internal.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 typedef struct fxr3_reader {
@@ -672,22 +674,548 @@ fail:
     return e;
 }
 
+typedef struct fxr3_vec {
+    const void **items;
+    size_t count;
+    size_t capacity;
+    const sf_allocator_t *alloc;
+} fxr3_vec_t;
+
+static void vec_free(fxr3_vec_t *v) {
+    if (!v) return;
+    sf_xfree(v->alloc, v->items);
+    v->items = NULL;
+    v->count = 0;
+    v->capacity = 0;
+}
+
+static sf_result_t vec_push(fxr3_vec_t *v, const void *item) {
+    if (v->count == v->capacity) {
+        size_t new_capacity = v->capacity == 0 ? 16 : v->capacity * 2;
+        if (new_capacity < v->capacity) return SF_ERR_OUT_OF_RANGE;
+        if (new_capacity > SIZE_MAX / sizeof(*v->items)) return SF_ERR_OUT_OF_RANGE;
+        const void **items = (const void **)sf_xrealloc(v->alloc, (void *)v->items,
+                                                        v->capacity * sizeof(*v->items),
+                                                        new_capacity * sizeof(*v->items));
+        if (!items) return SF_ERR_OOM;
+        v->items = items;
+        v->capacity = new_capacity;
+    }
+    v->items[v->count++] = item;
+    return SF_OK;
+}
+
+static sf_result_t count_to_i32(size_t value, int32_t *out) {
+    if (value > (size_t)INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+    *out = (int32_t)value;
+    return SF_OK;
+}
+
+static sf_result_t pos_to_i32(int64_t value, int32_t *out) {
+    if (value < 0 || value > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+    *out = (int32_t)value;
+    return SF_OK;
+}
+
+static sf_result_t fill_pos(sf_binary_writer_t *bw, const char *name) {
+    int32_t pos = 0;
+    sf_result_t e = pos_to_i32(sf_binary_writer_position(bw), &pos);
+    if (e != SF_OK) return e;
+    return sf_binary_writer_fill_i32(bw, name, pos);
+}
+
+static sf_result_t make_name(char *buf, size_t len, const char *fmt, size_t index) {
+    int n = snprintf(buf, len, fmt, index);
+    return (n < 0 || (size_t)n >= len) ? SF_ERR_OUT_OF_RANGE : SF_OK;
+}
+
+static sf_result_t reservef(sf_binary_writer_t *bw, const char *fmt, size_t index) {
+    char name[96];
+    sf_result_t e = make_name(name, sizeof(name), fmt, index);
+    if (e != SF_OK) return e;
+    return sf_binary_writer_reserve_i32(bw, name);
+}
+
+static sf_result_t fillf(sf_binary_writer_t *bw, const char *fmt, size_t index, int32_t value) {
+    char name[96];
+    sf_result_t e = make_name(name, sizeof(name), fmt, index);
+    if (e != SF_OK) return e;
+    return sf_binary_writer_fill_i32(bw, name, value);
+}
+
+static sf_result_t fillf_pos(sf_binary_writer_t *bw, const char *fmt, size_t index) {
+    int32_t pos = 0;
+    sf_result_t e = pos_to_i32(sf_binary_writer_position(bw), &pos);
+    if (e != SF_OK) return e;
+    return fillf(bw, fmt, index, pos);
+}
+
+static bool operand_has_value(sf_fxr3_operand_t op) {
+    return op.type == SF_FXR3_OPERAND_LITERAL || op.type == SF_FXR3_OPERAND_EXTERNAL;
+}
+
+static sf_result_t write_field(sf_binary_writer_t *bw, sf_fxr3_field_t field) {
+    if (field.type == SF_FXR3_FIELD_TYPE_FLOAT) {
+        return sf_binary_writer_write_f32(bw, field.value.as_float);
+    }
+    return sf_binary_writer_write_i32(bw, field.value.as_int);
+}
+
+static sf_result_t write_operand_field(sf_binary_writer_t *bw, sf_fxr3_operand_t op) {
+    if (op.type == SF_FXR3_OPERAND_LITERAL) return sf_binary_writer_write_f32(bw, op.value.as_literal);
+    if (op.type == SF_FXR3_OPERAND_EXTERNAL) return sf_binary_writer_write_i32(bw, op.value.as_external);
+    return SF_ERR_INVALID_ARG;
+}
+
+static sf_result_t write_fields(sf_binary_writer_t *bw, const sf_fxr3_field_t *fields,
+                                size_t count, int32_t *field_count) {
+    for (size_t i = 0; i < count; i++) {
+        sf_result_t e = write_field(bw, fields[i]);
+        if (e != SF_OK) return e;
+    }
+    if (count > (size_t)(INT32_MAX - *field_count)) return SF_ERR_OUT_OF_RANGE;
+    *field_count += (int32_t)count;
+    return SF_OK;
+}
+
+static sf_result_t write_state_map_header(sf_binary_writer_t *bw, const sf_fxr3_state_map_t *m) {
+    int32_t count = 0;
+    sf_result_t e = count_to_i32(m ? m->state_count : 0, &count);
+    if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) return e;
+    e = sf_binary_writer_reserve_i32(bw, "StateMapStatesOffset"); if (e != SF_OK) return e;
+    return sf_binary_writer_write_i32(bw, 0);
+}
+
+static sf_result_t write_state_header(sf_binary_writer_t *bw, const sf_fxr3_state_t *s,
+                                      size_t index) {
+    int32_t count = 0;
+    sf_result_t e = count_to_i32(s ? s->condition_count : 0, &count);
+    if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) return e;
+    e = reservef(bw, "StateTransitionsOffset[%zu]", index); if (e != SF_OK) return e;
+    return sf_binary_writer_write_i32(bw, 0);
+}
+
+static sf_result_t write_condition_header(sf_binary_writer_t *bw,
+                                          const sf_fxr3_state_condition_t *c,
+                                          fxr3_vec_t *transitions) {
+    sf_fxr3_operand_t left = c->left_operand;
+    sf_fxr3_operand_t right = c->right_operand;
+    sf_fxr3_operator_type_t op_type = c->operator_type;
+    if (op_type >= SF_FXR3_OPERATOR_LE) {
+        left = c->right_operand;
+        right = c->left_operand;
+        op_type = op_type == SF_FXR3_OPERATOR_LE ? SF_FXR3_OPERATOR_GE : SF_FXR3_OPERATOR_GT;
+    }
+    size_t index = transitions->count;
+    int16_t packed_op = (int16_t)((uint8_t)op_type | ((c->unk_modifier << 2) & 0x0C));
+    sf_result_t e = sf_binary_writer_write_i16(bw, packed_op); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 1); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, c->next_state); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i16(bw, (int16_t)left.type); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 1); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, operand_has_value(left) ? 1 : 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = reservef(bw, "TransitionFieldOffset1[%zu]", index); if (e != SF_OK) return e;
+    for (size_t i = 0; i < 5; i++) { e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e; }
+    e = sf_binary_writer_write_i16(bw, (int16_t)right.type); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 1); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, operand_has_value(right) ? 1 : 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = reservef(bw, "TransitionFieldOffset2[%zu]", index); if (e != SF_OK) return e;
+    for (size_t i = 0; i < 5; i++) { e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e; }
+    return vec_push(transitions, c);
+}
+
+static sf_result_t write_container_header(sf_binary_writer_t *bw, const sf_fxr3_container_t *c,
+                                          fxr3_vec_t *containers) {
+    size_t index = containers->count;
+    int32_t child_count = 0, effect_count = 0, action_count = 0;
+    sf_result_t e = count_to_i32(c->child_count, &child_count); if (e != SF_OK) return e;
+    e = count_to_i32(c->effect_count, &effect_count); if (e != SF_OK) return e;
+    e = count_to_i32(c->action_count, &action_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i16(bw, c->id); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 1); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, effect_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, action_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, child_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = reservef(bw, "ContainerEffectsOffset[%zu]", index); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = reservef(bw, "ContainerActionsOffset[%zu]", index); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = reservef(bw, "ContainerChildContainersOffset[%zu]", index); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    return vec_push(containers, c);
+}
+
+static sf_result_t write_container_children(sf_binary_writer_t *bw, const sf_fxr3_container_t *c,
+                                            fxr3_vec_t *containers) {
+    size_t index = 0;
+    while (index < containers->count && containers->items[index] != c) index++;
+    if (index == containers->count) return SF_ERR_INTERNAL;
+    sf_result_t e = SF_OK;
+    if (c->child_count == 0) {
+        e = fillf(bw, "ContainerChildContainersOffset[%zu]", index, 0); if (e != SF_OK) return e;
+    } else {
+        e = fillf_pos(bw, "ContainerChildContainersOffset[%zu]", index); if (e != SF_OK) return e;
+        for (size_t i = 0; i < c->child_count; i++) { e = write_container_header(bw, c->children[i], containers); if (e != SF_OK) return e; }
+        for (size_t i = 0; i < c->child_count; i++) { e = write_container_children(bw, c->children[i], containers); if (e != SF_OK) return e; }
+    }
+    return SF_OK;
+}
+
+static sf_result_t write_effect_header(sf_binary_writer_t *bw, const sf_fxr3_effect_t *eobj,
+                                       size_t index) {
+    int32_t action_count = 0;
+    sf_result_t e = count_to_i32(eobj->action_count, &action_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i16(bw, eobj->id); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 1); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, action_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = reservef(bw, "EffectActionsOffset[%zu]", index); if (e != SF_OK) return e;
+    return sf_binary_writer_write_i32(bw, 0);
+}
+
+static sf_result_t write_action_header(sf_binary_writer_t *bw, const sf_fxr3_action_t *act,
+                                       fxr3_vec_t *actions) {
+    size_t index = actions->count;
+    int32_t f1 = 0, f2 = 0, ul = 0, p1 = 0, p2 = 0;
+    sf_result_t e = count_to_i32(act->field1_count, &f1); if (e != SF_OK) return e;
+    e = count_to_i32(act->field2_count, &f2); if (e != SF_OK) return e;
+    e = count_to_i32(act->unk_field_list_count, &ul); if (e != SF_OK) return e;
+    e = count_to_i32(act->property1_count, &p1); if (e != SF_OK) return e;
+    if (act->property1_count > act->property_count) return SF_ERR_INVALID_ARG;
+    e = count_to_i32(act->property_count - act->property1_count, &p2); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i16(bw, act->id); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_bool(bw, act->unk02); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_bool(bw, act->unk03); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, act->unk04); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, f1); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, ul); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, p1); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, f2); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, p2); if (e != SF_OK) return e;
+    e = reservef(bw, "ActionFieldsOffset[%zu]", index); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = reservef(bw, "ActionUnkFieldListsOffset[%zu]", index); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = reservef(bw, "ActionPropertiesOffset[%zu]", index); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    return vec_push(actions, act);
+}
+
+static sf_result_t write_property_header(sf_binary_writer_t *bw, const sf_fxr3_property_t *p,
+                                         bool conditional, fxr3_vec_t *properties) {
+    size_t index = properties->count;
+    int32_t field_count = 0, modifier_count = 0;
+    sf_result_t e = count_to_i32(p->field_count, &field_count); if (e != SF_OK) return e;
+    e = count_to_i32(p->modifier_count, &modifier_count); if (e != SF_OK) return e;
+    int16_t type_a = (int16_t)((int32_t)p->type | ((int32_t)p->interpolation << 4) |
+                               ((p->is_loop ? 1 : 0) << 12));
+    int32_t type_b = ((int32_t)p->type | ((int32_t)p->interpolation << 2)) +
+                     ((p->is_loop ? 1 : 0) << 4);
+    e = sf_binary_writer_write_i16(bw, type_a); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 1); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, type_b); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, field_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = conditional ? reservef(bw, "ConditionalPropertyFieldsOffset[%zu]", index)
+                    : reservef(bw, "PropertyFieldsOffset[%zu]", index);
+    if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    if (!conditional) {
+        e = reservef(bw, "PropertyModifiersOffset[%zu]", index); if (e != SF_OK) return e;
+        e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+        e = sf_binary_writer_write_i32(bw, modifier_count); if (e != SF_OK) return e;
+        e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    }
+    return vec_push(properties, p);
+}
+
+static sf_result_t write_modifier_header(sf_binary_writer_t *bw,
+                                         const sf_fxr3_property_modifier_t *m,
+                                         fxr3_vec_t *modifiers) {
+    size_t index = modifiers->count;
+    int32_t field_count = 0, prop_count = 0;
+    sf_result_t e = count_to_i32(m->field_count, &field_count); if (e != SF_OK) return e;
+    e = count_to_i32(m->property_count, &prop_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u16(bw, m->type_enum_a); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u8(bw, 1); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_u32(bw, m->type_enum_b); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, field_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, prop_count); if (e != SF_OK) return e;
+    e = reservef(bw, "ModifierFieldsOffset[%zu]", index); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = reservef(bw, "ModifierConditionalPropertysOffset[%zu]", index); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    return vec_push(modifiers, m);
+}
+
+static sf_result_t write_unk_field_list_header(sf_binary_writer_t *bw,
+                                               const sf_fxr3_unk_field_list_t *l,
+                                               fxr3_vec_t *field_lists) {
+    size_t index = field_lists->count;
+    int32_t field_count = 0;
+    sf_result_t e = count_to_i32(l->field_count, &field_count); if (e != SF_OK) return e;
+    e = reservef(bw, "UnkFieldListFieldsOffset[%zu]", index); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, field_count); if (e != SF_OK) return e;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) return e;
+    return vec_push(field_lists, l);
+}
+
+static sf_result_t fxr3_write_structural(sf_binary_writer_t *bw, const sf_fxr3_t *f,
+                                         const sf_allocator_t *a) {
+    if (!f->root_state_map || !f->root_container) return SF_ERR_INVALID_ARG;
+    if (f->version != SF_FXR3_VERSION_DARK_SOULS_3 && f->version != SF_FXR3_VERSION_SEKIRO) {
+        return SF_ERR_UNSUPPORTED_VERSION;
+    }
+
+    fxr3_vec_t transitions = {.alloc = a}, containers = {.alloc = a}, actions = {.alloc = a};
+    fxr3_vec_t properties = {.alloc = a}, modifiers = {.alloc = a};
+    fxr3_vec_t conditional_properties = {.alloc = a}, field_lists = {.alloc = a};
+    sf_result_t e = SF_OK;
+    int32_t count = 0;
+
+    e = sf_binary_writer_write_bytes(bw, "FXR\0", 4); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_write_i16(bw, 0); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_write_u16(bw, (uint16_t)f->version); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_write_i32(bw, 1); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_write_i32(bw, f->id); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "StateMapOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_write_i32(bw, 1); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "StateOffset"); if (e != SF_OK) goto cleanup;
+    e = count_to_i32(f->root_state_map->state_count, &count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "TransitionOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "TransitionCount"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) goto cleanup; /* Section 3 offset */
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) goto cleanup; /* Section 3 count */
+    e = sf_binary_writer_reserve_i32(bw, "ContainerOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "ContainerCount"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "EffectOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "EffectCount"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "ActionOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "ActionCount"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "PropertyOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "PropertyCount"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "ModifierOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "ModifierCount"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "ConditionalPropertyOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "ConditionalPropertyCount"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "UnkFieldListOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "UnkFieldListCount"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "FieldOffset"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_reserve_i32(bw, "FieldCount"); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_write_i32(bw, 1); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) goto cleanup;
+    if (f->version == SF_FXR3_VERSION_SEKIRO) {
+        e = sf_binary_writer_reserve_i32(bw, "ReferenceOffset"); if (e != SF_OK) goto cleanup;
+        e = count_to_i32(f->reference_count, &count); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_reserve_i32(bw, "ExternalValueOffset"); if (e != SF_OK) goto cleanup;
+        e = count_to_i32(f->external_value_count, &count); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_reserve_i32(bw, "UnkBloodEnablerOffset"); if (e != SF_OK) goto cleanup;
+        e = count_to_i32(f->unk_blood_enabler_count, &count); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_write_i32(bw, count); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_reserve_i32(bw, "UnkEmptyOffset"); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_write_i32(bw, 0); if (e != SF_OK) goto cleanup;
+    }
+
+    e = fill_pos(bw, "StateMapOffset"); if (e != SF_OK) goto cleanup;
+    e = write_state_map_header(bw, f->root_state_map); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+    e = fill_pos(bw, "StateOffset"); if (e != SF_OK) goto cleanup;
+    e = fill_pos(bw, "StateMapStatesOffset"); if (e != SF_OK) goto cleanup;
+    for (size_t i = 0; i < f->root_state_map->state_count; i++) { e = write_state_header(bw, f->root_state_map->states[i], i); if (e != SF_OK) goto cleanup; }
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+    e = fill_pos(bw, "TransitionOffset"); if (e != SF_OK) goto cleanup;
+    for (size_t i = 0; i < f->root_state_map->state_count; i++) {
+        const sf_fxr3_state_t *s = f->root_state_map->states[i];
+        e = fillf_pos(bw, "StateTransitionsOffset[%zu]", i); if (e != SF_OK) goto cleanup;
+        for (size_t j = 0; j < s->condition_count; j++) { e = write_condition_header(bw, s->conditions[j], &transitions); if (e != SF_OK) goto cleanup; }
+    }
+    e = count_to_i32(transitions.count, &count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_fill_i32(bw, "TransitionCount", count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+
+    e = fill_pos(bw, "ContainerOffset"); if (e != SF_OK) goto cleanup;
+    e = write_container_header(bw, f->root_container, &containers); if (e != SF_OK) goto cleanup;
+    e = write_container_children(bw, f->root_container, &containers); if (e != SF_OK) goto cleanup;
+    e = count_to_i32(containers.count, &count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_fill_i32(bw, "ContainerCount", count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+
+    e = fill_pos(bw, "EffectOffset"); if (e != SF_OK) goto cleanup;
+    size_t effect_count = 0;
+    for (size_t i = 0; i < containers.count; i++) {
+        const sf_fxr3_container_t *c = (const sf_fxr3_container_t *)containers.items[i];
+        if (c->effect_count == 0) { e = fillf(bw, "ContainerEffectsOffset[%zu]", i, 0); if (e != SF_OK) goto cleanup; }
+        else {
+            e = fillf_pos(bw, "ContainerEffectsOffset[%zu]", i); if (e != SF_OK) goto cleanup;
+            for (size_t j = 0; j < c->effect_count; j++) { e = write_effect_header(bw, c->effects[j], effect_count + j); if (e != SF_OK) goto cleanup; }
+            effect_count += c->effect_count;
+        }
+    }
+    e = count_to_i32(effect_count, &count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_fill_i32(bw, "EffectCount", count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+
+    e = fill_pos(bw, "ActionOffset"); if (e != SF_OK) goto cleanup;
+    effect_count = 0;
+    for (size_t i = 0; i < containers.count; i++) {
+        const sf_fxr3_container_t *c = (const sf_fxr3_container_t *)containers.items[i];
+        e = fillf_pos(bw, "ContainerActionsOffset[%zu]", i); if (e != SF_OK) goto cleanup;
+        for (size_t j = 0; j < c->action_count; j++) { e = write_action_header(bw, c->actions[j], &actions); if (e != SF_OK) goto cleanup; }
+        for (size_t j = 0; j < c->effect_count; j++) {
+            e = fillf_pos(bw, "EffectActionsOffset[%zu]", effect_count + j); if (e != SF_OK) goto cleanup;
+            for (size_t k = 0; k < c->effects[j]->action_count; k++) { e = write_action_header(bw, c->effects[j]->actions[k], &actions); if (e != SF_OK) goto cleanup; }
+        }
+        effect_count += c->effect_count;
+    }
+    e = count_to_i32(actions.count, &count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_fill_i32(bw, "ActionCount", count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+
+    e = fill_pos(bw, "PropertyOffset"); if (e != SF_OK) goto cleanup;
+    for (size_t i = 0; i < actions.count; i++) {
+        const sf_fxr3_action_t *act = (const sf_fxr3_action_t *)actions.items[i];
+        e = fillf_pos(bw, "ActionPropertiesOffset[%zu]", i); if (e != SF_OK) goto cleanup;
+        for (size_t j = 0; j < act->property_count; j++) { e = write_property_header(bw, act->properties[j], false, &properties); if (e != SF_OK) goto cleanup; }
+    }
+    e = count_to_i32(properties.count, &count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_fill_i32(bw, "PropertyCount", count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+
+    e = fill_pos(bw, "ModifierOffset"); if (e != SF_OK) goto cleanup;
+    for (size_t i = 0; i < properties.count; i++) {
+        const sf_fxr3_property_t *p = (const sf_fxr3_property_t *)properties.items[i];
+        e = fillf_pos(bw, "PropertyModifiersOffset[%zu]", i); if (e != SF_OK) goto cleanup;
+        for (size_t j = 0; j < p->modifier_count; j++) { e = write_modifier_header(bw, p->modifiers[j], &modifiers); if (e != SF_OK) goto cleanup; }
+    }
+    e = count_to_i32(modifiers.count, &count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_fill_i32(bw, "ModifierCount", count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+
+    e = fill_pos(bw, "ConditionalPropertyOffset"); if (e != SF_OK) goto cleanup;
+    for (size_t i = 0; i < modifiers.count; i++) {
+        const sf_fxr3_property_modifier_t *m = (const sf_fxr3_property_modifier_t *)modifiers.items[i];
+        e = fillf_pos(bw, "ModifierConditionalPropertysOffset[%zu]", i); if (e != SF_OK) goto cleanup;
+        for (size_t j = 0; j < m->property_count; j++) { e = write_property_header(bw, m->properties[j], true, &conditional_properties); if (e != SF_OK) goto cleanup; }
+    }
+    e = count_to_i32(conditional_properties.count, &count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_fill_i32(bw, "ConditionalPropertyCount", count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+
+    e = fill_pos(bw, "UnkFieldListOffset"); if (e != SF_OK) goto cleanup;
+    for (size_t i = 0; i < actions.count; i++) {
+        const sf_fxr3_action_t *act = (const sf_fxr3_action_t *)actions.items[i];
+        e = fillf_pos(bw, "ActionUnkFieldListsOffset[%zu]", i); if (e != SF_OK) goto cleanup;
+        for (size_t j = 0; j < act->unk_field_list_count; j++) { e = write_unk_field_list_header(bw, act->unk_field_lists[j], &field_lists); if (e != SF_OK) goto cleanup; }
+    }
+    e = count_to_i32(field_lists.count, &count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_fill_i32(bw, "UnkFieldListCount", count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+
+    e = fill_pos(bw, "FieldOffset"); if (e != SF_OK) goto cleanup;
+    int32_t field_count = 0;
+    for (size_t i = 0; i < transitions.count; i++) {
+        const sf_fxr3_state_condition_t *c = (const sf_fxr3_state_condition_t *)transitions.items[i];
+        sf_fxr3_operand_t left = c->left_operand, right = c->right_operand;
+        if (c->operator_type >= SF_FXR3_OPERATOR_LE) { left = c->right_operand; right = c->left_operand; }
+        int32_t pos = 0;
+        if (operand_has_value(left)) { e = pos_to_i32(sf_binary_writer_position(bw), &pos); if (e != SF_OK) goto cleanup; }
+        e = fillf(bw, "TransitionFieldOffset1[%zu]", i, pos); if (e != SF_OK) goto cleanup;
+        if (operand_has_value(left)) { e = write_operand_field(bw, left); if (e != SF_OK) goto cleanup; field_count++; }
+        pos = 0;
+        if (operand_has_value(right)) { e = pos_to_i32(sf_binary_writer_position(bw), &pos); if (e != SF_OK) goto cleanup; }
+        e = fillf(bw, "TransitionFieldOffset2[%zu]", i, pos); if (e != SF_OK) goto cleanup;
+        if (operand_has_value(right)) { e = write_operand_field(bw, right); if (e != SF_OK) goto cleanup; field_count++; }
+    }
+    for (size_t i = 0; i < actions.count; i++) {
+        const sf_fxr3_action_t *act = (const sf_fxr3_action_t *)actions.items[i];
+        if (act->field1_count == 0 && act->field2_count == 0) { e = fillf(bw, "ActionFieldsOffset[%zu]", i, 0); if (e != SF_OK) goto cleanup; }
+        else { e = fillf_pos(bw, "ActionFieldsOffset[%zu]", i); if (e != SF_OK) goto cleanup; e = write_fields(bw, act->fields1, act->field1_count, &field_count); if (e != SF_OK) goto cleanup; e = write_fields(bw, act->fields2, act->field2_count, &field_count); if (e != SF_OK) goto cleanup; }
+    }
+    for (size_t i = 0; i < properties.count; i++) {
+        const sf_fxr3_property_t *p = (const sf_fxr3_property_t *)properties.items[i];
+        if (p->field_count == 0) { e = fillf(bw, "PropertyFieldsOffset[%zu]", i, 0); if (e != SF_OK) goto cleanup; }
+        else { e = fillf_pos(bw, "PropertyFieldsOffset[%zu]", i); if (e != SF_OK) goto cleanup; e = write_fields(bw, p->fields, p->field_count, &field_count); if (e != SF_OK) goto cleanup; }
+    }
+    for (size_t i = 0; i < modifiers.count; i++) { const sf_fxr3_property_modifier_t *m = (const sf_fxr3_property_modifier_t *)modifiers.items[i]; e = fillf_pos(bw, "ModifierFieldsOffset[%zu]", i); if (e != SF_OK) goto cleanup; e = write_fields(bw, m->fields, m->field_count, &field_count); if (e != SF_OK) goto cleanup; }
+    for (size_t i = 0; i < conditional_properties.count; i++) {
+        const sf_fxr3_property_t *p = (const sf_fxr3_property_t *)conditional_properties.items[i];
+        if (p->field_count == 0) { e = fillf(bw, "ConditionalPropertyFieldsOffset[%zu]", i, 0); if (e != SF_OK) goto cleanup; }
+        else { e = fillf_pos(bw, "ConditionalPropertyFieldsOffset[%zu]", i); if (e != SF_OK) goto cleanup; e = write_fields(bw, p->fields, p->field_count, &field_count); if (e != SF_OK) goto cleanup; }
+    }
+    for (size_t i = 0; i < field_lists.count; i++) { const sf_fxr3_unk_field_list_t *l = (const sf_fxr3_unk_field_list_t *)field_lists.items[i]; e = fillf_pos(bw, "UnkFieldListFieldsOffset[%zu]", i); if (e != SF_OK) goto cleanup; e = write_fields(bw, l->fields, l->field_count, &field_count); if (e != SF_OK) goto cleanup; }
+    e = sf_binary_writer_fill_i32(bw, "FieldCount", field_count); if (e != SF_OK) goto cleanup;
+    e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+
+    if (f->version == SF_FXR3_VERSION_SEKIRO) {
+        e = fill_pos(bw, "ReferenceOffset"); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_write_i32s(bw, f->reference_count, f->references); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+        e = fill_pos(bw, "ExternalValueOffset"); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_write_i32s(bw, f->external_value_count, f->external_values); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+        e = fill_pos(bw, "UnkBloodEnablerOffset"); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_write_i32s(bw, f->unk_blood_enabler_count, f->unk_blood_enablers); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_pad(bw, 16); if (e != SF_OK) goto cleanup;
+        e = sf_binary_writer_fill_i32(bw, "UnkEmptyOffset", 0); if (e != SF_OK) goto cleanup;
+    }
+
+cleanup:
+    vec_free(&transitions); vec_free(&containers); vec_free(&actions); vec_free(&properties);
+    vec_free(&modifiers); vec_free(&conditional_properties); vec_free(&field_lists);
+    return e;
+}
+
 SF_API sf_result_t sf_fxr3_write_to_memory(const sf_fxr3_t *f, void **out_bytes, size_t *out_size,
                                            const sf_allocator_t *a) {
     SF_CHECK_ARG(f != NULL && out_bytes != NULL && out_size != NULL);
     *out_bytes = NULL;
     *out_size = 0;
     a = sf_alloc_or_default(a);
-    if (!f->raw_bytes && f->raw_size != 0) return SF_ERR_INVALID_ARG;
-    uint8_t *copy = NULL;
-    if (f->raw_size > 0) {
-        copy = (uint8_t *)sf_xalloc(a, f->raw_size);
-        if (!copy) return SF_ERR_OOM;
-        memcpy(copy, f->raw_bytes, f->raw_size);
+    sf_ostream_t *stream = NULL;
+    sf_result_t e = sf_ostream_open_memory(&stream, a);
+    if (e != SF_OK) return e;
+    sf_binary_writer_t *bw = NULL;
+    e = sf_binary_writer_create(&bw, stream, false, a);
+    if (e == SF_OK) {
+        e = fxr3_write_structural(bw, f, a);
+        if (e == SF_OK) {
+            uint8_t *bytes = NULL;
+            e = sf_binary_writer_finish_bytes(bw, &bytes, out_size);
+            if (e == SF_OK) *out_bytes = bytes;
+        }
+        sf_binary_writer_destroy(bw);
     }
-    *out_bytes = copy;
-    *out_size = f->raw_size;
-    return SF_OK;
+    sf_ostream_close(stream);
+    return e;
 }
 
 static void destroy_property(sf_fxr3_property_t *p, const sf_allocator_t *a);
