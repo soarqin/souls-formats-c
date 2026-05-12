@@ -78,6 +78,13 @@ struct sf_flver2_material {
 
 struct sf_flver2_face_set {
     sf_flver2_fs_flags_t flags;
+    bool                 triangle_strip;
+    bool                 cull_backfaces;
+    uint8_t              unk06;
+    uint8_t              unk07;
+    uint32_t            *indices;
+    size_t               index_count;
+    uint8_t              index_size;
 };
 
 struct sf_flver2_vertex_buffer {
@@ -161,6 +168,18 @@ sf_result_t sfi_flver2_face_set_write(sf_binary_writer_t *bw,
                                       const sf_flver2_face_set_t *fs,
                                       int32_t vertex_indices_size,
                                       size_t index);
+
+sf_result_t sfi_flver2_face_set_write_indices(sf_binary_writer_t *bw,
+                                              const sf_flver2_face_set_t *fs,
+                                              size_t index,
+                                              int32_t data_start);
+sf_result_t sfi_flver2_face_set_triangulate(const sf_flver2_face_set_t *fs,
+                                            bool filter_degenerate,
+                                            uint32_t **out_indices,
+                                            size_t *out_count,
+                                            const sf_allocator_t *a);
+void sfi_flver2_face_set_destroy_inplace(sf_flver2_face_set_t *fs,
+                                         const sf_allocator_t *a);
 
 sf_result_t sfi_flver2_vertex_buffer_read(sf_binary_reader_t *br,
                                           const sf_flver2_header_t *hdr,

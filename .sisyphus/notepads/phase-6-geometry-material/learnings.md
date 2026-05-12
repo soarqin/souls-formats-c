@@ -70,3 +70,20 @@
 - ER Data3 BHD top-level header uses 32-bit bucket count/offset with 40-byte ER file records; c0000's BHD record has `unpadded_size == 0`, so extraction must use `padded_size`.
 - ER 64-bit BHD path hash is the `h = c + 133*h` algorithm, not the public 32-bit `sf_path_hash_64` shim.
 - Actual `N:\GR\data\INTERROOT_win64\chr\c0000\c0000.flver` evidence: version `0x2001A`, little-endian, `dummy_count=510`, `bone_count=488`, `mesh_count=0`, `buffer_layout_count=0`; no `(LayoutType, LayoutSemantic, Index)` triples exist for this c0000 skeleton FLVER in the current ER install.
+
+## T15 — FLVER2 FaceSet + triangle-strip decode (2026-05-12)
+
+- **FaceSet compact v1 layout:** current C implementation uses the task-specified
+  24-byte record (`u32 flags`, two bools, two u8 unknowns, `i32 count`, `i32 data`
+  offset, `u8 index_size`, zero u8/i16/i32) and reads indices from
+  `data_offset + index_offset` as u16/u32 widened to u32.
+- **Primitive restart is u16-only:** triangle strips split only on `0xFFFF` when
+  `index_size == 16`. Do not add a `0xFFFFFFFF` restart in the u32 path.
+- **Degenerate filtering default:** internal triangulation helper takes an explicit
+  `filter_degenerate`; mesh/decode callers should pass `true` to match upstream
+  `Triangulate(..., includeDegenerateFaces: false)` behavior.
+- **Writer data section ordering:** top-level `flver2.c` now calls
+  `sfi_flver2_face_set_write_indices()` immediately after filling `DataOffset`,
+  before final data-section padding/`DataSize` backpatch.
+- **EdgeCompressed policy:** `SF_FLVER2_FS_FLAGS_EDGE_COMPRESSED` remains v1
+  unsupported and returns `SF_ERR_UNSUPPORTED_VERSION` during read/write.

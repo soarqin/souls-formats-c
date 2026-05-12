@@ -394,6 +394,10 @@ static sf_result_t flver2_write_to_writer(const sf_flver2_t *f, sf_binary_writer
 
     int32_t data_start = (int32_t)sf_binary_writer_position(bw);
     r = sf_binary_writer_fill_i32(bw, "DataOffset", data_start); if (r != SF_OK) return r;
+    for (int32_t i = 0; i < f->header.face_set_count; i++) {
+        r = sfi_flver2_face_set_write_indices(bw, &f->face_sets[i], (size_t)i, data_start);
+        if (r != SF_OK) return r;
+    }
     r = sf_binary_writer_pad(bw, align); if (r != SF_OK) return r;
     r = sf_binary_writer_fill_i32(bw, "DataSize",
                                   (int32_t)sf_binary_writer_position(bw) - data_start);
@@ -456,6 +460,11 @@ void sf_flver2_destroy(sf_flver2_t *f) {
     if (f->meshes) {
         for (int32_t i = 0; i < f->header.mesh_count; i++) {
             sfi_flver2_mesh_destroy_inplace(&f->meshes[i], a);
+        }
+    }
+    if (f->face_sets) {
+        for (int32_t i = 0; i < f->header.face_set_count; i++) {
+            sfi_flver2_face_set_destroy_inplace(&f->face_sets[i], a);
         }
     }
     if (f->textures) {
@@ -669,20 +678,6 @@ void sfi_flver2_mesh_destroy_inplace(sf_flver2_mesh_t *m, const sf_allocator_t *
     sf_xfree(a, m->bone_indices);
     sf_xfree(a, m->face_set_indices);
     sf_xfree(a, m->vertex_buffer_indices);
-}
-
-/* Stub — T15 will implement. */
-sf_result_t sfi_flver2_face_set_read(sf_binary_reader_t *br, const sf_flver2_header_t *hdr,
-                                     int32_t vertex_indices_size, int32_t data_offset,
-                                     sf_flver2_face_set_t *out, const sf_allocator_t *a) {
-    (void)br; (void)hdr; (void)vertex_indices_size; (void)data_offset; (void)out; (void)a;
-    return SF_OK;
-}
-sf_result_t sfi_flver2_face_set_write(sf_binary_writer_t *bw, const sf_flver2_header_t *hdr,
-                                      const sf_flver2_face_set_t *fs,
-                                      int32_t vertex_indices_size, size_t index) {
-    (void)bw; (void)hdr; (void)fs; (void)vertex_indices_size; (void)index;
-    return SF_OK;
 }
 
 /* Stub — T16 will implement. */

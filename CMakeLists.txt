@@ -150,6 +150,7 @@ set(SF_SOURCES
     src/map/msbvi/route_param.c
     src/geom/flver_common.c
     src/geom/flver2.c
+    src/geom/flver2_faceset.c
     src/geom/mtd.c
     src/geom/matbin.c
 )

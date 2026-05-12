@@ -206,6 +206,20 @@ SF_API size_t  sf_flver2_mesh_vertex_buffer_index_count(const sf_flver2_mesh_t *
 SF_API int32_t sf_flver2_mesh_vertex_buffer_index(const sf_flver2_mesh_t *m, size_t i);
 
 /*===========================================================================
+ * FaceSet field accessors
+ *===========================================================================*/
+
+SF_API sf_flver2_fs_flags_t sf_flver2_face_set_flags(const sf_flver2_face_set_t *fs);
+SF_API bool                 sf_flver2_face_set_triangle_strip(const sf_flver2_face_set_t *fs);
+SF_API bool                 sf_flver2_face_set_cull_backfaces(const sf_flver2_face_set_t *fs);
+SF_API uint8_t              sf_flver2_face_set_unk06(const sf_flver2_face_set_t *fs);
+SF_API uint8_t              sf_flver2_face_set_unk07(const sf_flver2_face_set_t *fs);
+SF_API uint8_t              sf_flver2_face_set_index_size(const sf_flver2_face_set_t *fs);
+SF_API size_t               sf_flver2_face_set_index_count(const sf_flver2_face_set_t *fs);
+SF_API uint32_t             sf_flver2_face_set_index(const sf_flver2_face_set_t *fs,
+                                                     size_t i);
+
+/*===========================================================================
  * GXList — opaque transit
  *
  * Upstream `GXItem.Data` is an opaque `byte[]`; we mirror that with a
