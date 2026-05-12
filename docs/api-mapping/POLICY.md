@@ -68,3 +68,34 @@ The following symbols are used in mapping tables to indicate the implementation 
 * **PARAMTDF Trim('"') mirror**: PARAMTDF parser uses naive `Trim('"')` matching upstream `PARAMTDF.cs:62-92`. No escape sequences, no BOM, no comments.
 * **8→3 Apply fold**: `sf_param_apply_mode_t` folds 8 upstream `ApplyParamdef*` variants into 3 core modes. `RegulationVersioned*` variants deferred to v1.1.
 * **Bit-packing literal mirror**: `paramdef_apply.c` bitstream helpers mirror `Row.cs:236-244` `(64 - bitSize - bitOffset)` shift pattern verbatim. No "beautification".
+
+## Error cleanup convention
+
+All fallible functions use a single `goto cleanup` (or `goto fail`/`goto err`) label at the end of the function body. This is the established C error-handling pattern across ~812 sites in `src/`.
+
+### Canonical example (from `src/archive/bnd4.c`)
+
+```c
+sf_result_t sf_bnd4_write(...) {
+    sf_result_t r = SF_OK;
+    bnd4_file_header_t *hdrs = sf_xalloc(b->alloc, ...);
+    if (!hdrs) { r = SF_ERR_OOM; goto cleanup; }
+
+    for (size_t i = 0; i < b->file_count; i++) {
+        r = sfi_binder4_write_file_header(bw, ...);
+        if (r != SF_OK) goto cleanup;
+    }
+
+    r = sf_binary_writer_fill_i64(bw, "HeadersEnd", ...);
+    if (r != SF_OK) goto cleanup;
+
+cleanup:
+    sf_xfree(b->alloc, hdrs);
+    return r;
+}
+```
+
+### Rules
+- One cleanup label per function (never multiple, except for nested resource acquisition where `cleanup_X` labels are used in reverse order).
+- All allocations freed in the cleanup block regardless of success/failure.
+- Do NOT extract a global macro — 812 sites is too many to abstract safely without risking freezing bugs into the abstraction layer (see T2.5 decision in Wave 2).
