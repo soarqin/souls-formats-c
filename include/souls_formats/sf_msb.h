@@ -9,13 +9,13 @@
 #ifndef SOULS_FORMATS_SF_MSB_H
 #define SOULS_FORMATS_SF_MSB_H
 
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 
 #ifdef __cplusplus
 #define _Static_assert static_assert
 #endif
 
-#include "souls_formats/sf_math.h"
+#include "sf_math.h"
 
 #ifdef __cplusplus
 #undef _Static_assert

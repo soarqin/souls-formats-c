@@ -11,8 +11,8 @@
 #ifndef SOULS_FORMATS_SF_PARAMDEF_H
 #define SOULS_FORMATS_SF_PARAMDEF_H
 
-#include "souls_formats/sf_common.h"
-#include "souls_formats/sf_io.h"
+#include "sf_common.h"
+#include "sf_io.h"
 
 #include <stdbool.h>
 #include <stddef.h>

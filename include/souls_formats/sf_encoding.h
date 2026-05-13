@@ -10,7 +10,7 @@
 #ifndef SOULS_FORMATS_SF_ENCODING_H
 #define SOULS_FORMATS_SF_ENCODING_H
 
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 
 #include <stdbool.h>
 

@@ -47,3 +47,36 @@ test -f include/souls_formats/sf_tae_template.h
 ## Risk
 
 - Low. The template system is well-defined in upstream.
+
+## TODOs
+
+- [x] Create `include/souls_formats/sf_tae_template.h` — public header with ParamType enum, opaque types, XML read API, accessor API
+- [x] Create `src/effects/tae_template_internal.h` — internal struct definitions
+- [x] Create `src/effects/tae_template.c` — XML parsing (mxml) and accessor implementations
+- [x] Add `sf_tae_apply_template()` to `sf_tae.h` and implement in `tae.c`
+- [x] Implement non-SDT TAE variants (DS1/SOTFS/DS3/BB/DES/DESR) read/write in `tae.c`
+- [x] Update `souls_formats.h` umbrella to include `sf_tae_template.h`
+- [x] Update `tests/CMakeLists.txt` with 4 new test targets (label: `tae-templates`)
+- [x] Write `tests/anim/test_tae_template_xml.c` — synthetic XML parsing test
+- [x] Write `tests/anim/test_tae_template_apply.c` — apply template to synthetic TAE
+- [x] Write `tests/anim/test_tae_legacy_ds1r.c` — DS1R e2e TAE read test
+- [x] Write `tests/anim/test_tae_legacy_ds3.c` — DS3 e2e TAE read test
+
+## Final Verification Wave
+
+- [x] `cmake --build build-mingw` → exit 0
+- [x] `ctest --test-dir build-mingw -L tae-templates --output-on-failure` → 4/4 PASS
+- [x] `test -f include/souls_formats/sf_tae_template.h` → file exists
+- [x] No regressions: 84/84 tests pass across all labels
+
+## Completion
+
+**Completed: 2026-05-13**
+
+All acceptance criteria met:
+- `sf_tae_template_t` fully implemented mirroring upstream `Template.cs` (801 LOC)
+- XML parsing via mxml for all TAE game formats (DS1/SOTFS/DS3/BB/SDT/DES/DESR)
+- `sf_tae_apply_template()` validates template compatibility and resizes event parameters
+- Non-SDT TAE variants (DS1/SOTFS/DS3/BB/DES/DESR) read/write implemented in `tae.c`
+- 4 new tests with label `tae-templates` all pass
+- 84/84 total tests pass (no regressions)

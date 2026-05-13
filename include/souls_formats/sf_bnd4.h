@@ -16,7 +16,7 @@
 #define SOULS_FORMATS_SF_BND4_H
 
 #include "souls_formats/sf_binder.h"
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 #include "souls_formats/sf_dcx.h"
 
 #include <stdbool.h>

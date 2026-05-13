@@ -28,7 +28,7 @@
 #ifndef SOULS_FORMATS_SF_TAE_H
 #define SOULS_FORMATS_SF_TAE_H
 
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -48,6 +48,7 @@ typedef struct sf_tae             sf_tae_t;
 typedef struct sf_tae_animation   sf_tae_animation_t;
 typedef struct sf_tae_event       sf_tae_event_t;
 typedef struct sf_tae_event_group sf_tae_event_group_t;
+typedef struct sf_tae_template    sf_tae_template_t;
 
 /*===========================================================================
  * TAEFormat — mirrors upstream TAE.cs:20-51 (`public enum TAEFormat`).
@@ -214,6 +215,26 @@ SF_API int32_t sf_tae_event_group_type(const sf_tae_event_group_t *g);
 /* EventGroup membership. */
 SF_API size_t  sf_tae_event_group_member_count(const sf_tae_event_group_t *g);
 SF_API int32_t sf_tae_event_group_member(const sf_tae_event_group_t *g, size_t i);
+
+/* Apply a template to this TAE, populating event parameter names and types.
+ *
+ * Mirrors upstream TAE.cs:117-138 `ApplyTemplate(Template template, bool strict)`.
+ *
+ * `validate_bank`: if true (mirrors upstream ValidateEventBank=true), the
+ *   template must contain a bank matching sf_tae_event_bank(t). If false,
+ *   any bank containing the event type is used.
+ * `strict`: if true, returns SF_ERR_BAD_MAGIC when an event type is not
+ *   found in the template. If false, silently skips unknown event types.
+ *
+ * Returns SF_ERR_BAD_MAGIC if:
+ *   - template game != TAE format
+ *   - validate_bank=true and event bank not found in template
+ *   - strict=true and an event type is not found in the template
+ */
+SF_API sf_result_t sf_tae_apply_template(sf_tae_t *t,
+                                         const sf_tae_template_t *tmpl,
+                                         bool validate_bank,
+                                         bool strict);
 
 #ifdef __cplusplus
 } /* extern "C" */

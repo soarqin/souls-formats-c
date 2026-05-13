@@ -24,7 +24,7 @@
 #ifndef SF_MATBIN_H
 #define SF_MATBIN_H
 
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 #include "souls_formats/sf_math.h"
 
 #include <stdbool.h>

@@ -2,7 +2,7 @@
 #ifndef SOULS_FORMATS_SF_MDL_H
 #define SOULS_FORMATS_SF_MDL_H
 
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 
 #include <stddef.h>
 #include <stdint.h>

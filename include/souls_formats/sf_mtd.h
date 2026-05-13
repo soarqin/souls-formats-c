@@ -21,7 +21,7 @@
 #ifndef SOULS_FORMATS_SF_MTD_H
 #define SOULS_FORMATS_SF_MTD_H
 
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 #include "souls_formats/sf_io.h"
 
 #include <stdbool.h>

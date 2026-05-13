@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.5.0] - 2026-05-13
+
+### Added
+- Lighting format support: BTAB, BTL, GPARAM, PMDCL — full read+write (BTPB dropped: not present in v1 games per Wave-0 probe)
+- 4 new public headers in `include/souls_formats/`: `sf_btab.h`, `sf_btl.h`, `sf_gparam.h`, `sf_pmdcl.h`
+- New `src/lighting/` source directory with 4 format implementations
+- `tests/probes/probe_lighting_files.c` (gated by `SF_BUILD_PROBES`)
+- 4 tier-A mapping docs under `docs/api-mapping/`: format-btab.md, format-btl.md, format-gparam.md, format-pmdcl.md
+- 4 synthetic round-trip tests + 4 e2e tests (graceful skip when files unavailable)
+
+### Notes / corrections
+- GPARAM was previously misclassified as "Legacy params, v2" in legacy.md; corrected here. GPARAM is used by all v1 target games (Sekiro V5, ER V5, Nightreign V5, AC6 V6).
+- BTAB/BTL/PMDCL were classified as "Lighting, v2" — corrected to v1 since v1 target games use them.
+- BTPB: dropped from batch — Wave-0 probe found zero v1 files; remains Tier B in legacy.md for v2 work.
+- Public API: `sf_gparam_value_t` tagged-union POD documented as a C-style adaptation in `extensions.md` (mirrors FXR3 precedent).
+- BigEndian byte order is refused (SF_ERR_UNSUPPORTED_VERSION) on BTAB and BTL read paths — same policy as FLVER2.
+
+### v1 closure
+- This is the LAST post-v1 batch. All 10 next-batch plans now complete:
+  9 batches landed previously (TAE Templates / Effects Misc / AC Specific / Legacy Binder / Legacy FLVER / Legacy MSB / Navmesh / Text-Script Misc / Uncategorized Deferred); Lighting closes the set in v0.5.0.
+
 ## [0.4.1] - 2026-05-12
 
 ### Performance

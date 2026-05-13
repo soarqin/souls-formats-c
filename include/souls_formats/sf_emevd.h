@@ -18,25 +18,8 @@
 #ifndef SOULS_FORMATS_SF_EMEVD_H
 #define SOULS_FORMATS_SF_EMEVD_H
 
-#if defined(__has_include)
-#  if __has_include("souls_formats/sf_common.h")
-#    include "souls_formats/sf_common.h"
-#  else
-#    include "souls_formats/sf_common.h"
-#  endif
-#else
-#  include "souls_formats/sf_common.h"
-#endif
-
-#if defined(__has_include)
-#  if __has_include("souls_formats/sf_io.h")
-#    include "souls_formats/sf_io.h"
-#  else
-#    include "souls_formats/sf_io.h"
-#  endif
-#else
-#  include "souls_formats/sf_io.h"
-#endif
+#include "sf_common.h"
+#include "sf_io.h"
 
 #include <stddef.h>
 #include <stdint.h>

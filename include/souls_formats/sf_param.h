@@ -11,7 +11,7 @@
 #ifndef SF_PARAM_H
 #define SF_PARAM_H
 
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 #include "souls_formats/sf_io.h"
 
 #ifdef __cplusplus

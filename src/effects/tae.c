@@ -14,6 +14,7 @@
 #include "effects/tae_internal.h"
 #include "internal/sf_internal.h"
 #include "souls_formats/sf_io.h"
+#include "souls_formats/sf_tae_template.h"
 
 #include <limits.h>
 #include <stdbool.h>
@@ -117,6 +118,43 @@ static sf_result_t tae_make_name1(char *buf, size_t buf_size, const char *prefix
     return SF_OK;
 }
 
+static bool tae_format_is_64bit(sf_tae_format_t format) {
+    return format == SF_TAE_FORMAT_SOTFS || format == SF_TAE_FORMAT_DS3 ||
+           format == SF_TAE_FORMAT_SDT || format == SF_TAE_FORMAT_DESR;
+}
+
+static bool tae_format_is_des_family(sf_tae_format_t format) {
+    return format == SF_TAE_FORMAT_DS1 || format == SF_TAE_FORMAT_DES ||
+           format == SF_TAE_FORMAT_DESR;
+}
+
+static bool tae_format_is_32bit_des_family(sf_tae_format_t format) {
+    return format == SF_TAE_FORMAT_DS1 || format == SF_TAE_FORMAT_DES;
+}
+
+static int64_t tae_next_padded_offset_after_current_field(int64_t pos, int64_t field_size,
+                                                          int align) {
+    int64_t next = pos + field_size;
+    if (align > 0) {
+        int64_t rem = next % align;
+        if (rem != 0)
+            next += align - rem;
+    }
+    return next;
+}
+
+static sf_result_t tae_read_offset_i32_or_varint(sf_binary_reader_t *br, int64_t *out) {
+    SF_CHECK_ARG(br != NULL && out != NULL);
+    if (!sf_binary_reader_varint_long(br))
+        return sf_binary_reader_read_varint(br, out);
+    int32_t low = 0;
+    sf_result_t r = sf_binary_reader_read_i32(br, &low);
+    if (r == SF_OK)
+        r = sf_binary_reader_read_i32(br, &(int32_t){0});
+    *out = low;
+    return r;
+}
+
 static sf_result_t tae_read_header(sf_binary_reader_t *br, sf_tae_t *t,
                                    tae_animation_record_t **out_records) {
     SF_CHECK_ARG(br != NULL && t != NULL && out_records != NULL);
@@ -125,62 +163,135 @@ static sf_result_t tae_read_header(sf_binary_reader_t *br, sf_tae_t *t,
     sf_result_t r = sf_binary_reader_assert_ascii(br, "TAE ");
     if (r != SF_OK)
         return r;
+
+    uint8_t big_endian_byte = 0;
+    r = sf_binary_reader_assert_u8(br, 2, (const uint8_t[]){0, 1}, &big_endian_byte);
+    if (r != SF_OK)
+        return r;
+    bool big_endian = (big_endian_byte == 1);
+    sf_binary_reader_set_big_endian(br, big_endian);
     r = sf_binary_reader_assert_u8_one(br, 0);
     if (r != SF_OK)
         return r;
-    sf_binary_reader_set_big_endian(br, false);
     r = sf_binary_reader_assert_u8_one(br, 0);
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_assert_u8_one(br, 0);
+
+    uint8_t is64_byte = 0;
+    r = sf_binary_reader_assert_u8(br, 2, (const uint8_t[]){0, 0xFF}, &is64_byte);
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_assert_u8_one(br, 0xFF);
+    bool is64bit = (is64_byte == 0xFF);
+    bool is_desr = false;
+    uint8_t desr_marker = 0;
+    r = sf_binary_reader_get_u8(br, 0x10, &desr_marker);
     if (r != SF_OK)
         return r;
-    sf_binary_reader_set_varint_long(br, true);
+    if (desr_marker == 0x30) {
+        big_endian = false;
+        is64bit = true;
+        is_desr = true;
+        sf_binary_reader_set_big_endian(br, false);
+    }
+    sf_binary_reader_set_varint_long(br, is64bit);
 
     int32_t version = 0;
-    r = sf_binary_reader_read_i32(br, &version);
+    r = sf_binary_reader_assert_i32(
+        br, 5, (const int32_t[]){0x10000, 0x1000A, 0x1000B, 0x1000C, 0x1000D},
+        &version);
     if (r != SF_OK)
         return r;
-    if (version != 0x1000D)
+    if (version == 0x1000B && !is64bit) {
+        t->format = SF_TAE_FORMAT_DS1;
+    } else if ((version == 0x1000A || version == 0x10000) && !is64bit) {
+        t->format = SF_TAE_FORMAT_DS1;
+    } else if ((version == 0x1000B || version == 0x1000A || version == 0x10000) &&
+               is_desr) {
+        t->format = SF_TAE_FORMAT_DESR;
+    } else if (version == 0x1000C && is64bit) {
+        t->format = SF_TAE_FORMAT_DS3;
+    } else if (version == 0x1000D) {
+        t->format = SF_TAE_FORMAT_SDT;
+        is64bit = true;
+        sf_binary_reader_set_varint_long(br, true);
+    } else {
         return SF_ERR_UNSUPPORTED_VERSION;
-    t->format = SF_TAE_FORMAT_SDT;
+    }
 
     int32_t file_size = 0;
     r = sf_binary_reader_read_i32(br, &file_size);
     if (r != SF_OK)
         return r;
     (void)file_size;
-    r = sf_binary_reader_assert_varint_one(br, 0x40);
+    r = sf_binary_reader_assert_varint_one(br, t->format == SF_TAE_FORMAT_DESR ? 0x30 : 0x40);
     if (r != SF_OK)
         return r;
     r = sf_binary_reader_assert_varint_one(br, 1);
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_assert_varint_one(br, 0x50);
+    r = sf_binary_reader_assert_varint_one(br, t->format == SF_TAE_FORMAT_DESR ? 0x40 : 0x50);
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_assert_varint_one(br, 0x80);
+    r = sf_binary_reader_assert_varint_one(
+        br, (is64bit && t->format != SF_TAE_FORMAT_DESR) ? 0x80 : 0x70);
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_read_varint(br, &t->event_bank);
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_reader_assert_varint_one(br, 0);
-    if (r != SF_OK)
-        return r;
+
+    if (t->format != SF_TAE_FORMAT_DESR) {
+        if (t->format == SF_TAE_FORMAT_DS1) {
+            if (version == 0x1000A || version == 0x10000) {
+                r = sf_binary_reader_assert_i16_one(br, 0);
+                if (r == SF_OK)
+                    r = sf_binary_reader_assert_i16_one(br, 0);
+                t->format = SF_TAE_FORMAT_DES;
+            } else {
+                int16_t sub_format = 0;
+                r = sf_binary_reader_assert_i16(br, 3, (const int16_t[]){0, 1, 2},
+                                                &sub_format);
+                if (r == SF_OK && sub_format == 0)
+                    t->format = SF_TAE_FORMAT_DES;
+                if (r == SF_OK)
+                    r = sf_binary_reader_assert_i16(br, 2, (const int16_t[]){0, 1}, NULL);
+            }
+            if (r != SF_OK)
+                return r;
+        } else {
+            r = sf_binary_reader_read_varint(br, &t->event_bank);
+            if (r != SF_OK)
+                return r;
+        }
+
+        r = sf_binary_reader_assert_varint_one(br, 0);
+        if (r != SF_OK)
+            return r;
+        if (tae_format_is_32bit_des_family(t->format)) {
+            for (int i = 0; i < 3; i++) {
+                r = sf_binary_reader_assert_i64_one(br, 0);
+                if (r != SF_OK)
+                    return r;
+            }
+        }
+    }
 
     r = sf_binary_reader_read_bytes(br, t->flags, sizeof(t->flags));
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_assert_u8_one(br, 1);
+
+    bool unk_flag_a = false;
+    bool unk_flag_b = false;
+    r = sf_binary_reader_read_bool(br, &unk_flag_a);
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_assert_u8_one(br, 0);
+    r = sf_binary_reader_read_bool(br, &unk_flag_b);
     if (r != SF_OK)
         return r;
+    if (version == 0x1000C) {
+        if (!unk_flag_a && unk_flag_b) {
+            t->format = SF_TAE_FORMAT_SOTFS;
+        } else if (!unk_flag_a || unk_flag_b) {
+            return SF_ERR_BAD_MAGIC;
+        }
+    }
     r = sf_binary_reader_assert_pattern(br, 6, 0);
     if (r != SF_OK)
         return r;
@@ -206,7 +317,7 @@ static sf_result_t tae_read_header(sf_binary_reader_t *br, sf_tae_t *t,
     if (r != SF_OK)
         return r;
     (void)anim_groups_offset;
-    r = sf_binary_reader_assert_varint_one(br, 0xA0);
+    r = sf_binary_reader_assert_varint_one(br, tae_format_is_des_family(t->format) ? 0x90 : 0xA0);
     if (r != SF_OK)
         return r;
     r = sf_binary_reader_read_varint(br, &ignored);
@@ -215,49 +326,88 @@ static sf_result_t tae_read_header(sf_binary_reader_t *br, sf_tae_t *t,
     r = sf_binary_reader_read_varint(br, &ignored);
     if (r != SF_OK)
         return r;
+    if (tae_format_is_32bit_des_family(t->format)) {
+        r = sf_binary_reader_assert_i32_one(br, 0);
+        if (r != SF_OK)
+            return r;
+    }
     r = sf_binary_reader_assert_varint_one(br, 1);
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_assert_varint_one(br, 0x90);
+    r = sf_binary_reader_assert_varint_one(br, tae_format_is_des_family(t->format) ? 0x80 : 0x90);
     if (r != SF_OK)
         return r;
+    if (tae_format_is_32bit_des_family(t->format)) {
+        r = sf_binary_reader_assert_i64_one(br, 0);
+        if (r != SF_OK)
+            return r;
+    }
     r = sf_binary_reader_assert_i32_one(br, t->id);
     if (r != SF_OK)
         return r;
     r = sf_binary_reader_assert_i32_one(br, t->id);
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_assert_varint_one(br, 0x50);
+    r = sf_binary_reader_assert_varint_one(br, t->format == SF_TAE_FORMAT_DESR ? 0x40 : 0x50);
     if (r != SF_OK)
         return r;
     r = sf_binary_reader_assert_i64_one(br, 0);
     if (r != SF_OK)
         return r;
-    r = sf_binary_reader_assert_varint_one(br, 0xB0);
+
+    int64_t name_header = 0xB0;
+    if (t->format == SF_TAE_FORMAT_DES || t->format == SF_TAE_FORMAT_DESR)
+        name_header = 0xA0;
+    else if (t->format == SF_TAE_FORMAT_DS1)
+        name_header = 0x98;
+    r = sf_binary_reader_assert_varint_one(br, name_header);
     if (r != SF_OK)
         return r;
 
     int64_t skeleton_name_offset = 0;
     int64_t sib_name_offset = 0;
-    r = sf_binary_reader_read_varint(br, &skeleton_name_offset);
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_reader_read_varint(br, &sib_name_offset);
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_reader_assert_varint_one(br, 0);
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_reader_assert_varint_one(br, 0);
-    if (r != SF_OK)
-        return r;
+    if (t->format == SF_TAE_FORMAT_DESR) {
+        r = sf_binary_reader_assert_varint_one(br, 0xB0);
+        if (r == SF_OK)
+            r = sf_binary_reader_assert_i32_one(br, 0);
+        if (r == SF_OK)
+            r = sf_binary_reader_assert_i32_one(br, 0);
+        if (r != SF_OK)
+            return r;
+    } else if (big_endian) {
+        if (t->format != SF_TAE_FORMAT_SOTFS) {
+            r = sf_binary_reader_assert_varint_one(br, 0);
+            if (r == SF_OK)
+                r = sf_binary_reader_assert_varint_one(br, 0);
+            if (r != SF_OK)
+                return r;
+        }
+        r = sf_binary_reader_read_varint(br, &skeleton_name_offset);
+        if (r == SF_OK)
+            r = sf_binary_reader_read_varint(br, &sib_name_offset);
+        if (r != SF_OK)
+            return r;
+    } else {
+        r = sf_binary_reader_read_varint(br, &skeleton_name_offset);
+        if (r == SF_OK)
+            r = sf_binary_reader_read_varint(br, &sib_name_offset);
+        if (r != SF_OK)
+            return r;
+        if (t->format != SF_TAE_FORMAT_SOTFS) {
+            r = sf_binary_reader_assert_varint_one(br, 0);
+            if (r == SF_OK)
+                r = sf_binary_reader_assert_varint_one(br, 0);
+            if (r != SF_OK)
+                return r;
+        }
+    }
 
-    if (skeleton_name_offset != 0) {
+    if (t->format != SF_TAE_FORMAT_SOTFS && skeleton_name_offset != 0) {
         r = sf_binary_reader_get_utf16(br, skeleton_name_offset, &t->skeleton_name, NULL);
         if (r != SF_OK)
             return r;
     }
-    if (sib_name_offset != 0) {
+    if (t->format != SF_TAE_FORMAT_SOTFS && sib_name_offset != 0) {
         r = sf_binary_reader_get_utf16(br, sib_name_offset, &t->sib_name, NULL);
         if (r != SF_OK)
             return r;
@@ -279,6 +429,8 @@ static sf_result_t tae_read_header(sf_binary_reader_t *br, sf_tae_t *t,
         r = sf_binary_reader_read_varint(br, &records[i].id);
         if (r == SF_OK)
             r = sf_binary_reader_read_varint(br, &records[i].body_offset);
+        if (r == SF_OK && t->format == SF_TAE_FORMAT_DES)
+            r = sf_binary_reader_pad(br, 0x10);
         if (r != SF_OK)
             break;
     }
@@ -296,21 +448,57 @@ static sf_result_t tae_read_header(sf_binary_reader_t *br, sf_tae_t *t,
         r = sf_binary_reader_step_in(br, records[i].body_offset);
         if (r != SF_OK)
             break;
-        r = sf_binary_reader_read_varint(br, &records[i].event_headers_offset);
-        if (r == SF_OK)
-            r = sf_binary_reader_read_varint(br, &records[i].event_groups_offset);
-        if (r == SF_OK)
-            r = sf_binary_reader_read_varint(br, &records[i].times_offset);
-        if (r == SF_OK)
-            r = sf_binary_reader_read_varint(br, &records[i].anim_file_offset);
-        if (r == SF_OK)
+        if (tae_format_is_32bit_des_family(t->format)) {
             r = sf_binary_reader_read_i32(br, &records[i].event_count);
-        if (r == SF_OK)
-            r = sf_binary_reader_read_i32(br, &records[i].event_group_count);
-        if (r == SF_OK)
-            r = sf_binary_reader_read_i32(br, &records[i].times_count);
-        if (r == SF_OK)
-            r = sf_binary_reader_assert_i32_one(br, 0);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].event_headers_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_i32(br, &records[i].event_group_count);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].event_groups_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_i32(br, &records[i].times_count);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].times_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].anim_file_offset);
+            if (r == SF_OK && t->format == SF_TAE_FORMAT_DES) {
+                for (int j = 0; j < 5 && r == SF_OK; j++)
+                    r = sf_binary_reader_assert_i32_one(br, 0);
+            }
+        } else if (t->format == SF_TAE_FORMAT_DESR) {
+            r = sf_binary_reader_read_i32(br, &records[i].event_count);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_i32(br, &records[i].event_group_count);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_i32(br, &records[i].times_count);
+            if (r == SF_OK)
+                r = sf_binary_reader_assert_i32_one(br, 0);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].event_headers_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].event_groups_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].times_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].anim_file_offset);
+        } else {
+            r = sf_binary_reader_read_varint(br, &records[i].event_headers_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].event_groups_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].times_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_varint(br, &records[i].anim_file_offset);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_i32(br, &records[i].event_count);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_i32(br, &records[i].event_group_count);
+            if (r == SF_OK)
+                r = sf_binary_reader_read_i32(br, &records[i].times_count);
+            if (r == SF_OK)
+                r = sf_binary_reader_assert_i32_one(br, 0);
+        }
         {
             sf_result_t r2 = sf_binary_reader_step_out(br);
             if (r == SF_OK)
@@ -334,7 +522,9 @@ static sf_result_t tae_read_header(sf_binary_reader_t *br, sf_tae_t *t,
 }
 
 static sf_result_t tae_read_mini_header(sf_binary_reader_t *br, sf_tae_animation_t *anim,
-                                        int64_t anim_file_offset, const sf_allocator_t *alloc) {
+                                        int64_t anim_file_offset, int64_t times_offset,
+                                        sf_tae_format_t format,
+                                        const sf_allocator_t *alloc) {
     SF_CHECK_ARG(br != NULL && anim != NULL);
     sf_result_t r = sf_binary_reader_step_in(br, anim_file_offset);
     if (r != SF_OK)
@@ -343,16 +533,21 @@ static sf_result_t tae_read_mini_header(sf_binary_reader_t *br, sf_tae_animation
     uint32_t type = 0;
     const uint32_t types[2] = {SF_TAE_MINI_HEADER_STANDARD, SF_TAE_MINI_HEADER_IMPORT_OTHER_ANIM};
     r = sf_binary_reader_read_enum_32(br, 2, types, &type);
-    if (r == SF_OK)
+    if (r == SF_OK && sf_binary_reader_varint_long(br))
         r = sf_binary_reader_assert_i32_one(br, 0);
 
     int64_t offset_offset_pos = sf_binary_reader_position(br);
     int32_t actual_offset_offset = 0;
-    int64_t possible_offsets[2] = {offset_offset_pos + 8, 0};
-    if (r == SF_OK)
-        r = sf_binary_reader_assert_i32(br, 2, (const int32_t[]){(int32_t)possible_offsets[0], 0},
+    int64_t possible_offset = tae_next_padded_offset_after_current_field(
+        offset_offset_pos, sf_binary_reader_varint_long(br) ? 8 : 4,
+        format == SF_TAE_FORMAT_DES ? 0x10 : 0);
+    if (possible_offset > INT32_MAX)
+        r = SF_ERR_OUT_OF_RANGE;
+    if (r == SF_OK) {
+        r = sf_binary_reader_assert_i32(br, 2, (const int32_t[]){(int32_t)possible_offset, 0},
                                         &actual_offset_offset);
-    if (r == SF_OK)
+    }
+    if (r == SF_OK && sf_binary_reader_varint_long(br))
         r = sf_binary_reader_read_i32(br, &(int32_t){0});
 
     anim->mini_header.type = (sf_tae_anim_mini_header_type_t)type;
@@ -361,11 +556,16 @@ static sf_result_t tae_read_mini_header(sf_binary_reader_t *br, sf_tae_animation
         r = sf_binary_reader_step_in(br, actual_offset_offset);
         if (r == SF_OK) {
             int64_t anim_file_name_offset = 0;
-            r = sf_binary_reader_read_varint(br, &anim_file_name_offset);
+            r = tae_read_offset_i32_or_varint(br, &anim_file_name_offset);
             if (r == SF_OK) {
                 if (type == SF_TAE_MINI_HEADER_STANDARD) {
+                    if (format == SF_TAE_FORMAT_DESR) {
+                        r = sf_binary_reader_read_i32(
+                            br, &anim->mini_header.payload.standard.import_hkx_source_anim_id);
+                    }
                     uint8_t v = 0;
-                    r = sf_binary_reader_read_u8(br, &v);
+                    if (r == SF_OK)
+                        r = sf_binary_reader_read_u8(br, &v);
                     anim->mini_header.payload.standard.is_loop_by_default = (v != 0);
                     if (r == SF_OK)
                         r = sf_binary_reader_read_u8(br, &v);
@@ -373,25 +573,47 @@ static sf_result_t tae_read_mini_header(sf_binary_reader_t *br, sf_tae_animation
                     if (r == SF_OK)
                         r = sf_binary_reader_read_u8(br, &v);
                     anim->mini_header.payload.standard.allow_delay_load = (v != 0);
+                    if (format == SF_TAE_FORMAT_DES || format == SF_TAE_FORMAT_DESR)
+                        anim->mini_header.payload.standard.allow_delay_load = false;
                     if (r == SF_OK)
                         r = sf_binary_reader_read_u8(br, &v);
-                    if (r == SF_OK)
+                    if (r == SF_OK && format != SF_TAE_FORMAT_DESR)
                         r = sf_binary_reader_read_i32(
                             br, &anim->mini_header.payload.standard.import_hkx_source_anim_id);
+                } else if (format == SF_TAE_FORMAT_DESR) {
+                    r = sf_binary_reader_read_i32(br,
+                                                  &anim->mini_header.payload.import_other.unknown);
+                    if (r == SF_OK)
+                        r = sf_binary_reader_read_i32(
+                            br, &anim->mini_header.payload.import_other.import_from_anim_id);
                 } else {
                     r = sf_binary_reader_read_i32(
                         br, &anim->mini_header.payload.import_other.import_from_anim_id);
                     if (r == SF_OK)
                         r = sf_binary_reader_read_i32(
                             br, &anim->mini_header.payload.import_other.unknown);
+                    if (r == SF_OK && format == SF_TAE_FORMAT_DES)
+                        r = sf_binary_reader_pad(br, 0x10);
                 }
             }
-            if (r == SF_OK)
+            if (r == SF_OK && !tae_format_is_des_family(format)) {
                 r = sf_binary_reader_assert_varint_one(br, 0);
-            if (r == SF_OK)
-                r = sf_binary_reader_assert_varint_one(br, 0);
+                if (r == SF_OK)
+                    r = sf_binary_reader_assert_varint_one(br, 0);
+            } else if (r == SF_OK && sf_binary_reader_position(br) < sf_binary_reader_length(br)) {
+                if (format == SF_TAE_FORMAT_DESR) {
+                    r = sf_binary_reader_assert_i32_one(br, 0);
+                    if (r == SF_OK && type == SF_TAE_MINI_HEADER_IMPORT_OTHER_ANIM)
+                        r = sf_binary_reader_assert_i32_one(br, 0);
+                } else {
+                    r = sf_binary_reader_assert_varint_one(br, 0);
+                    if (r == SF_OK && type == SF_TAE_MINI_HEADER_IMPORT_OTHER_ANIM)
+                        r = sf_binary_reader_assert_varint_one(br, 0);
+                }
+            }
             if (r == SF_OK && anim_file_name_offset > 0 &&
-                anim_file_name_offset < sf_binary_reader_length(br)) {
+                anim_file_name_offset < sf_binary_reader_length(br) &&
+                anim_file_name_offset != times_offset) {
                 r = sf_binary_reader_get_utf16(br, anim_file_name_offset, &anim->anim_file_name,
                                                NULL);
             }
@@ -417,7 +639,7 @@ static sf_result_t tae_read_mini_header(sf_binary_reader_t *br, sf_tae_animation
 }
 
 static sf_result_t tae_read_event(sf_binary_reader_t *br, sf_tae_event_t *ev,
-                                  tae_event_record_t *rec) {
+                                  tae_event_record_t *rec, sf_tae_format_t format) {
     SF_CHECK_ARG(br != NULL && ev != NULL && rec != NULL);
     rec->header_offset = sf_binary_reader_position(br);
     int64_t start_time_offset = 0;
@@ -427,6 +649,8 @@ static sf_result_t tae_read_event(sf_binary_reader_t *br, sf_tae_event_t *ev,
         r = sf_binary_reader_read_varint(br, &end_time_offset);
     if (r == SF_OK)
         r = sf_binary_reader_read_varint(br, &rec->event_data_offset);
+    if (r == SF_OK && (format == SF_TAE_FORMAT_DES || format == SF_TAE_FORMAT_DESR))
+        r = sf_binary_reader_pad(br, 0x10);
     if (r == SF_OK)
         r = sf_binary_reader_get_f32(br, start_time_offset, &ev->start_time);
     if (r == SF_OK)
@@ -438,9 +662,12 @@ static sf_result_t tae_read_event(sf_binary_reader_t *br, sf_tae_event_t *ev,
     if (r != SF_OK)
         return r;
     r = sf_binary_reader_read_i32(br, &ev->type);
-    if (r == SF_OK)
+    ev->unk04 = 0;
+    if (r == SF_OK && sf_binary_reader_varint_long(br))
         r = sf_binary_reader_read_i32(br, &ev->unk04);
-    int64_t expected_param_offset = sf_binary_reader_position(br) + 8;
+    int64_t expected_param_offset = tae_next_padded_offset_after_current_field(
+        sf_binary_reader_position(br), sf_binary_reader_varint_long(br) ? 8 : 4,
+        format == SF_TAE_FORMAT_DES ? 0x10 : 0);
     int64_t param_options[2] = {expected_param_offset, 0};
     if (r == SF_OK)
         r = sf_binary_reader_assert_varint(br, 2, param_options, NULL);
@@ -480,7 +707,7 @@ static sf_result_t tae_read_parameter_bytes(sf_binary_reader_t *br, sf_tae_event
 
 static sf_result_t tae_read_event_group(sf_binary_reader_t *br, sf_tae_event_group_t *group,
                                         const tae_event_record_t *event_records, size_t event_count,
-                                        const sf_allocator_t *alloc) {
+                                        sf_tae_format_t format, const sf_allocator_t *alloc) {
     SF_CHECK_ARG(br != NULL && group != NULL);
     int64_t entry_count = 0;
     int64_t values_offset = 0;
@@ -490,7 +717,7 @@ static sf_result_t tae_read_event_group(sf_binary_reader_t *br, sf_tae_event_gro
         r = sf_binary_reader_read_varint(br, &values_offset);
     if (r == SF_OK)
         r = sf_binary_reader_read_varint(br, &type_offset);
-    if (r == SF_OK)
+    if (r == SF_OK && format != SF_TAE_FORMAT_DS1 && format != SF_TAE_FORMAT_DESR)
         r = sf_binary_reader_assert_varint_one(br, 0);
     if (r != SF_OK)
         return r;
@@ -502,10 +729,22 @@ static sf_result_t tae_read_event_group(sf_binary_reader_t *br, sf_tae_event_gro
     if (r != SF_OK)
         return r;
     r = sf_binary_reader_read_i32(br, &group->group_type);
-    if (r == SF_OK)
+    if (r == SF_OK && sf_binary_reader_varint_long(br))
         r = sf_binary_reader_assert_i32_one(br, 0);
-    if (r == SF_OK)
+    if (r == SF_OK && format == SF_TAE_FORMAT_SOTFS) {
+        int64_t expected = tae_next_padded_offset_after_current_field(
+            sf_binary_reader_position(br), sf_binary_reader_varint_long(br) ? 8 : 4, 0);
+        r = sf_binary_reader_assert_varint_one(br, expected);
+        if (r == SF_OK)
+            r = sf_binary_reader_assert_varint_one(br, 0);
+        if (r == SF_OK)
+            r = sf_binary_reader_assert_varint_one(br, 0);
+    } else if (r == SF_OK && (format == SF_TAE_FORMAT_DS3 || format == SF_TAE_FORMAT_SDT)) {
         r = sf_binary_reader_assert_varint_one(br, 0);
+    } else if (r == SF_OK) {
+        int64_t ignored_data_offset = 0;
+        r = sf_binary_reader_read_varint(br, &ignored_data_offset);
+    }
     {
         sf_result_t r2 = sf_binary_reader_step_out(br);
         if (r == SF_OK)
@@ -522,8 +761,14 @@ static sf_result_t tae_read_event_group(sf_binary_reader_t *br, sf_tae_event_gro
     if (r != SF_OK)
         return r;
     for (size_t i = 0; i < group->member_count; i++) {
-        int32_t header_offset = 0;
-        r = sf_binary_reader_read_i32(br, &header_offset);
+        int64_t header_offset = 0;
+        if (format == SF_TAE_FORMAT_SOTFS)
+            r = sf_binary_reader_read_varint(br, &header_offset);
+        else {
+            int32_t header_offset_i32 = 0;
+            r = sf_binary_reader_read_i32(br, &header_offset_i32);
+            header_offset = header_offset_i32;
+        }
         if (r != SF_OK)
             break;
         group->members[i] = -1;
@@ -548,7 +793,7 @@ static sf_result_t tae_read_event_group(sf_binary_reader_t *br, sf_tae_event_gro
 
 static sf_result_t tae_read_animation(sf_binary_reader_t *br, const tae_animation_record_t *records,
                                       size_t index, size_t count, sf_tae_animation_t **out,
-                                      const sf_allocator_t *alloc) {
+                                      sf_tae_format_t format, const sf_allocator_t *alloc) {
     SF_CHECK_ARG(br != NULL && records != NULL && out != NULL);
     *out = NULL;
     const tae_animation_record_t *rec = &records[index];
@@ -558,7 +803,8 @@ static sf_result_t tae_read_animation(sf_binary_reader_t *br, const tae_animatio
     memset(anim, 0, sizeof(*anim));
     anim->id = rec->id;
 
-    sf_result_t r = tae_read_mini_header(br, anim, rec->anim_file_offset, alloc);
+    sf_result_t r = tae_read_mini_header(br, anim, rec->anim_file_offset, rec->times_offset,
+                                         format, alloc);
     if (r != SF_OK)
         goto fail;
 
@@ -585,7 +831,7 @@ static sf_result_t tae_read_animation(sf_binary_reader_t *br, const tae_animatio
                 break;
             }
             memset(anim->events[i], 0, sizeof(*anim->events[i]));
-            r = tae_read_event(br, anim->events[i], &event_records[i]);
+            r = tae_read_event(br, anim->events[i], &event_records[i], format);
             if (r != SF_OK)
                 break;
         }
@@ -635,7 +881,7 @@ static sf_result_t tae_read_animation(sf_binary_reader_t *br, const tae_animatio
             }
             memset(anim->event_groups[i], 0, sizeof(*anim->event_groups[i]));
             r = tae_read_event_group(br, anim->event_groups[i], event_records, anim->event_count,
-                                     alloc);
+                                     format, alloc);
             if (r != SF_OK)
                 break;
         }
@@ -709,7 +955,8 @@ SF_API sf_result_t sf_tae_read_from_memory(sf_tae_t **out, const void *bytes, si
     if (r != SF_OK)
         goto fail;
     for (size_t i = 0; i < t->animation_count; i++) {
-        r = tae_read_animation(br, records, i, t->animation_count, &t->animations[i], a);
+        r = tae_read_animation(br, records, i, t->animation_count, &t->animations[i],
+                               t->format, a);
         if (r != SF_OK)
             goto fail;
     }
@@ -736,7 +983,9 @@ static sf_result_t tae_write_header(sf_binary_writer_t *bw, const sf_tae_t *t) {
     r = sf_binary_writer_write_bytes(bw, "TAE ", 4);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_bool(bw, false);
+    bool big_endian = (t->format == SF_TAE_FORMAT_DES);
+    sf_binary_writer_set_big_endian(bw, big_endian);
+    r = sf_binary_writer_write_bool(bw, big_endian || t->format == SF_TAE_FORMAT_DESR);
     if (r != SF_OK)
         return r;
     r = sf_binary_writer_write_u8(bw, 0);
@@ -745,39 +994,61 @@ static sf_result_t tae_write_header(sf_binary_writer_t *bw, const sf_tae_t *t) {
     r = sf_binary_writer_write_u8(bw, 0);
     if (r != SF_OK)
         return r;
-    sf_binary_writer_set_varint_long(bw, true);
-    r = sf_binary_writer_write_u8(bw, 0xFF);
+    sf_binary_writer_set_varint_long(bw, tae_format_is_64bit(t->format));
+    r = sf_binary_writer_write_u8(
+        bw, t->format == SF_TAE_FORMAT_DESR ? 0 : (tae_format_is_64bit(t->format) ? 0xFF : 0));
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_i32(bw, 0x1000D);
+    int32_t version = 0x1000B;
+    if (t->format == SF_TAE_FORMAT_DS3 || t->format == SF_TAE_FORMAT_SOTFS)
+        version = 0x1000C;
+    else if (t->format == SF_TAE_FORMAT_SDT)
+        version = 0x1000D;
+    r = sf_binary_writer_write_i32(bw, version);
     if (r != SF_OK)
         return r;
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, "FileSize"), return r);
-    r = sf_binary_writer_write_varint(bw, 0x40);
+    r = sf_binary_writer_write_varint(bw, t->format == SF_TAE_FORMAT_DESR ? 0x30 : 0x40);
     if (r != SF_OK)
         return r;
     r = sf_binary_writer_write_varint(bw, 1);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_varint(bw, 0x50);
+    r = sf_binary_writer_write_varint(bw, t->format == SF_TAE_FORMAT_DESR ? 0x40 : 0x50);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_varint(bw, 0x80);
+    r = sf_binary_writer_write_varint(
+        bw, (sf_binary_writer_varint_long(bw) && t->format != SF_TAE_FORMAT_DESR) ? 0x80 : 0x70);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_varint(bw, t->event_bank);
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_writer_write_varint(bw, 0);
-    if (r != SF_OK)
-        return r;
+    if (t->format != SF_TAE_FORMAT_DESR) {
+        if (tae_format_is_32bit_des_family(t->format)) {
+            r = sf_binary_writer_write_i16(bw, (int16_t)(t->format == SF_TAE_FORMAT_DES ? 0 : 2));
+            if (r == SF_OK)
+                r = sf_binary_writer_write_i16(bw, 1);
+        } else {
+            r = sf_binary_writer_write_varint(bw, t->event_bank);
+        }
+        if (r != SF_OK)
+            return r;
+        r = sf_binary_writer_write_varint(bw, 0);
+        if (r != SF_OK)
+            return r;
+        if (tae_format_is_32bit_des_family(t->format)) {
+            for (int i = 0; i < 3; i++) {
+                r = sf_binary_writer_write_i64(bw, 0);
+                if (r != SF_OK)
+                    return r;
+            }
+        }
+    }
     r = sf_binary_writer_write_bytes(bw, t->flags, sizeof(t->flags));
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_u8(bw, 1);
+    r = sf_binary_writer_write_u8(bw, t->format == SF_TAE_FORMAT_SOTFS ? 0 : 1);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_u8(bw, 0);
+    r = sf_binary_writer_write_u8(bw, t->format == SF_TAE_FORMAT_SOTFS ? 1 : 0);
     if (r != SF_OK)
         return r;
     r = sf_binary_writer_write_pattern(bw, 6, 0);
@@ -793,36 +1064,72 @@ static sf_result_t tae_write_header(sf_binary_writer_t *bw, const sf_tae_t *t) {
         return r;
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "AnimsOffset"), return r);
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "AnimGroupsHeaderOffset"), return r);
-    r = sf_binary_writer_write_varint(bw, 0xA0);
+    r = sf_binary_writer_write_varint(bw, tae_format_is_des_family(t->format) ? 0x90 : 0xA0);
     if (r != SF_OK)
         return r;
     r = sf_binary_writer_write_varint(bw, anim_count);
     if (r != SF_OK)
         return r;
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "FirstAnimOffset"), return r);
+    if (tae_format_is_32bit_des_family(t->format)) {
+        r = sf_binary_writer_write_i32(bw, 0);
+        if (r != SF_OK)
+            return r;
+    }
     r = sf_binary_writer_write_varint(bw, 1);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_varint(bw, 0x90);
+    r = sf_binary_writer_write_varint(bw, tae_format_is_des_family(t->format) ? 0x80 : 0x90);
     if (r != SF_OK)
         return r;
+    if (tae_format_is_32bit_des_family(t->format)) {
+        r = sf_binary_writer_write_i64(bw, 0);
+        if (r != SF_OK)
+            return r;
+    }
     r = sf_binary_writer_write_i32(bw, t->id);
     if (r != SF_OK)
         return r;
     r = sf_binary_writer_write_i32(bw, t->id);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_varint(bw, 0x50);
+    r = sf_binary_writer_write_varint(bw, t->format == SF_TAE_FORMAT_DESR ? 0x40 : 0x50);
     if (r != SF_OK)
         return r;
     r = sf_binary_writer_write_i64(bw, 0);
     if (r != SF_OK)
         return r;
-    r = sf_binary_writer_write_varint(bw, 0xB0);
+    int64_t name_header = 0xB0;
+    if (t->format == SF_TAE_FORMAT_DES || t->format == SF_TAE_FORMAT_DESR)
+        name_header = 0xA0;
+    else if (t->format == SF_TAE_FORMAT_DS1)
+        name_header = 0x98;
+    r = sf_binary_writer_write_varint(bw, name_header);
     if (r != SF_OK)
         return r;
+    if (t->format == SF_TAE_FORMAT_DESR) {
+        r = sf_binary_writer_write_varint(bw, 0xB0);
+        if (r == SF_OK)
+            r = sf_binary_writer_write_i32(bw, 0);
+        if (r == SF_OK)
+            r = sf_binary_writer_write_i32(bw, 0);
+        if (r == SF_OK)
+            r = sf_binary_writer_write_i32(bw, 0);
+        if (r == SF_OK)
+            r = sf_binary_writer_write_i32(bw, 0);
+        return r;
+    }
+    if (big_endian && t->format != SF_TAE_FORMAT_SOTFS) {
+        r = sf_binary_writer_write_varint(bw, 0);
+        if (r == SF_OK)
+            r = sf_binary_writer_write_varint(bw, 0);
+        if (r != SF_OK)
+            return r;
+    }
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "SkeletonName"), return r);
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "SibName"), return r);
+    if (big_endian || t->format == SF_TAE_FORMAT_SOTFS)
+        return SF_OK;
     r = sf_binary_writer_write_varint(bw, 0);
     if (r != SF_OK)
         return r;
@@ -830,7 +1137,7 @@ static sf_result_t tae_write_header(sf_binary_writer_t *bw, const sf_tae_t *t) {
 }
 
 static sf_result_t tae_write_optional_utf16(sf_binary_writer_t *bw, const char *reserve_name,
-                                            const char *value) {
+                                            const char *value, sf_tae_format_t format) {
     sf_result_t r;
     if (!value)
         return sf_binary_writer_fill_varint(bw, reserve_name, 0);
@@ -840,7 +1147,9 @@ static sf_result_t tae_write_optional_utf16(sf_binary_writer_t *bw, const char *
     r = sf_binary_writer_write_utf16(bw, value, true);
     if (r != SF_OK)
         return r;
-    return sf_binary_writer_pad(bw, 0x10);
+    if (sf_binary_writer_varint_long(bw) || format == SF_TAE_FORMAT_DES)
+        return sf_binary_writer_pad(bw, 0x10);
+    return SF_OK;
 }
 
 static sf_result_t tae_write_animation_table(sf_binary_writer_t *bw, const sf_tae_t *t) {
@@ -858,12 +1167,22 @@ static sf_result_t tae_write_animation_table(sf_binary_writer_t *bw, const sf_ta
             if (r != SF_OK)
                 return r;
             SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            if (t->format == SF_TAE_FORMAT_DES) {
+                r = sf_binary_writer_pad(bw, 0x10);
+                if (r != SF_OK)
+                    return r;
+            }
         }
     }
 
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "AnimGroupsHeaderOffset", sf_binary_writer_position(bw)), return r);
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "TopAnimGroupsCount"), return r);
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, "TopAnimGroupsOffset"), return r);
+    if (t->format == SF_TAE_FORMAT_DES) {
+        r = sf_binary_writer_pad(bw, 0x10);
+        if (r != SF_OK)
+            return r;
+    }
     size_t group_count = 0;
     int64_t group_start = sf_binary_writer_position(bw);
     for (size_t i = 0; i < t->animation_count; i++) {
@@ -878,6 +1197,11 @@ static sf_result_t tae_write_animation_table(sf_binary_writer_t *bw, const sf_ta
         if (r != SF_OK)
             return r;
         SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+        if (t->format == SF_TAE_FORMAT_DES) {
+            r = sf_binary_writer_pad(bw, 0x10);
+            if (r != SF_OK)
+                return r;
+        }
         group_count++;
     }
     int64_t group_count_i64 = 0;
@@ -906,43 +1230,109 @@ static sf_result_t tae_write_animation_bodies(sf_binary_writer_t *bw, const sf_t
         if (r != SF_OK)
             return r;
         SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, body_pos), return r);
-        r = tae_make_name1(name, sizeof(name), "EventHeadersOffset", i);
-        if (r != SF_OK)
-            return r;
-        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
-        r = tae_make_name1(name, sizeof(name), "EventGroupHeadersOffset", i);
-        if (r != SF_OK)
-            return r;
-        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
-        r = tae_make_name1(name, sizeof(name), "TimesOffset", i);
-        if (r != SF_OK)
-            return r;
-        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
-        r = tae_make_name1(name, sizeof(name), "AnimFileOffset", i);
-        if (r != SF_OK)
-            return r;
-        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
         if (anim->event_count > INT32_MAX || anim->event_group_count > INT32_MAX)
             return SF_ERR_OUT_OF_RANGE;
-        r = sf_binary_writer_write_i32(bw, (int32_t)anim->event_count);
-        if (r != SF_OK)
-            return r;
-        r = sf_binary_writer_write_i32(bw, (int32_t)anim->event_group_count);
-        if (r != SF_OK)
-            return r;
-        r = tae_make_name1(name, sizeof(name), "TimesCount", i);
-        if (r != SF_OK)
-            return r;
-        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
-        r = sf_binary_writer_write_i32(bw, 0);
-        if (r != SF_OK)
-            return r;
+        if (tae_format_is_32bit_des_family(t->format)) {
+            r = sf_binary_writer_write_i32(bw, (int32_t)anim->event_count);
+            if (r != SF_OK)
+                return r;
+            r = tae_make_name1(name, sizeof(name), "EventHeadersOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = sf_binary_writer_write_i32(bw, (int32_t)anim->event_group_count);
+            if (r != SF_OK)
+                return r;
+            r = tae_make_name1(name, sizeof(name), "EventGroupHeadersOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = tae_make_name1(name, sizeof(name), "TimesCount", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
+            r = tae_make_name1(name, sizeof(name), "TimesOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = tae_make_name1(name, sizeof(name), "AnimFileOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            if (t->format == SF_TAE_FORMAT_DES) {
+                for (int j = 0; j < 5; j++) {
+                    r = sf_binary_writer_write_i32(bw, 0);
+                    if (r != SF_OK)
+                        return r;
+                }
+            }
+        } else if (t->format == SF_TAE_FORMAT_DESR) {
+            r = sf_binary_writer_write_i32(bw, (int32_t)anim->event_count);
+            if (r != SF_OK)
+                return r;
+            r = sf_binary_writer_write_i32(bw, (int32_t)anim->event_group_count);
+            if (r != SF_OK)
+                return r;
+            r = tae_make_name1(name, sizeof(name), "TimesCount", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
+            r = sf_binary_writer_write_i32(bw, 0);
+            if (r != SF_OK)
+                return r;
+            r = tae_make_name1(name, sizeof(name), "EventHeadersOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = tae_make_name1(name, sizeof(name), "EventGroupHeadersOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = tae_make_name1(name, sizeof(name), "TimesOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = tae_make_name1(name, sizeof(name), "AnimFileOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+        } else {
+            r = tae_make_name1(name, sizeof(name), "EventHeadersOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = tae_make_name1(name, sizeof(name), "EventGroupHeadersOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = tae_make_name1(name, sizeof(name), "TimesOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = tae_make_name1(name, sizeof(name), "AnimFileOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+            r = sf_binary_writer_write_i32(bw, (int32_t)anim->event_count);
+            if (r != SF_OK)
+                return r;
+            r = sf_binary_writer_write_i32(bw, (int32_t)anim->event_group_count);
+            if (r != SF_OK)
+                return r;
+            r = tae_make_name1(name, sizeof(name), "TimesCount", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_i32(bw, name), return r);
+            r = sf_binary_writer_write_i32(bw, 0);
+            if (r != SF_OK)
+                return r;
+        }
     }
     return SF_OK;
 }
 
 static sf_result_t tae_write_anim_file(sf_binary_writer_t *bw, const sf_tae_animation_t *anim,
-                                       size_t i) {
+                                       size_t i, sf_tae_format_t format) {
     char name[64];
     sf_result_t r = tae_make_name1(name, sizeof(name), "AnimFileOffset", i);
     if (r != SF_OK)
@@ -955,9 +1345,17 @@ static sf_result_t tae_write_anim_file(sf_binary_writer_t *bw, const sf_tae_anim
     if (r != SF_OK)
         return r;
     if (anim->mini_header.is_null_header) {
-        return sf_binary_writer_write_varint(bw, 0);
+        r = sf_binary_writer_write_varint(bw, 0);
+        if (r == SF_OK && format == SF_TAE_FORMAT_DES)
+            r = sf_binary_writer_pad(bw, 0x10);
+        return r;
     }
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+    if (format == SF_TAE_FORMAT_DES) {
+        r = sf_binary_writer_pad(bw, 0x10);
+        if (r != SF_OK)
+            return r;
+    }
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
     r = tae_make_name1(name, sizeof(name), "AnimFileNameOffset", i);
     if (r != SF_OK)
@@ -965,38 +1363,74 @@ static sf_result_t tae_write_anim_file(sf_binary_writer_t *bw, const sf_tae_anim
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
     if (anim->mini_header.type == SF_TAE_MINI_HEADER_STANDARD) {
         const sf_tae_anim_mini_header_standard_t *h = &anim->mini_header.payload.standard;
+        if (format == SF_TAE_FORMAT_DESR) {
+            r = sf_binary_writer_write_i32(bw, h->import_hkx_source_anim_id);
+            if (r != SF_OK)
+                return r;
+        }
         r = sf_binary_writer_write_bool(bw, h->is_loop_by_default);
         if (r != SF_OK)
             return r;
         r = sf_binary_writer_write_bool(bw, h->imports_hkx);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_write_bool(bw, h->allow_delay_load);
+        r = sf_binary_writer_write_bool(bw, format != SF_TAE_FORMAT_DES &&
+                                                format != SF_TAE_FORMAT_DESR &&
+                                                h->allow_delay_load);
         if (r != SF_OK)
             return r;
         r = sf_binary_writer_write_u8(bw, 0);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_write_i32(bw, h->import_hkx_source_anim_id);
+        if (format != SF_TAE_FORMAT_DESR)
+            r = sf_binary_writer_write_i32(bw, h->import_hkx_source_anim_id);
         if (r != SF_OK)
             return r;
     } else if (anim->mini_header.type == SF_TAE_MINI_HEADER_IMPORT_OTHER_ANIM) {
-        r = sf_binary_writer_write_i32(bw,
-                                       anim->mini_header.payload.import_other.import_from_anim_id);
-        if (r != SF_OK)
-            return r;
-        r = sf_binary_writer_write_i32(bw, anim->mini_header.payload.import_other.unknown);
+        if (format == SF_TAE_FORMAT_DESR) {
+            r = sf_binary_writer_write_i32(bw, anim->mini_header.payload.import_other.unknown);
+            if (r == SF_OK)
+                r = sf_binary_writer_write_i32(
+                    bw, anim->mini_header.payload.import_other.import_from_anim_id);
+        } else {
+            r = sf_binary_writer_write_i32(
+                bw, anim->mini_header.payload.import_other.import_from_anim_id);
+            if (r == SF_OK)
+                r = sf_binary_writer_write_i32(bw, anim->mini_header.payload.import_other.unknown);
+            if (r == SF_OK && format == SF_TAE_FORMAT_DES)
+                r = sf_binary_writer_pad(bw, 0x10);
+        }
         if (r != SF_OK)
             return r;
     } else {
         return SF_ERR_UNSUPPORTED_VERSION;
     }
-    r = sf_binary_writer_write_varint(bw, 0);
-    if (r != SF_OK)
-        return r;
-    r = sf_binary_writer_write_varint(bw, 0);
-    if (r != SF_OK)
-        return r;
+    if (!tae_format_is_des_family(format)) {
+        r = sf_binary_writer_write_varint(bw, 0);
+        if (r != SF_OK)
+            return r;
+        r = sf_binary_writer_write_varint(bw, 0);
+        if (r != SF_OK)
+            return r;
+    } else if (format == SF_TAE_FORMAT_DESR) {
+        r = sf_binary_writer_write_i32(bw, 0);
+        if (r != SF_OK)
+            return r;
+        if (anim->mini_header.type == SF_TAE_MINI_HEADER_IMPORT_OTHER_ANIM) {
+            r = sf_binary_writer_write_i32(bw, 0);
+            if (r != SF_OK)
+                return r;
+        }
+    } else {
+        r = sf_binary_writer_write_varint(bw, 0);
+        if (r != SF_OK)
+            return r;
+        if (anim->mini_header.type == SF_TAE_MINI_HEADER_IMPORT_OTHER_ANIM) {
+            r = sf_binary_writer_write_varint(bw, 0);
+            if (r != SF_OK)
+                return r;
+        }
+    }
     r = tae_make_name1(name, sizeof(name), "AnimFileNameOffset", i);
     if (r != SF_OK)
         return r;
@@ -1005,7 +1439,9 @@ static sf_result_t tae_write_anim_file(sf_binary_writer_t *bw, const sf_tae_anim
         r = sf_binary_writer_write_utf16(bw, anim->anim_file_name, true);
         if (r != SF_OK)
             return r;
-        return sf_binary_writer_pad(bw, 0x10);
+        if (format != SF_TAE_FORMAT_DS1)
+            return sf_binary_writer_pad(bw, 0x10);
+        return SF_OK;
     }
     return sf_binary_writer_write_i16(bw, 0);
 }
@@ -1053,7 +1489,8 @@ static int64_t tae_find_time_offset(const tae_time_offset_t *times, size_t count
 }
 
 static sf_result_t tae_write_times(sf_binary_writer_t *bw, const sf_tae_animation_t *anim,
-                                   size_t anim_index, const sf_allocator_t *alloc,
+                                   size_t anim_index, sf_tae_format_t format,
+                                   const sf_allocator_t *alloc,
                                    tae_time_offset_t **out_offsets, size_t *out_count) {
     *out_offsets = NULL;
     *out_count = 0;
@@ -1084,7 +1521,8 @@ static sf_result_t tae_write_times(sf_binary_writer_t *bw, const sf_tae_animatio
         if (r != SF_OK)
             goto cleanup;
     }
-    r = sf_binary_writer_pad(bw, 0x10);
+    if (format != SF_TAE_FORMAT_DS1)
+        r = sf_binary_writer_pad(bw, 0x10);
 cleanup:
     sf_xfree(alloc, times);
     if (r != SF_OK) {
@@ -1097,7 +1535,8 @@ cleanup:
 
 static sf_result_t tae_write_event_headers(sf_binary_writer_t *bw, const sf_tae_animation_t *anim,
                                            size_t anim_index, const tae_time_offset_t *times,
-                                           size_t time_count, int64_t *event_header_offsets) {
+                                           size_t time_count, sf_tae_format_t format,
+                                           int64_t *event_header_offsets) {
     char name[64];
     sf_result_t r = tae_make_name1(name, sizeof(name), "EventHeadersOffset", anim_index);
     if (r != SF_OK)
@@ -1122,12 +1561,17 @@ static sf_result_t tae_write_event_headers(sf_binary_writer_t *bw, const sf_tae_
         if (r != SF_OK)
             return r;
         SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
+        if (format == SF_TAE_FORMAT_DES || format == SF_TAE_FORMAT_DESR) {
+            r = sf_binary_writer_pad(bw, 0x10);
+            if (r != SF_OK)
+                return r;
+        }
     }
     return SF_OK;
 }
 
 static sf_result_t tae_write_event_data(sf_binary_writer_t *bw, const sf_tae_animation_t *anim,
-                                        size_t anim_index) {
+                                        size_t anim_index, sf_tae_format_t format) {
     for (size_t i = 0; i < anim->event_count; i++) {
         const sf_tae_event_t *ev = anim->events[i];
         char name[64];
@@ -1138,10 +1582,12 @@ static sf_result_t tae_write_event_data(sf_binary_writer_t *bw, const sf_tae_ani
         r = sf_binary_writer_write_i32(bw, ev->type);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_write_i32(bw, ev->unk04);
-        if (r != SF_OK)
-            return r;
-        bool weird_no_param_offset = (ev->type == 943);
+        if (sf_binary_writer_varint_long(bw)) {
+            r = sf_binary_writer_write_i32(bw, ev->unk04);
+            if (r != SF_OK)
+                return r;
+        }
+        bool weird_no_param_offset = (format == SF_TAE_FORMAT_SDT && ev->type == 943);
         r = tae_make_name(name, sizeof(name), "EventParamsOffset", anim_index, i);
         if (r != SF_OK)
             return r;
@@ -1151,21 +1597,31 @@ static sf_result_t tae_write_event_data(sf_binary_writer_t *bw, const sf_tae_ani
                 return r;
         } else {
             SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
-            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
         }
+        if (format == SF_TAE_FORMAT_DES) {
+            r = sf_binary_writer_write_i32(bw, 0);
+            if (r == SF_OK)
+                r = sf_binary_writer_write_i32(bw, 0);
+            if (r != SF_OK)
+                return r;
+        }
+        if (!weird_no_param_offset)
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, sf_binary_writer_position(bw)), return r);
         r = sf_binary_writer_write_bytes(bw, ev->parameters, ev->parameters_size);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_pad(bw, 0x10);
-        if (r != SF_OK)
-            return r;
+        if (sf_binary_writer_varint_long(bw) || format == SF_TAE_FORMAT_DES) {
+            r = sf_binary_writer_pad(bw, 0x10);
+            if (r != SF_OK)
+                return r;
+        }
     }
     return SF_OK;
 }
 
 static sf_result_t tae_write_event_group_headers(sf_binary_writer_t *bw,
-                                                 const sf_tae_animation_t *anim,
-                                                 size_t anim_index) {
+                                                  const sf_tae_animation_t *anim,
+                                                  size_t anim_index, sf_tae_format_t format) {
     char name[64];
     sf_result_t r = tae_make_name1(name, sizeof(name), "EventGroupHeadersOffset", anim_index);
     if (r != SF_OK)
@@ -1191,16 +1647,19 @@ static sf_result_t tae_write_event_group_headers(sf_binary_writer_t *bw,
         if (r != SF_OK)
             return r;
         SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
-        r = sf_binary_writer_write_varint(bw, 0);
-        if (r != SF_OK)
-            return r;
+        if (format != SF_TAE_FORMAT_DS1 && format != SF_TAE_FORMAT_DESR) {
+            r = sf_binary_writer_write_varint(bw, 0);
+            if (r != SF_OK)
+                return r;
+        }
     }
     return SF_OK;
 }
 
 static sf_result_t tae_write_event_group_data(sf_binary_writer_t *bw,
-                                              const sf_tae_animation_t *anim, size_t anim_index,
-                                              const int64_t *event_header_offsets) {
+                                               const sf_tae_animation_t *anim, size_t anim_index,
+                                               sf_tae_format_t format,
+                                               const int64_t *event_header_offsets) {
     for (size_t i = 0; i < anim->event_group_count; i++) {
         const sf_tae_event_group_t *g = anim->event_groups[i];
         char name[64];
@@ -1211,10 +1670,21 @@ static sf_result_t tae_write_event_group_data(sf_binary_writer_t *bw,
         r = sf_binary_writer_write_i32(bw, g->group_type);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_write_i32(bw, 0);
-        if (r != SF_OK)
-            return r;
-        r = sf_binary_writer_write_varint(bw, 0);
+        if (sf_binary_writer_varint_long(bw)) {
+            r = sf_binary_writer_write_i32(bw, 0);
+            if (r != SF_OK)
+                return r;
+        }
+        if (format == SF_TAE_FORMAT_SOTFS) {
+            r = sf_binary_writer_write_varint(
+                bw, sf_binary_writer_position(bw) + (sf_binary_writer_varint_long(bw) ? 8 : 4));
+            if (r == SF_OK)
+                r = sf_binary_writer_write_varint(bw, 0);
+            if (r == SF_OK)
+                r = sf_binary_writer_write_varint(bw, 0);
+        } else {
+            r = sf_binary_writer_write_varint(bw, 0);
+        }
         if (r != SF_OK)
             return r;
         r = tae_make_name(name, sizeof(name), "EventGroupValuesOffset", anim_index, i);
@@ -1224,17 +1694,22 @@ static sf_result_t tae_write_event_group_data(sf_binary_writer_t *bw,
         for (size_t j = 0; j < g->member_count; j++) {
             if (g->members[j] < 0 || (size_t)g->members[j] >= anim->event_count)
                 return SF_ERR_OUT_OF_RANGE;
-            int32_t offset = 0;
-            r = tae_position_to_i32(event_header_offsets[g->members[j]], &offset);
-            if (r != SF_OK)
-                return r;
-            r = sf_binary_writer_write_i32(bw, offset);
+            if (format == SF_TAE_FORMAT_SOTFS) {
+                r = sf_binary_writer_write_varint(bw, event_header_offsets[g->members[j]]);
+            } else {
+                int32_t offset = 0;
+                r = tae_position_to_i32(event_header_offsets[g->members[j]], &offset);
+                if (r == SF_OK)
+                    r = sf_binary_writer_write_i32(bw, offset);
+            }
             if (r != SF_OK)
                 return r;
         }
-        r = sf_binary_writer_pad(bw, 0x10);
-        if (r != SF_OK)
-            return r;
+        if (format != SF_TAE_FORMAT_DS1) {
+            r = sf_binary_writer_pad(bw, 0x10);
+            if (r != SF_OK)
+                return r;
+        }
     }
     return SF_OK;
 }
@@ -1243,26 +1718,26 @@ static sf_result_t tae_write_all_animation_data(sf_binary_writer_t *bw, const sf
                                                 const sf_allocator_t *alloc) {
     for (size_t i = 0; i < t->animation_count; i++) {
         const sf_tae_animation_t *anim = t->animations[i];
-        sf_result_t r = tae_write_anim_file(bw, anim, i);
+        sf_result_t r = tae_write_anim_file(bw, anim, i, t->format);
         if (r != SF_OK)
             return r;
         tae_time_offset_t *time_offsets = NULL;
         size_t time_count = 0;
-        r = tae_write_times(bw, anim, i, alloc, &time_offsets, &time_count);
+        r = tae_write_times(bw, anim, i, t->format, alloc, &time_offsets, &time_count);
         if (r != SF_OK)
             return r;
         int64_t *event_header_offsets = NULL;
         r = tae_alloc_array(alloc, anim->event_count, sizeof(*event_header_offsets),
                             (void **)&event_header_offsets);
         if (r == SF_OK)
-            r = tae_write_event_headers(bw, anim, i, time_offsets, time_count,
+            r = tae_write_event_headers(bw, anim, i, time_offsets, time_count, t->format,
                                         event_header_offsets);
         if (r == SF_OK)
-            r = tae_write_event_data(bw, anim, i);
+            r = tae_write_event_data(bw, anim, i, t->format);
         if (r == SF_OK)
-            r = tae_write_event_group_headers(bw, anim, i);
+            r = tae_write_event_group_headers(bw, anim, i, t->format);
         if (r == SF_OK)
-            r = tae_write_event_group_data(bw, anim, i, event_header_offsets);
+            r = tae_write_event_group_data(bw, anim, i, t->format, event_header_offsets);
         sf_xfree(alloc, event_header_offsets);
         sf_xfree(alloc, time_offsets);
         if (r != SF_OK)
@@ -1276,8 +1751,6 @@ SF_API sf_result_t sf_tae_write_to_memory(const sf_tae_t *t, void **out_bytes, s
     SF_CHECK_ARG(t != NULL && out_bytes != NULL && out_size != NULL);
     *out_bytes = NULL;
     *out_size = 0;
-    if (t->format != SF_TAE_FORMAT_SDT)
-        return SF_ERR_UNSUPPORTED_VERSION;
     a = sf_alloc_or_default(a);
 
     sf_ostream_t *stream = NULL;
@@ -1292,10 +1765,10 @@ SF_API sf_result_t sf_tae_write_to_memory(const sf_tae_t *t, void **out_bytes, s
     }
 
     r = tae_write_header(bw, t);
-    if (r == SF_OK)
-        r = tae_write_optional_utf16(bw, "SkeletonName", t->skeleton_name);
-    if (r == SF_OK)
-        r = tae_write_optional_utf16(bw, "SibName", t->sib_name);
+    if (r == SF_OK && t->format != SF_TAE_FORMAT_DESR)
+        r = tae_write_optional_utf16(bw, "SkeletonName", t->skeleton_name, t->format);
+    if (r == SF_OK && t->format != SF_TAE_FORMAT_DESR)
+        r = tae_write_optional_utf16(bw, "SibName", t->sib_name, t->format);
     if (r == SF_OK)
         r = tae_write_animation_table(bw, t);
     if (r == SF_OK)
@@ -1313,6 +1786,74 @@ SF_API sf_result_t sf_tae_write_to_memory(const sf_tae_t *t, void **out_bytes, s
     sf_binary_writer_destroy(bw);
     sf_ostream_close(stream);
     return r;
+}
+
+static const sf_tae_event_template_t *tae_find_event_template(
+    const sf_tae_template_t *tmpl, int64_t event_bank, int32_t event_type, bool validate_bank) {
+    if (validate_bank) {
+        const sf_tae_bank_template_t *bank = sf_tae_template_find_bank(tmpl, event_bank);
+        return bank ? sf_tae_bank_template_find_event(bank, event_type) : NULL;
+    }
+    size_t bank_count = sf_tae_template_bank_count(tmpl);
+    for (size_t i = 0; i < bank_count; i++) {
+        const sf_tae_bank_template_t *bank = sf_tae_template_bank(tmpl, i);
+        const sf_tae_event_template_t *ev_tmpl =
+            bank ? sf_tae_bank_template_find_event(bank, event_type) : NULL;
+        if (ev_tmpl)
+            return ev_tmpl;
+    }
+    return NULL;
+}
+
+static sf_result_t tae_resize_event_parameters(sf_tae_event_t *ev, size_t required_size,
+                                               const sf_allocator_t *alloc) {
+    SF_CHECK_ARG(ev != NULL);
+    if (required_size <= ev->parameters_size) {
+        ev->parameters_size = required_size;
+        return SF_OK;
+    }
+    uint8_t *new_bytes =
+        (uint8_t *)sf_xrealloc(alloc, ev->parameters, ev->parameters_size, required_size);
+    if (!new_bytes)
+        return SF_ERR_OOM;
+    memset(new_bytes + ev->parameters_size, 0, required_size - ev->parameters_size);
+    ev->parameters = new_bytes;
+    ev->parameters_size = required_size;
+    return SF_OK;
+}
+
+SF_API sf_result_t sf_tae_apply_template(sf_tae_t *t, const sf_tae_template_t *tmpl,
+                                         bool validate_bank, bool strict) {
+    SF_CHECK_ARG(t != NULL && tmpl != NULL);
+    if (sf_tae_template_game(tmpl) != t->format)
+        return SF_ERR_BAD_MAGIC;
+    if (validate_bank && !sf_tae_template_find_bank(tmpl, t->event_bank))
+        return SF_ERR_BAD_MAGIC;
+
+    for (size_t i = 0; i < t->animation_count; i++) {
+        sf_tae_animation_t *anim = t->animations ? t->animations[i] : NULL;
+        if (!anim)
+            continue;
+        for (size_t j = 0; j < anim->event_count; j++) {
+            sf_tae_event_t *ev = anim->events ? anim->events[j] : NULL;
+            if (!ev)
+                continue;
+            const sf_tae_event_template_t *ev_tmpl =
+                tae_find_event_template(tmpl, t->event_bank, ev->type, validate_bank);
+            if (!ev_tmpl) {
+                if (strict)
+                    return SF_ERR_BAD_MAGIC;
+                continue;
+            }
+            int32_t required_i32 = sf_tae_event_template_total_byte_count(ev_tmpl);
+            if (required_i32 < 0)
+                return SF_ERR_OUT_OF_RANGE;
+            sf_result_t r = tae_resize_event_parameters(ev, (size_t)required_i32, t->alloc);
+            if (r != SF_OK)
+                return r;
+        }
+    }
+    return SF_OK;
 }
 
 SF_API void sf_tae_destroy(sf_tae_t *t) {

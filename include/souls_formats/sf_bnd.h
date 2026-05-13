@@ -10,7 +10,7 @@
 #define SOULS_FORMATS_SF_BND_H
 
 #include "souls_formats/sf_binder.h"
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 
 #include <stdbool.h>
 #include <stddef.h>

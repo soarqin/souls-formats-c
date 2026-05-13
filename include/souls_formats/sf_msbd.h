@@ -5,7 +5,7 @@
 #ifndef SOULS_FORMATS_SF_MSBD_H
 #define SOULS_FORMATS_SF_MSBD_H
 
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 #include "souls_formats/sf_msb.h"
 
 #ifdef __cplusplus

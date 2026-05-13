@@ -9,7 +9,7 @@
 #ifndef SOULS_FORMATS_SF_PATH_H
 #define SOULS_FORMATS_SF_PATH_H
 
-#include "souls_formats/sf_common.h"
+#include "sf_common.h"
 
 #include <stdbool.h>
 
