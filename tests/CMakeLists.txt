@@ -768,6 +768,8 @@ sf_add_test(souls_formats_test_btab_synthetic lighting/test_btab_synthetic.c "li
 
 sf_add_test(souls_formats_test_btl_synthetic lighting/test_btl_synthetic.c "lighting")
 
+sf_add_test(souls_formats_test_gparam_synthetic lighting/test_gparam_synthetic.c "lighting")
+
 #-----------------------------------------------------------------------------
 # Navmesh formats (EDGE / NVM / MCG / MCP / NVA / NGP)
 #-----------------------------------------------------------------------------
