@@ -588,6 +588,32 @@ target_include_directories(souls_formats_test_golden
 
 sf_add_test(souls_formats_test_tae_synthetic anim/test_tae_synthetic.c "anim")
 
+#-----------------------------------------------------------------------------
+# TAE Template subsystem tests (tae-templates label)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_tae_template_xml
+    anim/test_tae_template_xml.c "tae-templates")
+
+sf_add_test(souls_formats_test_tae_template_apply
+    anim/test_tae_template_apply.c "tae-templates")
+
+sf_add_e2e_test(souls_formats_test_tae_legacy_ds1r
+    anim/test_tae_legacy_ds1r.c "ds1r")
+target_link_libraries(souls_formats_test_tae_legacy_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_tae_legacy_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+set_tests_properties(souls_formats_test_tae_legacy_ds1r PROPERTIES
+    LABELS "tae-templates;e2e;e2e_ds1r")
+
+sf_add_e2e_test(souls_formats_test_tae_legacy_ds3
+    anim/test_tae_legacy_ds3.c "ds3")
+target_link_libraries(souls_formats_test_tae_legacy_ds3 PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_tae_legacy_ds3 PRIVATE
+    SF_E2E_DS3_DIR=L"C:/Games/DARK SOULS III/Game"
+    SF_E2E_OODLE_DIR=L"\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle")
+set_tests_properties(souls_formats_test_tae_legacy_ds3 PROPERTIES
+    LABELS "tae-templates;e2e;e2e_ds3")
+
 # T0.1 klib compile spike — remove after Wave 4 (T4.1 klib khash adoption in BHD5)
 if(SF_BUILD_TESTS AND PROJECT_IS_TOP_LEVEL)
     add_executable(souls_formats_test_klib_spike spike/test_klib_compile.c)
@@ -675,3 +701,82 @@ set_tests_properties(
     souls_formats_test_nightreign_helper_smoke
     souls_formats_test_msbe_e2e_nr
     PROPERTIES LABELS "e2e;e2e_nightreign")
+
+#-----------------------------------------------------------------------------
+# AC-specific formats (AcParts4, FSDATA, FSLIBLZS, MLB, PARAMDBP)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_acparts4_synthetic
+    ac/test_acparts4_synthetic.c "ac")
+sf_add_test(souls_formats_test_fsdata_synthetic
+    ac/test_fsdata_synthetic.c "ac")
+sf_add_test(souls_formats_test_fsliblzs_synthetic
+    ac/test_fsliblzs_synthetic.c "ac")
+sf_add_test(souls_formats_test_mlb_synthetic
+    ac/test_mlb_synthetic.c "ac")
+sf_add_test(souls_formats_test_paramdbp_synthetic
+    ac/test_paramdbp_synthetic.c "ac")
+
+#-----------------------------------------------------------------------------
+# Misc formats (AIP, F2TR, CLM2, RMB, ...)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_aip_synthetic   misc/test_aip_synthetic.c   "misc")
+sf_add_test(souls_formats_test_f2tr_synthetic  misc/test_f2tr_synthetic.c  "misc")
+sf_add_test(souls_formats_test_clm2_synthetic  misc/test_clm2_synthetic.c  "misc")
+sf_add_test(souls_formats_test_rmb_synthetic   misc/test_rmb_synthetic.c   "misc")
+sf_add_test(souls_formats_test_grass_synthetic misc/test_grass_synthetic.c "misc")
+sf_add_test(souls_formats_test_ccm_synthetic   misc/test_ccm_synthetic.c   "misc")
+sf_add_test(souls_formats_test_edd_synthetic   misc/test_edd_synthetic.c   "misc")
+sf_add_test(souls_formats_test_acb_synthetic   misc/test_acb_synthetic.c   "misc")
+sf_add_test(souls_formats_test_smd4_synthetic  misc/test_smd4_synthetic.c  "misc")
+sf_add_test(souls_formats_test_drb_synthetic   misc/test_drb_synthetic.c   "misc")
+sf_add_test(souls_formats_test_legacy_formats_synthetic
+    misc/test_legacy_formats_synthetic.c "misc")
+sf_add_test(souls_formats_test_fmb_synthetic
+    misc/test_fmb_synthetic.c "misc")
+sf_add_test(souls_formats_test_ani_synthetic
+    misc/test_ani_synthetic.c "effects")
+sf_add_test(souls_formats_test_mqb_synthetic
+    misc/test_mqb_synthetic.c "effects")
+sf_add_test(souls_formats_test_ffxdlse_synthetic
+    misc/test_ffxdlse_synthetic.c "effects")
+sf_add_test(souls_formats_test_fxr1_synthetic
+    misc/test_fxr1_synthetic.c "effects")
+sf_add_test(souls_formats_test_nmb_synthetic
+    misc/test_nmb_synthetic.c "effects")
+sf_add_test(souls_formats_test_nsa_synthetic
+    misc/test_nsa_synthetic.c "effects")
+
+#-----------------------------------------------------------------------------
+# Text-Script-Misc cluster (LUAGNL, LUAINFO, EMELD)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_luagnl_synthetic
+    script/test_luagnl_synthetic.c "script")
+sf_add_test(souls_formats_test_luainfo_synthetic
+    script/test_luainfo_synthetic.c "script")
+sf_add_test(souls_formats_test_emeld_synthetic
+    script/test_emeld_synthetic.c "script")
+
+#-----------------------------------------------------------------------------
+# Navmesh formats (EDGE / NVM / MCG / MCP / NVA / NGP)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_edge_synthetic navmesh/test_edge_synthetic.c "navmesh")
+sf_add_test(souls_formats_test_nvm_synthetic  navmesh/test_nvm_synthetic.c  "navmesh")
+sf_add_test(souls_formats_test_mcg_synthetic  navmesh/test_mcg_synthetic.c  "navmesh")
+sf_add_test(souls_formats_test_mcp_synthetic  navmesh/test_mcp_synthetic.c  "navmesh")
+sf_add_test(souls_formats_test_nva_synthetic  navmesh/test_nva_synthetic.c  "navmesh")
+sf_add_test(souls_formats_test_ngp_synthetic  navmesh/test_ngp_synthetic.c  "navmesh")
+
+sf_add_test(souls_formats_test_mcg_e2e_ds1r navmesh/test_mcg_e2e_ds1r.c "navmesh")
+target_link_libraries(souls_formats_test_mcg_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_mcg_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_test(souls_formats_test_mcp_e2e_ds1r navmesh/test_mcp_e2e_ds1r.c "navmesh")
+target_link_libraries(souls_formats_test_mcp_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_mcp_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+sf_add_test(souls_formats_test_nvm_e2e_ds1r navmesh/test_nvm_e2e_ds1r.c "navmesh")
+target_link_libraries(souls_formats_test_nvm_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_nvm_e2e_ds1r PRIVATE
+    SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
