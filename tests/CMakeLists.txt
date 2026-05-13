@@ -759,6 +759,12 @@ sf_add_test(souls_formats_test_emeld_synthetic
     script/test_emeld_synthetic.c "script")
 
 #-----------------------------------------------------------------------------
+# Post-v1 lighting formats (BTAB / BTL / GPARAM / PMDCL)
+#-----------------------------------------------------------------------------
+sf_add_test(souls_formats_test_pmdcl_synthetic lighting/test_pmdcl_synthetic.c "lighting")
+target_link_libraries(souls_formats_test_pmdcl_synthetic PRIVATE souls_formats_static)
+
+#-----------------------------------------------------------------------------
 # Navmesh formats (EDGE / NVM / MCG / MCP / NVA / NGP)
 #-----------------------------------------------------------------------------
 sf_add_test(souls_formats_test_edge_synthetic navmesh/test_edge_synthetic.c "navmesh")
