@@ -191,8 +191,8 @@ sf_result_t sf_binary_writer_pad_ff(sf_binary_writer_t *w, int align) {
 sf_result_t sf_binary_writer_pad_relative(sf_binary_writer_t *w, int64_t start, int align) {
     sf_result_t e = writer_open(w);
     if (e != SF_OK) return e;
-    SF_CHECK_ARG(align > 0);
     int64_t pos = sf_ostream_position(w->stream);
+    SF_CHECK_ARG(align > 0 && start <= pos);
     int64_t rel = pos - start;
     int64_t rem = rel % align;
     if (rem == 0) return SF_OK;
@@ -389,6 +389,17 @@ static sf_result_t reservations_pop(sf_binary_writer_t *w, const char *name,
     return SF_ERR_NOT_FOUND;
 }
 
+static sf_result_t reservations_peek(const sf_binary_writer_t *w, const char *name,
+                                     sfres_kind_t kind, int64_t *out_pos) {
+    for (size_t i = 0; i < w->res_size; i++) {
+        if (strcmp(w->res[i].name, name) == 0 && w->res[i].kind == kind) {
+            *out_pos = w->res[i].pos;
+            return SF_OK;
+        }
+    }
+    return SF_ERR_NOT_FOUND;
+}
+
 static sf_result_t reserve_kind(sf_binary_writer_t *w, const char *name,
                                 sfres_kind_t kind) {
     sf_result_t e = writer_open(w);
@@ -396,9 +407,14 @@ static sf_result_t reserve_kind(sf_binary_writer_t *w, const char *name,
     SF_CHECK_ARG(name != NULL);
     int64_t pos = sf_ostream_position(w->stream);
     int width = kind_width(kind);
-    e = sf_binary_writer_write_pattern(w, (size_t)width, 0xFE);
+    e = reservations_push(w, name, pos, kind);
     if (e != SF_OK) return e;
-    return reservations_push(w, name, pos, kind);
+    e = sf_binary_writer_write_pattern(w, (size_t)width, 0xFE);
+    if (e != SF_OK) {
+        int64_t unused = 0;
+        (void)reservations_pop(w, name, kind, &unused);
+    }
+    return e;
 }
 
 sf_result_t sf_binary_writer_reserve_bool(sf_binary_writer_t *w, const char *n) {
@@ -447,12 +463,16 @@ sf_result_t sf_binary_writer_reserve_f64(sf_binary_writer_t *w, const char *n) {
         if (_open != SF_OK) return _open;                                      \
         SF_CHECK_ARG(n != NULL);                                               \
         int64_t pos;                                                          \
-        sf_result_t e = reservations_pop(w, n, kind_const, &pos);            \
+        sf_result_t e = reservations_peek(w, n, kind_const, &pos);           \
         if (e != SF_OK) return e;                                            \
         e = sf_binary_writer_step_in(w, pos);                                 \
         if (e != SF_OK) return e;                                            \
         e = write_fn(w, v);                                                   \
         sf_result_t e2 = sf_binary_writer_step_out(w);                       \
+        if (e == SF_OK && e2 == SF_OK) {                                      \
+            int64_t unused = 0;                                               \
+            (void)reservations_pop(w, n, kind_const, &unused);                \
+        }                                                                     \
         return (e != SF_OK) ? e : e2;                                        \
     }
 
@@ -474,13 +494,17 @@ sf_result_t sf_binary_writer_fill_varint(sf_binary_writer_t *w, const char *n, i
     SF_CHECK_ARG(n != NULL);
     sfres_kind_t kind = w->varint_long ? SFRES_VARINT_8 : SFRES_VARINT_4;
     int64_t pos;
-    sf_result_t e = reservations_pop(w, n, kind, &pos);
+    sf_result_t e = reservations_peek(w, n, kind, &pos);
     if (e != SF_OK) return e;
     e = sf_binary_writer_step_in(w, pos);
     if (e != SF_OK) return e;
     e = w->varint_long ? sf_binary_writer_write_i64(w, v)
                        : sf_binary_writer_write_i32(w, (int32_t)v);
     sf_result_t e2 = sf_binary_writer_step_out(w);
+    if (e == SF_OK && e2 == SF_OK) {
+        int64_t unused = 0;
+        (void)reservations_pop(w, n, kind, &unused);
+    }
     return (e != SF_OK) ? e : e2;
 }
 

@@ -316,8 +316,8 @@ static void test_reserve_duplicate(void) {
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_reserve_u64(w, "x"));
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_fill_u32(w, "x", 0));
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_fill_u64(w, "x", 0));
-    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_finish(w));
-    destroy_writer(s, w);
+    static const uint8_t expected[12] = { 0 };
+    expect_finish_bytes(s, w, expected, sizeof(expected));
 }
 
 static void test_reserve_fill_bool(void) {
@@ -482,6 +482,16 @@ static void test_pad_ff_shorthand(void) {
     expect_finish_bytes(s, w, expected, sizeof(expected));
 }
 
+static void test_pad_relative_rejects_future_start(void) {
+    sf_ostream_t *s; sf_binary_writer_t *w;
+    make_writer(&s, &w, false);
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_write_u8(w, 0x42));
+    TEST_ASSERT_EQUAL(SF_ERR_INVALID_ARG, sf_binary_writer_pad_relative(w, 2, 4));
+    TEST_ASSERT_EQUAL_INT64(1, sf_binary_writer_position(w));
+    static const uint8_t expected[] = { 0x42 };
+    expect_finish_bytes(s, w, expected, sizeof(expected));
+}
+
 static void test_write_pattern_renamed(void) {
     sf_ostream_t *s; sf_binary_writer_t *w;
     make_writer(&s, &w, false);
@@ -528,6 +538,28 @@ static void test_finish_bytes_closes_writer(void) {
     TEST_ASSERT_EQUAL_MEMORY(expected, bytes, n);
     TEST_ASSERT_EQUAL(SF_ERR_INVALID_ARG, sf_binary_writer_write_u8(w, 0x66));
     sf_free(NULL, bytes);
+    destroy_writer(s, w);
+}
+
+static void test_finish_bytes_snapshots_borrowed_stream(void) {
+    sf_ostream_t *s; sf_binary_writer_t *w;
+    make_writer(&s, &w, false);
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_write_u8(w, 0x11));
+
+    uint8_t *bytes = NULL;
+    size_t n = 0;
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_finish_bytes(w, &bytes, &n));
+    static const uint8_t expected[] = { 0x11 };
+    TEST_ASSERT_EQUAL_size_t(sizeof(expected), n);
+    TEST_ASSERT_EQUAL_MEMORY(expected, bytes, n);
+    sf_free(NULL, bytes);
+
+    void *stream_bytes = NULL;
+    size_t stream_n = 0;
+    TEST_ASSERT_EQUAL(SF_OK, sf_ostream_detach_buffer(s, &stream_bytes, &stream_n));
+    TEST_ASSERT_EQUAL_size_t(sizeof(expected), stream_n);
+    TEST_ASSERT_EQUAL_MEMORY(expected, stream_bytes, stream_n);
+    sf_free(NULL, stream_bytes);
     destroy_writer(s, w);
 }
 
@@ -684,10 +716,12 @@ int main(void) {
     RUN_TEST(test_step_in_out);
     RUN_TEST(test_pad_zero_and_ff);
     RUN_TEST(test_pad_ff_shorthand);
+    RUN_TEST(test_pad_relative_rejects_future_start);
     RUN_TEST(test_write_pattern_renamed);
     RUN_TEST(test_stream_getter_returns_borrowed_stream);
     RUN_TEST(test_to_array_keeps_writer_open);
     RUN_TEST(test_finish_bytes_closes_writer);
+    RUN_TEST(test_finish_bytes_snapshots_borrowed_stream);
     RUN_TEST(test_finish_bytes_unfilled_keeps_writer_open);
     RUN_TEST(test_write_ascii_terminated);
     RUN_TEST(test_write_shift_jis_japanese);
