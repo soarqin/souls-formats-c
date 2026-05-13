@@ -190,6 +190,7 @@ sf_result_t sf_binary_reader_pad(sf_binary_reader_t *r, int align) {
 sf_result_t sf_binary_reader_pad_relative(sf_binary_reader_t *r, int64_t start, int align) {
     SF_CHECK_ARG(r != NULL && align > 0);
     int64_t pos = sf_istream_position(r->stream);
+    SF_CHECK_ARG(start <= pos);
     int64_t rel = pos - start;
     int64_t rem = rel % align;
     if (rem == 0) return SF_OK;
@@ -305,15 +306,46 @@ sf_result_t sf_binary_reader_read_varint(sf_binary_reader_t *r, int64_t *out) {
     return SF_OK;
 }
 
-#define DEFINE_READ_ARRAY(suffix, ctype)                                      \
-    sf_result_t sf_binary_reader_read_##suffix##s(sf_binary_reader_t *r,      \
+static void bswap_array16(void *values, size_t n) {
+    uint8_t *p = (uint8_t *)values;
+    for (size_t i = 0; i < n; i++) {
+        uint16_t v = 0;
+        memcpy(&v, p + i * sizeof(v), sizeof(v));
+        v = sf_bswap16(v);
+        memcpy(p + i * sizeof(v), &v, sizeof(v));
+    }
+}
+
+static void bswap_array32(void *values, size_t n) {
+    uint8_t *p = (uint8_t *)values;
+    for (size_t i = 0; i < n; i++) {
+        uint32_t v = 0;
+        memcpy(&v, p + i * sizeof(v), sizeof(v));
+        v = sf_bswap32(v);
+        memcpy(p + i * sizeof(v), &v, sizeof(v));
+    }
+}
+
+static void bswap_array64(void *values, size_t n) {
+    uint8_t *p = (uint8_t *)values;
+    for (size_t i = 0; i < n; i++) {
+        uint64_t v = 0;
+        memcpy(&v, p + i * sizeof(v), sizeof(v));
+        v = sf_bswap64(v);
+        memcpy(p + i * sizeof(v), &v, sizeof(v));
+    }
+}
+
+#define DEFINE_READ_ARRAY_RAW(suffix, ctype, swap_fn)                           \
+    sf_result_t sf_binary_reader_read_##suffix##s(sf_binary_reader_t *r,        \
                                                   size_t n, ctype *out_array) { \
-        SF_CHECK_ARG(r != NULL && (n == 0 || out_array != NULL));             \
-        for (size_t i = 0; i < n; i++) {                                      \
-            sf_result_t e = sf_binary_reader_read_##suffix(r, &out_array[i]); \
-            if (e != SF_OK) return e;                                         \
-        }                                                                     \
-        return SF_OK;                                                         \
+        SF_CHECK_ARG(r != NULL && (n == 0 || out_array != NULL));               \
+        if (n == 0) return SF_OK;                                               \
+        if (n > SIZE_MAX / sizeof(*out_array)) return SF_ERR_OUT_OF_RANGE;      \
+        sf_result_t e = sf_istream_read(r->stream, out_array, n * sizeof(*out_array)); \
+        if (e != SF_OK) return e;                                               \
+        if (r->big_endian) swap_fn(out_array, n);                               \
+        return SF_OK;                                                           \
     }
 
 sf_result_t sf_binary_reader_read_bools(sf_binary_reader_t *r, size_t n,
@@ -326,7 +358,11 @@ sf_result_t sf_binary_reader_read_bools(sf_binary_reader_t *r, size_t n,
     return SF_OK;
 }
 
-DEFINE_READ_ARRAY(i8, int8_t)
+sf_result_t sf_binary_reader_read_i8s(sf_binary_reader_t *r, size_t n, int8_t *out_array) {
+    SF_CHECK_ARG(r != NULL && (n == 0 || out_array != NULL));
+    if (n == 0) return SF_OK;
+    return sf_istream_read(r->stream, out_array, n);
+}
 
 sf_result_t sf_binary_reader_read_u8s(sf_binary_reader_t *r, size_t n,
                                       uint8_t *out_array) {
@@ -335,14 +371,14 @@ sf_result_t sf_binary_reader_read_u8s(sf_binary_reader_t *r, size_t n,
     return sf_istream_read(r->stream, out_array, n);
 }
 
-DEFINE_READ_ARRAY(i16, int16_t)
-DEFINE_READ_ARRAY(u16, uint16_t)
-DEFINE_READ_ARRAY(i32, int32_t)
-DEFINE_READ_ARRAY(u32, uint32_t)
-DEFINE_READ_ARRAY(i64, int64_t)
-DEFINE_READ_ARRAY(u64, uint64_t)
-DEFINE_READ_ARRAY(f32, float)
-DEFINE_READ_ARRAY(f64, double)
+DEFINE_READ_ARRAY_RAW(i16, int16_t, bswap_array16)
+DEFINE_READ_ARRAY_RAW(u16, uint16_t, bswap_array16)
+DEFINE_READ_ARRAY_RAW(i32, int32_t, bswap_array32)
+DEFINE_READ_ARRAY_RAW(u32, uint32_t, bswap_array32)
+DEFINE_READ_ARRAY_RAW(i64, int64_t, bswap_array64)
+DEFINE_READ_ARRAY_RAW(u64, uint64_t, bswap_array64)
+DEFINE_READ_ARRAY_RAW(f32, float, bswap_array32)
+DEFINE_READ_ARRAY_RAW(f64, double, bswap_array64)
 
 sf_result_t sf_binary_reader_read_varints(sf_binary_reader_t *r, size_t n,
                                           int64_t *out_array) {

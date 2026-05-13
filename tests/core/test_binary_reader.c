@@ -222,6 +222,15 @@ static void test_pad_skip(void) {
     FREE_READER(r, s);
 }
 
+static void test_pad_relative_rejects_future_start(void) {
+    static const uint8_t buf[16] = {0};
+    sf_istream_t *s; sf_binary_reader_t *r = open_reader(buf, sizeof(buf), &s, false);
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_skip(r, 1));
+    TEST_ASSERT_EQUAL(SF_ERR_INVALID_ARG, sf_binary_reader_pad_relative(r, 2, 4));
+    TEST_ASSERT_EQUAL_INT64(1, sf_binary_reader_position(r));
+    FREE_READER(r, s);
+}
+
 /*===========================================================================
  * Get* (read at offset without moving cursor)
  *===========================================================================*/
@@ -287,6 +296,30 @@ static void test_read_plural_primitives(void) {
     TEST_ASSERT_EQUAL_INT64(-13, i64s[0]); TEST_ASSERT_EQUAL_INT64(-15, i64s[2]);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_u64s(r, 3, u64s));
     TEST_ASSERT_EQUAL_UINT64(16, u64s[0]); TEST_ASSERT_EQUAL_UINT64(18, u64s[2]);
+    FREE_READER(r, s);
+}
+
+static void test_read_plural_primitives_be(void) {
+    static const uint8_t buf[] = {
+        0xFF, 0xFE, 0x00, 0x03,
+        0x12, 0x34, 0x56, 0x78, 0xCA, 0xFE, 0xBA, 0xBE,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+        0x3F, 0x80, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
+    };
+    sf_istream_t *s; sf_binary_reader_t *r = open_reader(buf, sizeof(buf), &s, true);
+
+    int16_t i16s[2]; uint32_t u32s[2]; int64_t i64s[1]; uint64_t u64s[1]; float f32s[2];
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_i16s(r, 2, i16s));
+    TEST_ASSERT_EQUAL_INT16(-2, i16s[0]); TEST_ASSERT_EQUAL_INT16(3, i16s[1]);
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_u32s(r, 2, u32s));
+    TEST_ASSERT_EQUAL_HEX32(0x12345678u, u32s[0]); TEST_ASSERT_EQUAL_HEX32(0xCAFEBABEu, u32s[1]);
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_i64s(r, 1, i64s));
+    TEST_ASSERT_EQUAL_INT64(1, i64s[0]);
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_u64s(r, 1, u64s));
+    TEST_ASSERT_EQUAL_HEX64(0x0102030405060708ull, u64s[0]);
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_f32s(r, 2, f32s));
+    TEST_ASSERT_EQUAL_FLOAT(1.0f, f32s[0]); TEST_ASSERT_EQUAL_FLOAT(2.0f, f32s[1]);
     FREE_READER(r, s);
 }
 
@@ -716,9 +749,11 @@ int main(void) {
     RUN_TEST(test_varint_short_then_long);
     RUN_TEST(test_step_nested);
     RUN_TEST(test_pad_skip);
+    RUN_TEST(test_pad_relative_rejects_future_start);
     RUN_TEST(test_get_value);
     RUN_TEST(test_reader_state_extensions);
     RUN_TEST(test_read_plural_primitives);
+    RUN_TEST(test_read_plural_primitives_be);
     RUN_TEST(test_read_plural_float_and_varint);
     RUN_TEST(test_get_single_primitives);
     RUN_TEST(test_get_plural_primitives);
