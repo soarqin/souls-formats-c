@@ -25,7 +25,7 @@
 /*---------------------------------------------------------------------------
  * Shared helper: MBCS bytes (in `cp`) → UTF-8.
  *---------------------------------------------------------------------------*/
-static sf_result_t mbcs_to_utf8(UINT cp, const void *in, size_t in_size,
+static sf_result_t mbcs_to_utf8(UINT cp, DWORD flags, const void *in, size_t in_size,
                                 char **out_utf8, size_t *out_len_bytes,
                                 const sf_allocator_t *a) {
     SF_CHECK_ARG(out_utf8 != NULL);
@@ -44,14 +44,14 @@ static sf_result_t mbcs_to_utf8(UINT cp, const void *in, size_t in_size,
     /*  in_size fits int? Win32 MBCS APIs use int. */
     if (in_size > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
 
-    int wlen = MultiByteToWideChar(cp, MB_ERR_INVALID_CHARS,
+    int wlen = MultiByteToWideChar(cp, flags,
                                    (const char *)in, (int)in_size, NULL, 0);
     if (wlen <= 0) return SF_ERR_INVALID_ARG;
 
     wchar_t *wbuf = (wchar_t *)sf_xalloc(a, (size_t)wlen * sizeof(wchar_t));
     if (!wbuf) return SF_ERR_OOM;
 
-    int got = MultiByteToWideChar(cp, MB_ERR_INVALID_CHARS,
+    int got = MultiByteToWideChar(cp, flags,
                                   (const char *)in, (int)in_size, wbuf, wlen);
     if (got != wlen) {
         sf_xfree(a, wbuf);
@@ -270,6 +270,7 @@ sf_result_t sf_ascii_to_utf8(const void *in, size_t in_size,
         return SF_OK;
     }
     SF_CHECK_ARG(in != NULL);
+    if (in_size == SIZE_MAX) return SF_ERR_OUT_OF_RANGE;
 
     /*  Fast path: pure ASCII passes straight through as UTF-8. */
     const uint8_t *bytes = (const uint8_t *)in;
@@ -288,14 +289,20 @@ sf_result_t sf_ascii_to_utf8(const void *in, size_t in_size,
         return SF_OK;
     }
 
-    /*  Fall back to code page 20127 which substitutes '?' for non-ASCII. */
-    return mbcs_to_utf8(20127u, in, in_size, out_utf8, out_len_bytes, a);
+    char *out = (char *)sf_xalloc(a, in_size + 1);
+    if (!out) return SF_ERR_OOM;
+    for (size_t i = 0; i < in_size; i++) out[i] = bytes[i] < 0x80 ? (char)bytes[i] : '?';
+    out[in_size] = '\0';
+    *out_utf8 = out;
+    if (out_len_bytes) *out_len_bytes = in_size;
+    return SF_OK;
 }
 
 sf_result_t sf_shift_jis_to_utf8(const void *in, size_t in_size,
                                  char **out_utf8, size_t *out_len_bytes,
                                  const sf_allocator_t *a) {
-    return mbcs_to_utf8(SF_CP_SHIFT_JIS, in, in_size, out_utf8, out_len_bytes, a);
+    return mbcs_to_utf8(SF_CP_SHIFT_JIS, MB_ERR_INVALID_CHARS, in, in_size, out_utf8,
+                        out_len_bytes, a);
 }
 
 sf_result_t sf_utf16le_to_utf8(const void *in, size_t in_size,

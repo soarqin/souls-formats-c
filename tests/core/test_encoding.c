@@ -60,6 +60,26 @@ static void test_ascii_empty(void) {
     sf_free(NULL, back);
 }
 
+static void test_ascii_decode_high_bytes_replace_with_question_mark(void) {
+    static const uint8_t bytes[] = { 'A', 0x80, 0xFF, 'Z' };
+    char *back = NULL;
+    size_t back_len = 0;
+    TEST_ASSERT_EQUAL(SF_OK, sf_ascii_to_utf8(bytes, sizeof(bytes), &back, &back_len, NULL));
+    TEST_ASSERT_EQUAL_size_t(sizeof(bytes), back_len);
+    TEST_ASSERT_EQUAL_STRING("A??Z", back);
+    sf_free(NULL, back);
+}
+
+static void test_ascii_rejects_size_overflow(void) {
+    static const uint8_t byte = 'A';
+    char *back = NULL;
+    size_t back_len = 123;
+    TEST_ASSERT_EQUAL(SF_ERR_OUT_OF_RANGE,
+                      sf_ascii_to_utf8(&byte, SIZE_MAX, &back, &back_len, NULL));
+    TEST_ASSERT_NULL(back);
+    TEST_ASSERT_EQUAL_size_t(0, back_len);
+}
+
 /*---------------------------------------------------------------------------
  * Shift-JIS
  *---------------------------------------------------------------------------*/
@@ -252,6 +272,8 @@ int main(void) {
     RUN_TEST(test_ascii_roundtrip);
     RUN_TEST(test_ascii_terminate);
     RUN_TEST(test_ascii_empty);
+    RUN_TEST(test_ascii_decode_high_bytes_replace_with_question_mark);
+    RUN_TEST(test_ascii_rejects_size_overflow);
     RUN_TEST(test_shift_jis_decode_known_bytes);
     RUN_TEST(test_shift_jis_encode_known_bytes);
     RUN_TEST(test_shift_jis_roundtrip_mixed);
