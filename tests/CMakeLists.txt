@@ -764,6 +764,8 @@ sf_add_test(souls_formats_test_emeld_synthetic
 sf_add_test(souls_formats_test_pmdcl_synthetic lighting/test_pmdcl_synthetic.c "lighting")
 target_link_libraries(souls_formats_test_pmdcl_synthetic PRIVATE souls_formats_static)
 
+sf_add_test(souls_formats_test_btab_synthetic lighting/test_btab_synthetic.c "lighting")
+
 #-----------------------------------------------------------------------------
 # Navmesh formats (EDGE / NVM / MCG / MCP / NVA / NGP)
 #-----------------------------------------------------------------------------
