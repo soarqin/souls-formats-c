@@ -45,6 +45,10 @@ These documents provide a detailed mapping for each module and format.
 - [MATBIN](format-matbin.md)
 - [TAE](format-tae.md)
 - [FXR3](format-fxr3.md)
+- [BTAB](format-btab.md)
+- [BTL](format-btl.md)
+- [GPARAM](format-gparam.md)
+- [PMDCL](format-pmdcl.md)
 
 ## Tier B — Legacy inventory
 

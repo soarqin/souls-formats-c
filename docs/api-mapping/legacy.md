@@ -2,6 +2,8 @@
 
 Tier B = inventory only; no row-level method mapping. When a v2/v3 plan begins, the matching row gets promoted to a Tier-A doc.
 
+> 2026-05-13 (v0.5.0): BTAB/BTL/PMDCL promoted to Tier A (Lighting section now empty); GPARAM moved from Legacy params section to Tier A; BTPB kept in Tier B (not present in v1 games per Wave-0 probe).
+
 | Class | First file (relative path) | File count | Defer-to-version | Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | **DS1/2/3/BB/DeS-only formats** | | | | |
@@ -39,11 +41,7 @@ Tier B = inventory only; no row-level method mapping. When a v2/v3 plan begins, 
 | MCG | MCG.cs | 1 | v2 | Navmesh Connection Graph |
 | MCP | MCP.cs | 1 | v2 | Navmesh Connection Point |
 | EDGE | EDGE.cs | 1 | v2 | Navmesh Edge |
-| **Lighting** | | | | |
-| BTAB | BTAB.cs | 1 | v2 | Bloom Table |
-| BTL | BTL.cs | 1 | v2 | Light List |
 | BTPB | BTPB.cs | 1 | v2 | Bloom Texture Parameter Block |
-| PMDCL | PMDCL.cs | 1 | v2 | Decal List |
 | **Misc** | | | | |
 | ACB | ACB.cs | 1 | v2 | Audio Container Bank |
 | CCM | CCM.cs | 1 | v2 | Character Code Map |
@@ -74,7 +72,6 @@ Tier B = inventory only; no row-level method mapping. When a v2/v3 plan begins, 
 | F2TR | F2TR.cs | 1 | v2 | FLVER 2 Terrain |
 | GRASS | GRASS.cs | 1 | v2 | Grass |
 | **Legacy params** | | | | |
-| GPARAM | GPARAM.cs | 1 | v2 | Graphics Parameter |
 | FFXDLSE | FFXDLSE/FFXDLSE.cs | 1 | v2 | FFX Delegate List Serialization |
 | FXR1 | FXR1/FXR1.cs | 1 | v2 | Legacy Effect v1 |
 | ANI | ANI.cs | 1 | v2 | Animation |
