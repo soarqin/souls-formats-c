@@ -876,10 +876,7 @@ GitHub Actions matrix：
 
 ## 13. 下一步
 
-**当前进度**：Phase 0（脚手架）+ Phase 1（运行时）已完成（2026-05-10），实测全绿。
-
-**下一阶段**：Phase 2（压缩与加密）——
-详细实施指引见 [`docs/roadmap/phase-2-compression-crypto.md`](../../docs/roadmap/phase-2-compression-crypto.md)。
+**当前进度**：v0.5.0 (Lighting) completed 2026-05-13; v1.0 GA can now be scheduled as all post-v1 batches are done.
 
 **长期路线**：
 1. 按 Phase 顺序推进 Phase 2 → 3 → 4 → 5 → 6（v1.0 GA），每个 Phase 收尾时勾选本文件对应 checkbox + 实测数字。

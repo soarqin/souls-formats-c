@@ -53,3 +53,13 @@ grep -E "sf_(gparam|btl)_" include/souls_formats/sf_common.h || true
 ## Risk
 
 - Medium. GPARAM has a non-trivial structure with many optional fields and game-specific variations.
+
+## Completion
+
+**Completed: 2026-05-13**
+
+All acceptance criteria met. Lighting batch landed as v0.5.0:
+- Public headers shipped: sf_btab.h, sf_btl.h, sf_gparam.h, sf_pmdcl.h
+- Tests pass: 8/8 (4 synthetic + 4 e2e with graceful skip)
+- BTPB dropped: not present in v1 games per Wave-0 probe
+- See CHANGELOG.md ## [0.5.0] and docs/api-mapping/extensions.md "Post-v1: Lighting" for details.

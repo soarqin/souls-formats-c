@@ -1,14 +1,14 @@
 # Post-v1 Roadmap
 
-> **Status**: ⏳ All blocked on v1.0 GA · No work starts until Phase 6 ships.
+> **Status**: ✅ All post-v1 batches complete (v0.5.0) · v1.0 GA scheduled.
 
-Strict upstream alignment policy applies — see [AGENTS.md](../../AGENTS.md) §5.x.
+## v0.5.0 — Lighting closure (LATEST)
 
-After v1.0 ships (Sekiro / Elden Ring / Nightreign / AC6 core formats),
-two further milestones are planned. This doc is intentionally lighter
-than the in-flight phase docs — it is a routing index, not an executable
-spec. When a milestone starts, the matching detailed phase spec lands as
-new files in this directory.
+**Completed: 2026-05-13**
+
+* 4 formats shipped: BTAB / BTL / GPARAM / PMDCL (BTPB dropped per Wave-0 probe)
+* All 10 post-v1 batches now complete
+* Reference to [next-batch-lighting.md](../../.sisyphus/plans/next-batch-lighting.md) (implemented in v0.5.0 — see CHANGELOG)
 
 ---
 
