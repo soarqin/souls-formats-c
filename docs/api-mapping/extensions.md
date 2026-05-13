@@ -95,3 +95,17 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 - **C API**: `sf_fxr3_from_xml` — public signature unchanged
 - **Rationale**: A naive per-node `sf_xalloc` translation of the C# reader produced 17–19 allocator calls per synthetic fixture and grew O(nodes) on real ER FXR3 files. The reader now bump-allocates the entire transitive tree (state map, container, effects, actions, properties, modifiers, field arrays, references, externals, blood) out of a single arena sized as `xml_size * 6 + 8 KiB`. The arena is stored in the internal field `sf_fxr3_t::xml_arena`; `sf_fxr3_destroy` checks that field and frees the arena in one call instead of walking the tree. Binary-reader-built objects leave `xml_arena = NULL` and continue to use the recursive destroy path. Reduction: ≥88% on synthetic fixtures (17→2, 19→2). See `.sisyphus/evidence/task-3.4-alloc.log`.
 - **Impact**: None on public API. Consumers must continue to use `sf_fxr3_destroy`; mixing XML- and binary-built trees in user-side analysis is unaffected. Arena overflow on pathologically dense XML returns `SF_ERR_OOM`.
+
+## Post-v1: Lighting
+
+> Status: in progress (v0.5.0)
+
+| C Symbol | Upstream Symbol | Type | Rationale |
+|---|---|---|---|
+| `sf_gparam_value_t` | `IField<T>` / `FieldValue<T>` | `+ extension` | C lacks C# generics; single tagged-union POD covers all 16 upstream FieldType variants. Mirrors FXR3 precedent (`sf_fxr3_field_t`). sizeof ≤ 32 bytes. |
+| `sf_btab_t`, `sf_btl_t`, `sf_gparam_t`, `sf_pmdcl_t` | `BTAB`, `BTL`, `GPARAM`, `PMDCL` | `+ extension` | Opaque pointer types — standard C-API convention, matches all other format modules. |
+| `sf_btab_read_from_memory` (BigEndian=true) | `BTAB.Read()` | `✗ deviation` | BigEndian byte order refused (SF_ERR_UNSUPPORTED_VERSION). v1 target games are LE-only. Same policy as FLVER2. |
+| `sf_btl_read_from_memory` (BigEndian=true) | `BTL.Read()` | `✗ deviation` | BigEndian byte order refused. Same policy as FLVER2. |
+| GPARAM name pool | `string` fields in `Param`/`IField`/`FieldValue<T>` | `+ extension` | Single bulk `sf_xalloc` allocation for all internal strings (mirrors BND3/BND4 name pool pattern). NOT a re-allocating arena allocator. |
+
+_Additional divergences appended during Wave 2-4 implementation._
