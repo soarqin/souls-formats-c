@@ -98,7 +98,7 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 
 ## Post-v1: Lighting
 
-> Status: in progress (v0.5.0)
+> Status: complete (v0.5.0)
 
 | C Symbol | Upstream Symbol | Type | Rationale |
 |---|---|---|---|
@@ -107,5 +107,7 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 | `sf_btab_read_from_memory` (BigEndian=true) | `BTAB.Read()` | `✗ deviation` | BigEndian byte order refused (SF_ERR_UNSUPPORTED_VERSION). v1 target games are LE-only. Same policy as FLVER2. |
 | `sf_btl_read_from_memory` (BigEndian=true) | `BTL.Read()` | `✗ deviation` | BigEndian byte order refused. Same policy as FLVER2. |
 | GPARAM name pool | `string` fields in `Param`/`IField`/`FieldValue<T>` | `+ extension` | Single bulk `sf_xalloc` allocation for all internal strings (mirrors BND3/BND4 name pool pattern). NOT a re-allocating arena allocator. |
-
-_Additional divergences appended during Wave 2-4 implementation._
+| BTAB/BTL name pool | `string` fields in `Entry`/`Light` | `+ extension` | Same single bulk `sf_xalloc` name pool pattern as BND3/BND4. |
+| `sf_gparam_read_from_memory` (V2) | `GPARAM.Read()` (V2) | `✗ deviation` | V2 (DS2-only) returns SF_ERR_UNSUPPORTED_VERSION. Deferred to v2 legacy work. |
+| GPARAM dual extension | `.fltparam` / `.gparam` | `+ extension` | Both extensions handled transparently by same read/write API. |
+| BTPB | `BTPB` | `_Skipped_` | Not present in v1 games per Wave-0 probe. Remains Tier B in legacy.md for v2 work. |
