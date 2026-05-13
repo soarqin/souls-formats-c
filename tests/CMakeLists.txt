@@ -38,6 +38,8 @@ function(sf_add_test name source label)
     )
 endfunction()
 
+# Labels are free-form; lighting will be used by the new phase-8 test targets.
+
 # Helper: register an e2e test with both the umbrella 'e2e' label and a
 # per-game label. Use this for any future e2e test registration so that
 # both `ctest -L '^e2e$'` (run all e2e) and `ctest -L 'e2e_<game>'` (run a

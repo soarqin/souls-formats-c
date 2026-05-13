@@ -209,6 +209,13 @@ set(SF_SOURCES
 )
 
 list(APPEND SF_SOURCES
+    src/lighting/btab.c
+    src/lighting/btl.c
+    src/lighting/gparam.c
+    src/lighting/pmdcl.c
+)
+
+list(APPEND SF_SOURCES
     src/effects/tae.c
     src/effects/fxr3.c
     src/effects/fxr3_xml_read.c
