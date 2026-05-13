@@ -45,10 +45,16 @@ typedef enum sf_gparam_field_type {
 _Static_assert(SF_GPARAM_FIELD_TYPE_SBYTE == 1, "GPARAM field type drift (SBYTE)");
 _Static_assert(SF_GPARAM_FIELD_TYPE_STRING == 16, "GPARAM field type drift (STRING)");
 
+/*  Tagged-union value POD. Mirrors upstream FieldValue<T> (GPARAM.cs:912):
+ *    public int   Id    { get; set; }    // signed int32
+ *    public float Unk04 { get; set; }    // single-precision float (V>=V5)
+ *    public T     Value { get; set; }    // discriminated by Field's type
+ *  The active union member is selected by `type`. The unk04 field is read
+ *  from / written to the wire only for V>=V5; for V3 it is left zero. */
 typedef struct sf_gparam_value {
     sf_gparam_field_type_t type;
-    uint32_t id;
-    uint32_t unk04;
+    int32_t id;
+    float unk04;
     union {
         int8_t   as_sbyte;
         int16_t  as_short;
