@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.6.0] - 2026-05-14
+
+### Fixed
+- Public version macros now match the project/changelog version.
+- `souls_formats.h` now includes all public headers registered by the build.
+- Binary writer reservations now mirror upstream by validating duplicate names before writing placeholder bytes, and fill operations keep reservations pending if seeking/writing fails.
+- ASCII decoding now matches upstream/.NET by substituting `?` for non-ASCII bytes instead of failing.
+- Relative reader/writer padding now rejects negative relative offsets instead of over-padding.
+- TAE read/write now preserves upstream infinite-end-time handling and top-level consecutive-animation groups.
+
+### Performance
+- File-backed input streams now cache position like output streams, avoiding a Win32 seek syscall per position query.
+- Binary reader primitive array APIs now bulk-read contiguous data and byte-swap in place for big-endian streams.
+- TAE time-offset lookup during write now uses binary search over the sorted time table.
+
+### Changed
+- **ABI break:** `sf_fmg_destroy(sf_fmg_t *fmg, const sf_allocator_t *alloc)` is now `sf_fmg_destroy(sf_fmg_t *fmg)`. The ignored allocator parameter was removed so FMG matches the library-wide destroy convention: objects remember and use their creation allocator.
+
 ## [0.5.0] - 2026-05-13
 
 ### Added

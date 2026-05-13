@@ -3,7 +3,7 @@
 A pure C library for reading and writing FromSoftware game file formats. A C
 port of [SoulsFormatsNEXT](https://github.com/soulsmods/SoulsFormatsNEXT).
 
-> ⚠️ **Status: pre-alpha (v0.5.0)** — Phase 0/1/2/3 complete. See [CHANGELOG.md](CHANGELOG.md)
+> ⚠️ **Status: pre-alpha (v0.6.0)** — Phase 0/1/2/3 complete. See [CHANGELOG.md](CHANGELOG.md)
 > for details and [`.sisyphus/plans/PLAN.md`](.sisyphus/plans/PLAN.md) for the full roadmap.
 
 ## Platform
