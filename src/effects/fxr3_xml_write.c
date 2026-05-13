@@ -201,6 +201,7 @@ static void write_int_list(mxml_node_t *parent, const char *name, const int32_t 
 
 SF_API sf_result_t sf_fxr3_to_xml(const sf_fxr3_t *f, char **out_xml_utf8, size_t *out_size,
                                   const sf_allocator_t *a) {
+    (void)a;
     SF_CHECK_ARG(f != NULL && out_xml_utf8 != NULL && out_size != NULL);
     *out_xml_utf8 = NULL;
     *out_size = 0;

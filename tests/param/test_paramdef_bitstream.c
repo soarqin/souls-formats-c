@@ -142,7 +142,7 @@ static void test_insert_preserves_surrounding_bits(void) {
     TEST_ASSERT_EQUAL_HEX8(0x0F, buf[0]);
     /*  byte1 onward must remain 0xFF. */
     for (size_t i = 1; i < sizeof(buf); i++) {
-        TEST_ASSERT_EQUAL_HEX8(0xFF, buf[i]);
+        TEST_ASSERT_EQUAL_UINT8(0xFF, buf[i]);
     }
 }
 

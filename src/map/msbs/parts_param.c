@@ -433,6 +433,7 @@ static sf_result_t msbs_part_write_type_data(sf_binary_writer_t *w, const msbs_p
 
 static sf_result_t msbs_part_read_one(sf_binary_reader_t *r, int64_t entry_offset, msbs_part_t *out,
                                       const sf_allocator_t *a) {
+    (void)a;
     if (!r || !out) return SF_ERR_INVALID_ARG;
     memset(out, 0, sizeof(*out));
     out->scale.x = 1.0f;

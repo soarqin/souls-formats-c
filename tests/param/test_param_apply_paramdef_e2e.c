@@ -39,6 +39,10 @@
 
 #if defined(_WIN32)
 #include <io.h>
+#  if defined(_MSC_VER)
+#    define access _access
+#    define F_OK 0
+#  endif
 #endif
 
 void setUp(void) {}

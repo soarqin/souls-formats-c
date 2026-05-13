@@ -69,10 +69,10 @@ SF_API sf_result_t sf_flver2_decode_mesh(const sf_flver2_t *f, size_t mesh_index
                 case SF_FLVER_LAYOUT_SEMANTIC_BONE_INDICES: has_bone_indices = true; break;
                 case SF_FLVER_LAYOUT_SEMANTIC_BONE_WEIGHTS: has_bone_weights = true; break;
                 case SF_FLVER_LAYOUT_SEMANTIC_UV:
-                    if (member->index + 1 > max_uv_count) max_uv_count = member->index + 1;
+                    if (member->index + 1 > max_uv_count) max_uv_count = (uint8_t)(member->index + 1);
                     break;
                 case SF_FLVER_LAYOUT_SEMANTIC_VERTEX_COLOR:
-                    if (member->index + 1 > max_color_count) max_color_count = member->index + 1;
+                    if (member->index + 1 > max_color_count) max_color_count = (uint8_t)(member->index + 1);
                     break;
                 default: break;
             }

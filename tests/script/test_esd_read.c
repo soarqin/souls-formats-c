@@ -246,7 +246,7 @@ static void assert_fixture_read(bool long_format, int32_t version) {
     size_t size = 0;
     TEST_ASSERT_EQUAL(SF_OK, sf_esd_command_call_get_argument(entry, 0, &bytes, &size));
     TEST_ASSERT_EQUAL_size_t(1, size);
-    TEST_ASSERT_EQUAL_HEX8(0xC0, bytes[0]);
+    TEST_ASSERT_EQUAL_UINT8(0xC0, bytes[0]);
 
     const sf_esd_condition_t *condition = sf_esd_state_get_condition(state, 0);
     TEST_ASSERT_NOT_NULL(condition);
@@ -255,8 +255,8 @@ static void assert_fixture_read(bool long_format, int32_t version) {
     TEST_ASSERT_EQUAL_INT32(1, sf_esd_condition_get_pass_command_count(condition));
     TEST_ASSERT_EQUAL(SF_OK, sf_esd_condition_get_evaluator(condition, &bytes, &size));
     TEST_ASSERT_EQUAL_size_t(2, size);
-    TEST_ASSERT_EQUAL_HEX8(0xA0, bytes[0]);
-    TEST_ASSERT_EQUAL_HEX8(0xB0, bytes[1]);
+    TEST_ASSERT_EQUAL_UINT8(0xA0, bytes[0]);
+    TEST_ASSERT_EQUAL_UINT8(0xB0, bytes[1]);
     const sf_esd_command_call_t *pass = sf_esd_condition_get_pass_command(condition, 0);
     TEST_ASSERT_NOT_NULL(pass);
     TEST_ASSERT_EQUAL_INT32(2000, sf_esd_command_call_get_id(pass));

@@ -83,7 +83,7 @@ static void test_get_decompressed_reader_raw_path_borrows_input(void) {
                           sf_binary_reader_create(&in_reader, in_stream,
                                                   /*big_endian=*/false, NULL));
 
-    sf_binary_reader_t        *new_reader = (sf_binary_reader_t *)0xdeadbeef;
+    sf_binary_reader_t        *new_reader = (sf_binary_reader_t *)(uintptr_t)0xdeadbeef;
     sf_dcx_compression_info_t  out_info;
     memset(&out_info, 0xff, sizeof(out_info));
 

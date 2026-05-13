@@ -125,6 +125,7 @@ sf_result_t sf_btl_read_from_memory(sf_btl_t **out, const void *bytes, size_t si
     int64_t            *name_offsets = NULL;
     char              **utf8_tmp     = NULL;
     size_t             *utf8_lens    = NULL;
+    size_t              light_count  = 0;
     sf_result_t         e            = SF_OK;
 
     e = sf_istream_open_memory(&s, bytes, size, alloc);
@@ -167,7 +168,7 @@ sf_result_t sf_btl_read_from_memory(sf_btl_t **out, const void *bytes, size_t si
         e = SF_ERR_BAD_MAGIC;
         goto cleanup;
     }
-    size_t light_count = (size_t)light_count_i32;
+    light_count = (size_t)light_count_i32;
 
     /* Upstream: long namesStart = br.Position; br.Skip(namesLength);
      * We materialise the names section into a buffer for offset-based access. */

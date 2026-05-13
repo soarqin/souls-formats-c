@@ -422,6 +422,13 @@ set_target_properties(souls_formats_static PROPERTIES OUTPUT_NAME souls_formats)
 
 #-----------------------------------------------------------------------------
 # souls_formats_shared — DLL build with __declspec(dllexport)
+#
+# MinGW differentiates the static archive (libsouls_formats.a) from the DLL
+# import library (libsouls_formats.dll.a) by extension, but MSVC writes both
+# as .lib, which would collide if we left both targets at OUTPUT_NAME
+# souls_formats. Follow the common convention used by zlib / libpng / etc:
+# leave the DLL + its import lib as souls_formats.{dll,lib}, and tag the
+# static archive with a _static suffix on MSVC only.
 #-----------------------------------------------------------------------------
 add_library(souls_formats_shared SHARED ${SF_SOURCES})
 add_library(souls_formats::shared ALIAS souls_formats_shared)
@@ -435,6 +442,11 @@ target_compile_definitions(souls_formats_shared
     PUBLIC  SF_BUILD_SHARED
     PRIVATE SF_BUILD_DLL
 )
+
+if(MSVC)
+    set_target_properties(souls_formats_static PROPERTIES
+        OUTPUT_NAME souls_formats_static)
+endif()
 
 #-----------------------------------------------------------------------------
 # Tests (only when standalone / top-level)

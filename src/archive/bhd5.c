@@ -789,7 +789,8 @@ static sf_result_t write_file_headers(sf_binary_writer_t *w, const sf_bhd5_t *b,
             if (rr != SF_OK) return rr;
             rr = sf_binary_writer_write_u32(w, f->padded_size);
             if (rr != SF_OK) return rr;
-            rr = sf_binary_writer_write_u32(w, f->unpadded_size);
+            if (f->unpadded_size > (uint64_t)UINT32_MAX) return SF_ERR_OUT_OF_RANGE;
+            rr = sf_binary_writer_write_u32(w, (uint32_t)f->unpadded_size);
             if (rr != SF_OK) return rr;
             rr = sf_binary_writer_write_i64(w, f->file_offset);
             if (rr != SF_OK) return rr;

@@ -266,6 +266,7 @@ static bool field_valid_for_unversioned_apply(const sf_paramdef_t *def,
 static sf_result_t init_cell_from_layout(sf_param_cell_t *cell,
                                          const sf_paramdef_field_layout_entry_t *entry,
                                          const sf_allocator_t *alloc) {
+    (void)alloc;
     memset(cell, 0, sizeof(*cell));
     const char *name = entry->field->internal_name ? entry->field->internal_name : "";
     cell->internal_name = (char *)name;

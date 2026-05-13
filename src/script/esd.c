@@ -581,6 +581,7 @@ static sf_result_t esd_read_state_groups(sf_binary_reader_t *br, const sf_alloca
                                          bool long_format, int64_t data_start,
                                          int64_t state_size, int32_t group_count,
                                          esd_tmp_group_t *groups) {
+    (void)data_start;
     for (int32_t i = 0; i < group_count; i++) {
         sf_result_t r = esd_read_varint(br, long_format, &groups[i].id);
         int64_t states_offset = 0;

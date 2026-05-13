@@ -678,7 +678,7 @@ static sf_result_t read_event_at(rdr_t *r, const sf_allocator_t *alloc, sf_mqb_e
     if (!e) return SF_ERR_OOM;
     memset(e, 0, sizeof(*e));
     e->alloc = alloc;
-    int32_t param_count, transform_count;
+    int32_t param_count = 0, transform_count = 0;
     sf_result_t res = read_i32(r, &e->id);
     if (res == SF_OK) res = read_i32(r, &e->resource_index);
     if (res == SF_OK) res = read_i32(r, &e->unk08);
@@ -728,8 +728,8 @@ static sf_result_t read_timeline_at(rdr_t *r, const sf_allocator_t *alloc, sf_mq
     if (!t) return SF_ERR_OOM;
     memset(t, 0, sizeof(*t));
     t->alloc = alloc;
-    size_t event_offsets_offset, parameter_offset;
-    int32_t event_count, parameter_count;
+    size_t event_offsets_offset = 0, parameter_offset = 0;
+    int32_t event_count = 0, parameter_count = 0;
     sf_result_t res = read_var(r, &event_offsets_offset);
     if (res == SF_OK) res = read_i32(r, &event_count);
     if (res == SF_OK && version == SF_MQB_VERSION_DARK_SOULS_2_SCHOLAR) res = assert_i32(r, 0);
@@ -867,7 +867,7 @@ static sf_result_t read_sequence(rdr_t *r, const sf_allocator_t *alloc, size_t p
     if (!s) return SF_ERR_OOM;
     memset(s, 0, sizeof(*s));
     s->alloc = alloc;
-    int32_t point_count, point_size, value_offset;
+    int32_t point_count = 0, point_size = 0, value_offset = 0;
     uint32_t vt = 0;
     sf_result_t res = assert_i32(r, 0x1C);
     if (res == SF_OK) res = read_i32(r, &point_count);
@@ -910,7 +910,7 @@ static sf_result_t read_parameter(rdr_t *r, const sf_allocator_t *alloc, sf_mqb_
     p->alloc = alloc;
     sf_result_t res = read_fixstr_w(r, 0x40, alloc, &p->name);
     uint32_t type = 0;
-    int32_t sequences_offset, sequence_count, len;
+    int32_t sequences_offset = 0, sequence_count = 0, len = 0;
     size_t value_offset = r->pos;
     size_t value_end_offset = value_offset;
     if (res == SF_OK) res = read_u32(r, &type);
@@ -1052,7 +1052,7 @@ sf_result_t sf_mqb_read_from_memory(sf_mqb_t **out, const void *bytes, size_t si
         if (res == SF_OK && version >= SF_MQB_VERSION_DARK_SOULS_3) res = assert_i32(&r, 0);
     }
     if (res == SF_OK) { sf_xfree(m->alloc, m->name); res = read_fixstr_w(&r, 0x40, m->alloc, &m->name); }
-    int32_t resource_count, cut_count, ignored;
+    int32_t resource_count = 0, cut_count = 0, ignored = 0;
     if (res == SF_OK) res = read_f32(&r, &m->framerate);
     if (res == SF_OK) res = read_i32(&r, &resource_count);
     if (res == SF_OK) res = read_i32(&r, &cut_count);

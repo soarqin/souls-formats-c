@@ -94,12 +94,12 @@ static void test_half_to_float_largest_subnormal(void) {
 
 static void test_float_to_half_zero(void) {
     TEST_ASSERT_EQUAL_HEX16(0x0000, sf_float_to_half(0.0f));
-    TEST_ASSERT_EQUAL_HEX16(0x8000, sf_float_to_half(-0.0f));
+    TEST_ASSERT_EQUAL_UINT16(0x8000, sf_float_to_half(-0.0f));
 }
 
 static void test_float_to_half_one(void) {
     TEST_ASSERT_EQUAL_HEX16(0x3C00, sf_float_to_half(1.0f));
-    TEST_ASSERT_EQUAL_HEX16(0xBC00, sf_float_to_half(-1.0f));
+    TEST_ASSERT_EQUAL_UINT16(0xBC00, sf_float_to_half(-1.0f));
 }
 
 static void test_float_to_half_roundtrip_simple(void) {
@@ -111,7 +111,7 @@ static void test_float_to_half_roundtrip_simple(void) {
 
 static void test_float_to_half_inf(void) {
     TEST_ASSERT_EQUAL_HEX16(0x7C00, sf_float_to_half(INFINITY));
-    TEST_ASSERT_EQUAL_HEX16(0xFC00, sf_float_to_half(-INFINITY));
+    TEST_ASSERT_EQUAL_UINT16(0xFC00, sf_float_to_half(-INFINITY));
 }
 
 static void test_float_to_half_nan(void) {

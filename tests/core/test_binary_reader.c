@@ -103,7 +103,7 @@ static void test_read_primitives_le(void) {
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_i8 (r, &i8));    TEST_ASSERT_EQUAL_INT8(-1, i8);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_u8 (r, &u8));    TEST_ASSERT_EQUAL_UINT8(128, u8);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_i16(r, &i16));   TEST_ASSERT_EQUAL_HEX16(0x1234, i16);
-    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_u16(r, &u16));   TEST_ASSERT_EQUAL_HEX16(0xFFFF, u16);
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_u16(r, &u16));   TEST_ASSERT_EQUAL_UINT16(0xFFFF, u16);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_i32(r, &i32));   TEST_ASSERT_EQUAL_HEX32(0x12345678, i32);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_u32(r, &u32));   TEST_ASSERT_EQUAL_HEX32(0xDEADBEEF, u32);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_i64(r, &i64));   TEST_ASSERT_EQUAL_INT64(1, i64);
@@ -354,7 +354,7 @@ static void test_get_single_primitives(void) {
     int64_t i64; uint64_t u64; float f32; double f64; int64_t var;
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_get_bool(r, 1, &b)); TEST_ASSERT_TRUE(b);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_get_i8(r, 2, &i8)); TEST_ASSERT_EQUAL_INT8(-2, i8);
-    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_get_u8(r, 3, &u8)); TEST_ASSERT_EQUAL_HEX8(0xAB, u8);
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_get_u8(r, 3, &u8)); TEST_ASSERT_EQUAL_UINT8(0xAB, u8);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_get_i16(r, 4, &i16)); TEST_ASSERT_EQUAL_INT16(-12, i16);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_get_u16(r, 6, &u16)); TEST_ASSERT_EQUAL_HEX16(0x1234, u16);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_get_i32(r, 8, &i32)); TEST_ASSERT_EQUAL_INT32(-34, i32);
@@ -687,16 +687,16 @@ static void test_argb_and_friends(void) {
     sf_istream_t *s; sf_binary_reader_t *r = open_reader(buf, sizeof(buf), &s, false);
     sf_color_t c;
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_argb(r, &c));
-    TEST_ASSERT_EQUAL_HEX8(0xFF, c.a); TEST_ASSERT_EQUAL_HEX8(0x10, c.r);
+    TEST_ASSERT_EQUAL_UINT8(0xFF, c.a); TEST_ASSERT_EQUAL_HEX8(0x10, c.r);
     TEST_ASSERT_EQUAL_HEX8(0x20, c.g); TEST_ASSERT_EQUAL_HEX8(0x30, c.b);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_abgr(r, &c));
-    TEST_ASSERT_EQUAL_HEX8(0xFF, c.a); TEST_ASSERT_EQUAL_HEX8(0x10, c.r);
+    TEST_ASSERT_EQUAL_UINT8(0xFF, c.a); TEST_ASSERT_EQUAL_HEX8(0x10, c.r);
     TEST_ASSERT_EQUAL_HEX8(0x20, c.g); TEST_ASSERT_EQUAL_HEX8(0x30, c.b);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_rgba(r, &c));
-    TEST_ASSERT_EQUAL_HEX8(0xFF, c.a); TEST_ASSERT_EQUAL_HEX8(0x10, c.r);
+    TEST_ASSERT_EQUAL_UINT8(0xFF, c.a); TEST_ASSERT_EQUAL_HEX8(0x10, c.r);
     TEST_ASSERT_EQUAL_HEX8(0x20, c.g); TEST_ASSERT_EQUAL_HEX8(0x30, c.b);
     TEST_ASSERT_EQUAL(SF_OK, sf_binary_reader_read_bgra(r, &c));
-    TEST_ASSERT_EQUAL_HEX8(0xFF, c.a); TEST_ASSERT_EQUAL_HEX8(0x10, c.r);
+    TEST_ASSERT_EQUAL_UINT8(0xFF, c.a); TEST_ASSERT_EQUAL_HEX8(0x10, c.r);
     TEST_ASSERT_EQUAL_HEX8(0x20, c.g); TEST_ASSERT_EQUAL_HEX8(0x30, c.b);
     FREE_READER(r, s);
 }
