@@ -146,8 +146,9 @@ static void encrypt_first_block(uint8_t *data, const uint8_t key[16]) {
     memcpy(data, out, 16);
 }
 
-static void build_bhd(bytebuf_t *b, const synth_file_t *files, size_t file_count,
-                      const uint32_t *bucket_counts, size_t bucket_count) {
+static void build_bhd_ex(bytebuf_t *b, const synth_file_t *files, size_t file_count,
+                         const uint32_t *bucket_counts, size_t bucket_count,
+                         bool ds3_layout) {
     memset(b, 0, sizeof(*b));
     const char salt[] = "synthetic-salt";
     size_t file_size_pos = 0;
@@ -163,20 +164,37 @@ static void build_bhd(bytebuf_t *b, const synth_file_t *files, size_t file_count
     bb_i32(b, 1);
     file_size_pos = b->size;
     bb_i32(b, 0);
-    bb_i64(b, (int64_t)bucket_count);
-    bb_i64(b, 0); /* buckets offset placeholder; patched manually below */
+    size_t buckets_offset_pos = 0;
+    if (ds3_layout) {
+        bb_i32(b, (int32_t)bucket_count);
+        buckets_offset_pos = b->size;
+        bb_i32(b, 0); /* buckets offset placeholder; patched manually below */
+    } else {
+        bb_i64(b, (int64_t)bucket_count);
+        buckets_offset_pos = b->size;
+        bb_i64(b, 0); /* buckets offset placeholder; patched manually below */
+    }
     bb_i32(b, (int32_t)strlen(salt));
     bb_bytes(b, salt, strlen(salt));
 
     bucket_table_offset = b->size;
-    for (int i = 0; i < 8; i++) b->data[0x18u + (size_t)i] = (uint8_t)(bucket_table_offset >> (i * 8));
+    const int offset_width = ds3_layout ? 4 : 8;
+    for (int i = 0; i < offset_width; i++) {
+        b->data[buckets_offset_pos + (size_t)i] =
+            (uint8_t)(bucket_table_offset >> (i * 8));
+    }
 
-    headers_offset = bucket_table_offset + bucket_count * 16u;
+    const size_t bucket_entry_size = ds3_layout ? 8u : 16u;
+    headers_offset = bucket_table_offset + bucket_count * bucket_entry_size;
     size_t first_file = 0;
     for (size_t i = 0; i < bucket_count; i++) {
         bb_i32(b, (int32_t)bucket_counts[i]);
-        bb_i32(b, 1);
-        bb_i64(b, (int64_t)(headers_offset + first_file * 40u));
+        if (ds3_layout) {
+            bb_i32(b, (int32_t)(headers_offset + first_file * 40u));
+        } else {
+            bb_i32(b, 1);
+            bb_i64(b, (int64_t)(headers_offset + first_file * 40u));
+        }
         first_file += bucket_counts[i];
     }
 
@@ -189,12 +207,21 @@ static void build_bhd(bytebuf_t *b, const synth_file_t *files, size_t file_count
             aes_off = meta_cursor;
             meta_cursor += 16u + 4u + 16u;
         }
-        bb_u64(b, files[i].hash);
-        bb_u32(b, files[i].padded_size);
-        bb_u32(b, files[i].unpadded_size);
-        bb_i64(b, files[i].file_offset);
-        bb_u64(b, sha_off);
-        bb_u64(b, aes_off);
+        if (ds3_layout) {
+            bb_u32(b, (uint32_t)files[i].hash);
+            bb_u32(b, files[i].padded_size);
+            bb_i64(b, files[i].file_offset);
+            bb_u64(b, sha_off);
+            bb_u64(b, aes_off);
+            bb_i64(b, (int64_t)files[i].unpadded_size);
+        } else {
+            bb_u64(b, files[i].hash);
+            bb_u32(b, files[i].padded_size);
+            bb_u32(b, files[i].unpadded_size);
+            bb_i64(b, files[i].file_offset);
+            bb_u64(b, sha_off);
+            bb_u64(b, aes_off);
+        }
     }
     for (size_t i = 0; i < file_count; i++) {
         if (!files[i].has_aes) continue;
@@ -204,6 +231,11 @@ static void build_bhd(bytebuf_t *b, const synth_file_t *files, size_t file_count
         bb_i64(b, files[i].range_end);
     }
     bb_patch_i32(b, file_size_pos, (int32_t)b->size);
+}
+
+static void build_bhd(bytebuf_t *b, const synth_file_t *files, size_t file_count,
+                      const uint32_t *bucket_counts, size_t bucket_count) {
+    build_bhd_ex(b, files, file_count, bucket_counts, bucket_count, false);
 }
 
 static void run_two_file_case(sf_bhd5_game_t game) {
@@ -239,7 +271,9 @@ static void run_two_file_case(sf_bhd5_game_t game) {
 
     uint32_t bucket_counts[1] = { 2 };
     bytebuf_t bhd;
-    build_bhd(&bhd, files, 2, bucket_counts, 1);
+    const bool ds3_layout =
+        (game == SF_BHD5_GAME_DARKSOULS3 || game == SF_BHD5_GAME_SEKIRO);
+    build_bhd_ex(&bhd, files, 2, bucket_counts, 1, ds3_layout);
 
     wchar_t bhd_path[MAX_PATH];
     wchar_t bdt_path[MAX_PATH];

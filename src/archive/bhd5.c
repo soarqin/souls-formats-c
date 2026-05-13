@@ -139,10 +139,11 @@ static bool has_bhd5_magic(const uint8_t *data, size_t size) {
 }
 
 static sf_result_t rsa_unwrap_bhd5(sf_bhd5_game_t game,
+                                   const char *override_pem,
                                    const uint8_t *in, size_t in_size,
                                    uint8_t **out, size_t *out_size,
                                    const sf_allocator_t *a) {
-    const char *pem = sfi_bhd5_get_pem_key(game);
+    const char *pem = override_pem ? override_pem : sfi_bhd5_get_pem_key(game);
     if (!pem) return SF_ERR_INVALID_ARG;
     if (in_size == 0u || (in_size % 256u) != 0u) return SF_ERR_CRYPTO;
 
@@ -366,6 +367,7 @@ static sf_result_t read_file_header(sf_binary_reader_t *r, sf_bhd5_file_t *file,
     sf_result_t rr = SF_OK;
     switch (game) {
     case SF_BHD5_GAME_DARKSOULS3:
+    case SF_BHD5_GAME_SEKIRO:
         {
             uint32_t hash32 = 0;
             rr = sf_binary_reader_read_u32(r, &hash32);
@@ -385,7 +387,6 @@ static sf_result_t read_file_header(sf_binary_reader_t *r, sf_bhd5_file_t *file,
         if (ds3_unpadded < 0) return SF_ERR_OUT_OF_RANGE;
         file->unpadded_size = (uint64_t)ds3_unpadded;
         break;
-    case SF_BHD5_GAME_SEKIRO:
     case SF_BHD5_GAME_ELDENRING:
     case SF_BHD5_GAME_NIGHTREIGN:
     case SF_BHD5_GAME_ARMOREDCORE6:
@@ -408,7 +409,7 @@ static sf_result_t read_file_header(sf_binary_reader_t *r, sf_bhd5_file_t *file,
 
     if (file->file_offset < 0 || *sha_hash_offset < 0 || *aes_key_offset < 0) return SF_ERR_OUT_OF_RANGE;
     file->padded_size = (uint32_t)padded;
-    if (game != SF_BHD5_GAME_DARKSOULS3) {
+    if (game != SF_BHD5_GAME_DARKSOULS3 && game != SF_BHD5_GAME_SEKIRO) {
         file->unpadded_size = (uint32_t)unpadded;
     }
     return SF_OK;
@@ -622,6 +623,14 @@ out:
 
 sf_result_t sf_bhd5_open(sf_bhd5_t **out, const wchar_t *bhd_path, const wchar_t *bdt_path,
                          sf_bhd5_game_t game, const sf_allocator_t *a) {
+    return sf_bhd5_open_with_key(out, bhd_path, bdt_path, game, NULL, a);
+}
+
+sf_result_t sf_bhd5_open_with_key(sf_bhd5_t **out,
+                                  const wchar_t *bhd_path, const wchar_t *bdt_path,
+                                  sf_bhd5_game_t game,
+                                  const char *pem_public_key,
+                                  const sf_allocator_t *a) {
     SF_CHECK_ARG(out && bhd_path && bdt_path);
     *out = NULL;
     if (game < 0 || game >= SF_BHD5_GAME_COUNT_) return SF_ERR_INVALID_ARG;
@@ -634,7 +643,7 @@ sf_result_t sf_bhd5_open(sf_bhd5_t **out, const wchar_t *bhd_path, const wchar_t
     if (!has_bhd5_magic(bytes, size)) {
         uint8_t *plain = NULL;
         size_t plain_size = 0;
-        rr = rsa_unwrap_bhd5(game, bytes, size, &plain, &plain_size, a);
+        rr = rsa_unwrap_bhd5(game, pem_public_key, bytes, size, &plain, &plain_size, a);
         sf_xfree(a, bytes);
         if (rr != SF_OK) return rr;
         bytes = plain;
@@ -754,7 +763,7 @@ sf_result_t sf_bhd5_extract_by_path(const sf_bhd5_t *b, const char *utf8_path,
                                     void **out, size_t *out_size,
                                     const sf_allocator_t *a) {
     SF_CHECK_ARG(utf8_path != NULL);
-    if (b && b->game == SF_BHD5_GAME_DARKSOULS3) {
+    if (b && (b->game == SF_BHD5_GAME_DARKSOULS3 || b->game == SF_BHD5_GAME_SEKIRO)) {
         return sf_bhd5_extract_by_hash_32(b, sf_path_hash(utf8_path), out, out_size, a);
     }
     return sf_bhd5_extract_by_hash_64(b, sf_path_hash_64(utf8_path), out, out_size, a);
@@ -767,6 +776,7 @@ static sf_result_t write_file_headers(sf_binary_writer_t *w, const sf_bhd5_t *b,
         sf_result_t rr = SF_OK;
         switch (b->game) {
         case SF_BHD5_GAME_DARKSOULS3:
+        case SF_BHD5_GAME_SEKIRO:
             rr = sf_binary_writer_write_u32(w, (uint32_t)f->path_hash);
             if (rr != SF_OK) return rr;
             rr = sf_binary_writer_write_u32(w, f->padded_size);
@@ -781,7 +791,6 @@ static sf_result_t write_file_headers(sf_binary_writer_t *w, const sf_bhd5_t *b,
             rr = sf_binary_writer_write_i64(w, (int64_t)f->unpadded_size);
             if (rr != SF_OK) return rr;
             break;
-        case SF_BHD5_GAME_SEKIRO:
         case SF_BHD5_GAME_ELDENRING:
         case SF_BHD5_GAME_NIGHTREIGN:
         case SF_BHD5_GAME_ARMOREDCORE6:

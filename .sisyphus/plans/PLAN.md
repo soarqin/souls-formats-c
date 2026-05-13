@@ -714,7 +714,7 @@ souls-formats-c/
 | 项 | 编译时 / WSL 视角 | 运行时 / Win32 视角 | 状态 |
 |---|---|---|---|
 | Elden Ring 游戏目录 | `/mnt/c/Games/ELDEN RING` | `C:/Games/ELDEN RING` | ✅ 用户已提供 |
-| Sekiro 游戏目录 | `/mnt/c/Games/Sekiro` | `C:/Games/Sekiro` | ⏳ 暂未提供 → 测试 SKIP |
+| Sekiro 游戏目录 | `/mnt/c/Games/Sekiro` | `C:/Games/Sekiro` | ✅ 用户已提供 (2026-05-14)，Data1..Data5 五个 BHD/BDT 分片均可解 |
 | AC6 游戏目录 | `/mnt/c/Games/ARMORED CORE VI FIRES OF RUBICON` | `C:/Games/ARMORED CORE VI FIRES OF RUBICON` | ⏳ 暂未提供 → 测试 SKIP |
 | Nightreign 游戏目录 | `/mnt/c/Games/ELDEN RING NIGHTREIGN` | `C:/Games/ELDEN RING NIGHTREIGN` | ⏳ 暂未提供 → 测试 SKIP |
 | DS1R 游戏目录（松散文件，无 BHD5） | `/mnt/c/Games/DARK SOULS REMASTERED` | `C:/Games/DARK SOULS REMASTERED` | ✅ 用户已提供 (2026-05-13) |

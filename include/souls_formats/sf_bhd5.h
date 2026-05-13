@@ -45,9 +45,15 @@ typedef struct sf_bhd5 sf_bhd5_t;
 /*===========================================================================
  * Game enum for BHD5 key + format selection
  *
- * v1 covers modern games plus DS3 real-game e2e coverage. Older DS1/DS2
- * BHD variants remain deferred; DS3 uses the DarkSouls3 BHD5 layout from
- * upstream BHD5.cs (32-bit path hash plus 64-bit unpadded size).
+ * Per upstream UXM/Util.GetBHD5Game, Sekiro shares the DarkSouls3 BHD5
+ * wire format (32-bit path hash + trailing 64-bit unpadded size). The
+ * remaining four enum values map to the EldenRing wire format (64-bit
+ * path hash + leading 32-bit unpadded size).
+ *
+ * The default per-game RSA key (sf_bhd5_open) is the entry-point key —
+ * Data1 for Sekiro / DarkSouls3, Data0 for the rest. Archives signed
+ * with a non-default key (e.g. Sekiro Data2..Data5) must be opened via
+ * sf_bhd5_open_with_key().
  *===========================================================================*/
 typedef enum sf_bhd5_game {
     SF_BHD5_GAME_SEKIRO       = 0,
@@ -66,6 +72,17 @@ SF_API sf_result_t sf_bhd5_open(sf_bhd5_t **out,
                                 const wchar_t *bdt_path,
                                 sf_bhd5_game_t game,
                                 const sf_allocator_t *a);
+
+/* Variant that overrides the embedded per-game RSA public key with a
+ * caller-supplied PKCS#1 RSAPublicKey PEM string. Pass NULL for
+ * pem_public_key to fall back to the per-game default. Use for archives
+ * signed with a non-default key (e.g. Sekiro Data2..Data5, DS3 DLC). */
+SF_API sf_result_t sf_bhd5_open_with_key(sf_bhd5_t **out,
+                                         const wchar_t *bhd_path,
+                                         const wchar_t *bdt_path,
+                                         sf_bhd5_game_t game,
+                                         const char *pem_public_key,
+                                         const sf_allocator_t *a);
 SF_API void        sf_bhd5_close(sf_bhd5_t *b);
 SF_API size_t      sf_bhd5_bucket_count     (const sf_bhd5_t *b);
 SF_API size_t      sf_bhd5_total_file_count (const sf_bhd5_t *b);

@@ -7,10 +7,12 @@
  *           UXM/ArchiveKeys.cs @ master
  *
  * Each key was extracted verbatim (PKCS#1 RSAPublicKey PEM) from that
- * file and pasted below. T0d only ships the entry-point key per game;
- * additional Data1..N / DLC / sd keys are added in T10.
+ * file and pasted below. Sekiro signs each Data shard (Data1..Data5)
+ * with a distinct private key, so the shard array below covers all
+ * five; sfi_bhd5_get_pem_key() returns the Data1 entry-point key as
+ * the default.
  *
- *   SF_BHD5_GAME_SEKIRO       → SekiroKeys["Data1"]
+ *   SF_BHD5_GAME_SEKIRO       → SekiroKeys["Data1".."Data5"]
  *       (Sekiro has no Data0; Data1 is the first/main archive header)
  *   SF_BHD5_GAME_ELDENRING    → EldenRingKeys["Data0"]
  *   SF_BHD5_GAME_NIGHTREIGN   → EldenRingNightreignKeys["Data0"]
@@ -20,7 +22,7 @@
 
 #include "archive/bhd5_keys.h"
 
-static const char SF_BHD5_PEM_KEY_SEKIRO[] =
+static const char SF_BHD5_PEM_KEY_SEKIRO_DATA1[] =
     "-----BEGIN RSA PUBLIC KEY-----\n"
     "MIIBCwKCAQEA92l+AWx1aV7mzt+6r00bm/qnc4b6NH3VVr/v4UxMcfzushL8jsn9\n"
     "ZSP1ss95ot/quk8dOJsp0+/bvxH+C9DEezzNLSqqAGd2jq2PYosj/6FhYAKjjMlK\n"
@@ -29,6 +31,54 @@ static const char SF_BHD5_PEM_KEY_SEKIRO[] =
     "MFzmKKHQD2fRQK/431Z3xPK6Jp245AdR0AwUYVvnXq+/97wMX0C6UKvAZ+b/1ytD\n"
     "Nu8vZt++lhJ01SjTc2A4hVPz7g1EEO5/TQIEKkj5Jw==\n"
     "-----END RSA PUBLIC KEY-----\n";
+
+static const char SF_BHD5_PEM_KEY_SEKIRO_DATA2[] =
+    "-----BEGIN RSA PUBLIC KEY-----\n"
+    "MIIBDAKCAQEAqhjoThWX8VwsTKTI1kjp0JBloCXhV8i99P1KPTCTDBnmhVQPdu+7\n"
+    "UQ5g4//eh0oqKaOUjet+0SP94QscjIIrhV91OzfIouIWgJJK/ROOP/A3sb5AlzPa\n"
+    "6YPcN8ODxR+esyrWhc6rHCt4qGvXVXrgh6zpZM5h5VCTSaup4qqIWm44EF3+FeYS\n"
+    "7faFg14rH0QEosieIIZFZmpI6SCJanlrVd+Zh13s4XcZfk0JdC2AEjxCQ2lKi3Un\n"
+    "WAMOcJc+8uHoMuNNo1PMpYQ6Z8Nzg5Cii7EnwbCDmuJw58tFBmbOVHZpkY93VIeF\n"
+    "maJXSE7ztTp0qTa05YZUsiU3g9HplkeTUwIFAP/xKZE=\n"
+    "-----END RSA PUBLIC KEY-----\n";
+
+static const char SF_BHD5_PEM_KEY_SEKIRO_DATA3[] =
+    "-----BEGIN RSA PUBLIC KEY-----\n"
+    "MIIBDAKCAQEAx5jlgIvoHQLwSFsAwKFZbNo3fgZ89C7tj4hwiZsQVg8QnNZohXl5\n"
+    "S5Ep9pS2biOFsSkuZMXKmfYErh2CsdFbr7QR7kvPPianXNrkCI4xlfQwJvMmkLm9\n"
+    "6/JmRIUzTWp0kKJUJZJH/UIrXNn7fmk8Vmx1bQIi8bumGSl3gxeMhutv/lC9khsY\n"
+    "Tn0ABTJAbIbwNZ5GPXxzQZuQPXXDY52Gm+Fx7Yy1LiK/B6isIDJUN0xdgxdaXxGN\n"
+    "f5pPocMJjng0Ob3cjhGvdkysll/jYFnRx0La3CGmtLcXMtHheEQxzGueGDa/lkkl\n"
+    "AvvEXtcpKfyFQWcUheQZ8LngAh/UTJHtQwIFAOpVoU8=\n"
+    "-----END RSA PUBLIC KEY-----\n";
+
+static const char SF_BHD5_PEM_KEY_SEKIRO_DATA4[] =
+    "-----BEGIN RSA PUBLIC KEY-----\n"
+    "MIIBCwKCAQEAq8RyArk+eqMAcxLAHUDRYV7yScNKZpKSxGmgJZQ7y6Y8f5wdrNCt\n"
+    "byXfmsdQECStIGlkwWjtfm8t/bRZuxxPciAYaFsWo0Ze2BB6uY6ZteNpLJn82qbL\n"
+    "TXATf+af3kSrvICfvJwRzbfA/PRJRkHj2gJ6Tc7g6HK7S/4TiCZirq+c/zLY3gb8\n"
+    "A8uIFNI4j0qxTzfoAlS7K6spZjfnhZ6l7pYFh+glz15wAbppC9Oy/u5vUacozf4v\n"
+    "nacbUHD47ds9EZPZDHk3LfJbioHwtUzJfyBqZmIpI33yiwImPpb96zwvQU86TaXK\n"
+    "sJrTmSs/48BeDsQwXuaqOg+6noETBx3pgQIEGM2Ohw==\n"
+    "-----END RSA PUBLIC KEY-----\n";
+
+static const char SF_BHD5_PEM_KEY_SEKIRO_DATA5[] =
+    "-----BEGIN RSA PUBLIC KEY-----\n"
+    "MIIBDAKCAQEAu75/UbXwHdvu/p49TwnY7Ou6DAuZYFAtLUkw/R4nvm0HWVlRsZiB\n"
+    "LG3MOG6sPmK2Zc3JLBU2QK4uKazZ9VrmotM4OpYr03q2tiFnv3NfCvB1UeIJIKe3\n"
+    "kVhHNZIbvrwEP9a5UCnrSHD+u+Fj5MQBr4yrEitwrNVvIC4J0Ez1Ppn3+D8ff8Xg\n"
+    "QRP9qCVLI3X/wdQDea+B5o8PWaYEL9MKnnL1Tq4h+4PRYHcQR8/GXBTrc3x9q3cP\n"
+    "QRDWHbRYhIfWSP9urtagjcsmcuG+p34fp+KyWOwkil3FJqwH1KgSTbk9Tb0oBPzq\n"
+    "TCJKeE/wgu6hY++lBi5T3ArHZZcsbXzV6wIFAPlRTMc=\n"
+    "-----END RSA PUBLIC KEY-----\n";
+
+static const char *const SF_BHD5_PEM_KEYS_SEKIRO[5] = {
+    SF_BHD5_PEM_KEY_SEKIRO_DATA1,
+    SF_BHD5_PEM_KEY_SEKIRO_DATA2,
+    SF_BHD5_PEM_KEY_SEKIRO_DATA3,
+    SF_BHD5_PEM_KEY_SEKIRO_DATA4,
+    SF_BHD5_PEM_KEY_SEKIRO_DATA5,
+};
 
 static const char SF_BHD5_PEM_KEY_ELDENRING[] =
     "-----BEGIN RSA PUBLIC KEY-----\n"
@@ -72,7 +122,7 @@ static const char SF_BHD5_PEM_KEY_DARKSOULS3[] =
 
 const char *sfi_bhd5_get_pem_key(sf_bhd5_game_t game) {
     switch (game) {
-    case SF_BHD5_GAME_SEKIRO:       return SF_BHD5_PEM_KEY_SEKIRO;
+    case SF_BHD5_GAME_SEKIRO:       return SF_BHD5_PEM_KEY_SEKIRO_DATA1;
     case SF_BHD5_GAME_ELDENRING:    return SF_BHD5_PEM_KEY_ELDENRING;
     case SF_BHD5_GAME_NIGHTREIGN:   return SF_BHD5_PEM_KEY_NIGHTREIGN;
     case SF_BHD5_GAME_ARMOREDCORE6: return SF_BHD5_PEM_KEY_ARMOREDCORE6;
@@ -80,4 +130,9 @@ const char *sfi_bhd5_get_pem_key(sf_bhd5_game_t game) {
     case SF_BHD5_GAME_COUNT_:
     default:                        return NULL;
     }
+}
+
+const char *sfi_bhd5_get_sekiro_shard_key(int shard) {
+    if (shard < 1 || shard > 5) return NULL;
+    return SF_BHD5_PEM_KEYS_SEKIRO[shard - 1];
 }

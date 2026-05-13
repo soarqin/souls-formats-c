@@ -7,7 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.6.0] - 2026-05-14
 
+### Added
+- `sf_bhd5_open_with_key()` — opens a BHD5 archive with a caller-supplied PKCS#1 RSAPublicKey PEM, overriding the default per-game entry-point key. Required for Sekiro Data2..Data5 (each shard is signed with a distinct private key) and for DS3 DLC archives.
+
 ### Fixed
+- **Sekiro BHD5 reads.** `SF_BHD5_GAME_SEKIRO` was reading file headers in the EldenRing 64-bit-hash wire layout, but per upstream `UXM/Util.GetBHD5Game` Sekiro uses the DarkSouls3 32-bit-hash layout. Real Sekiro `Data*.bhd` headers parsed as `SF_ERR_OUT_OF_RANGE` once an entry pointed past the 2 GB mark. Reader, writer, and `sf_bhd5_extract_by_path` now route Sekiro through the DS3 layout/path-hash code paths.
+- Sekiro e2e helper (`sekiro_helper_init()`) now opens all five `Data*.bhd/bdt` shards. Each shard carries its own RSA key; only Data1's was previously bundled.
 - Public version macros now match the project/changelog version.
 - `souls_formats.h` now includes all public headers registered by the build.
 - Binary writer reservations now mirror upstream by validating duplicate names before writing placeholder bytes, and fill operations keep reservations pending if seeking/writing fails.
