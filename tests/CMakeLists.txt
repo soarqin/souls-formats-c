@@ -770,6 +770,50 @@ sf_add_test(souls_formats_test_btl_synthetic lighting/test_btl_synthetic.c "ligh
 
 sf_add_test(souls_formats_test_gparam_synthetic lighting/test_gparam_synthetic.c "lighting")
 
+# Post-v1 Wave 5 (T14) — multi-game e2e probe-skip tests for lighting formats.
+# Each test tries Data0 paths across ER/AC6/NR/Sekiro and SKIPs cleanly if
+# no lighting file is found. Wave-0 probe found 0 such files; these tests
+# exist so future v2+ shard support can flip them green without scaffolding.
+sf_add_test(souls_formats_test_pmdcl_e2e lighting/test_pmdcl_e2e.c "lighting")
+target_link_libraries(souls_formats_test_pmdcl_e2e PRIVATE souls_formats_e2e_helpers)
+set_tests_properties(souls_formats_test_pmdcl_e2e PROPERTIES LABELS "lighting;e2e")
+target_compile_definitions(souls_formats_test_pmdcl_e2e PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_NIGHTREIGN_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game"
+    SF_E2E_AC6_DIR=L"C:/Games/ARMORED CORE VI FIRES OF RUBICON/Game"
+    SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+sf_add_test(souls_formats_test_btab_e2e lighting/test_btab_e2e.c "lighting")
+target_link_libraries(souls_formats_test_btab_e2e PRIVATE souls_formats_e2e_helpers)
+set_tests_properties(souls_formats_test_btab_e2e PROPERTIES LABELS "lighting;e2e")
+target_compile_definitions(souls_formats_test_btab_e2e PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_NIGHTREIGN_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game"
+    SF_E2E_AC6_DIR=L"C:/Games/ARMORED CORE VI FIRES OF RUBICON/Game"
+    SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+sf_add_test(souls_formats_test_btl_e2e lighting/test_btl_e2e.c "lighting")
+target_link_libraries(souls_formats_test_btl_e2e PRIVATE souls_formats_e2e_helpers)
+set_tests_properties(souls_formats_test_btl_e2e PROPERTIES LABELS "lighting;e2e")
+target_compile_definitions(souls_formats_test_btl_e2e PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_NIGHTREIGN_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game"
+    SF_E2E_AC6_DIR=L"C:/Games/ARMORED CORE VI FIRES OF RUBICON/Game"
+    SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
+sf_add_test(souls_formats_test_gparam_e2e lighting/test_gparam_e2e.c "lighting")
+target_link_libraries(souls_formats_test_gparam_e2e PRIVATE souls_formats_e2e_helpers)
+set_tests_properties(souls_formats_test_gparam_e2e PROPERTIES LABELS "lighting;e2e")
+target_compile_definitions(souls_formats_test_gparam_e2e PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_NIGHTREIGN_DIR=L"C:/Games/ELDEN RING NIGHTREIGN/Game"
+    SF_E2E_AC6_DIR=L"C:/Games/ARMORED CORE VI FIRES OF RUBICON/Game"
+    SF_E2E_SEKIRO_DIR=L"C:/Games/Sekiro"
+    SF_E2E_OODLE_DIR=L"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\soar\\\\dev\\\\oodle")
+
 #-----------------------------------------------------------------------------
 # Navmesh formats (EDGE / NVM / MCG / MCP / NVA / NGP)
 #-----------------------------------------------------------------------------
