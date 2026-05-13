@@ -16,6 +16,7 @@
 #include "souls_formats/sf_io.h"
 #include "souls_formats/sf_tae_template.h"
 
+#include <float.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -655,6 +656,8 @@ static sf_result_t tae_read_event(sf_binary_reader_t *br, sf_tae_event_t *ev,
         r = sf_binary_reader_get_f32(br, start_time_offset, &ev->start_time);
     if (r == SF_OK)
         r = sf_binary_reader_get_f32(br, end_time_offset, &ev->end_time);
+    if (r == SF_OK && ev->end_time == FLT_MAX)
+        ev->end_time = 100.0f;
     if (r != SF_OK)
         return r;
 
@@ -1186,14 +1189,27 @@ static sf_result_t tae_write_animation_table(sf_binary_writer_t *bw, const sf_ta
     size_t group_count = 0;
     int64_t group_start = sf_binary_writer_position(bw);
     for (size_t i = 0; i < t->animation_count; i++) {
-        r = sf_binary_writer_write_i32(bw, (int32_t)t->animations[i]->id);
+        size_t first_index = i;
+        int64_t first_id = t->animations[i]->id;
+        while (i + 1 < t->animation_count && t->animations[i]->id != INT64_MAX &&
+               t->animations[i + 1]->id == t->animations[i]->id + 1)
+            i++;
+        int64_t last_id = t->animations[i]->id;
+        int32_t first_id_i32 = 0;
+        int32_t last_id_i32 = 0;
+        r = tae_position_to_i32(first_id, &first_id_i32);
+        if (r == SF_OK)
+            r = tae_position_to_i32(last_id, &last_id_i32);
         if (r != SF_OK)
             return r;
-        r = sf_binary_writer_write_i32(bw, (int32_t)t->animations[i]->id);
+        r = sf_binary_writer_write_i32(bw, first_id_i32);
+        if (r != SF_OK)
+            return r;
+        r = sf_binary_writer_write_i32(bw, last_id_i32);
         if (r != SF_OK)
             return r;
         char name[64];
-        r = tae_make_name1(name, sizeof(name), "TopAnimationOffset", i);
+        r = tae_make_name1(name, sizeof(name), "TopAnimationOffset", first_index);
         if (r != SF_OK)
             return r;
         SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), return r);
@@ -1226,10 +1242,13 @@ static sf_result_t tae_write_animation_bodies(sf_binary_writer_t *bw, const sf_t
             return r;
         int64_t body_pos = sf_binary_writer_position(bw);
         SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, body_pos), return r);
-        r = tae_make_name1(name, sizeof(name), "TopAnimationOffset", i);
-        if (r != SF_OK)
-            return r;
-        SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, body_pos), return r);
+        if (i == 0 || t->animations[i - 1]->id == INT64_MAX ||
+            anim->id != t->animations[i - 1]->id + 1) {
+            r = tae_make_name1(name, sizeof(name), "TopAnimationOffset", i);
+            if (r != SF_OK)
+                return r;
+            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, body_pos), return r);
+        }
         if (anim->event_count > INT32_MAX || anim->event_group_count > INT32_MAX)
             return SF_ERR_OUT_OF_RANGE;
         if (tae_format_is_32bit_des_family(t->format)) {
@@ -1452,6 +1471,10 @@ static int tae_float_compare(const void *a, const void *b) {
     return (fa > fb) - (fa < fb);
 }
 
+static float tae_wire_end_time(float end_time) {
+    return end_time >= 100.0f ? FLT_MAX : end_time;
+}
+
 static sf_result_t tae_collect_times(const sf_tae_animation_t *anim, const sf_allocator_t *alloc,
                                      float **out_times, size_t *out_count) {
     *out_times = NULL;
@@ -1467,7 +1490,7 @@ static sf_result_t tae_collect_times(const sf_tae_animation_t *anim, const sf_al
     for (size_t i = 0; i < anim->event_count; i++) {
         times[*out_count] = anim->events[i]->start_time;
         (*out_count)++;
-        times[*out_count] = anim->events[i]->end_time;
+        times[*out_count] = tae_wire_end_time(anim->events[i]->end_time);
         (*out_count)++;
     }
     qsort(times, *out_count, sizeof(*times), tae_float_compare);
@@ -1482,9 +1505,17 @@ static sf_result_t tae_collect_times(const sf_tae_animation_t *anim, const sf_al
 }
 
 static int64_t tae_find_time_offset(const tae_time_offset_t *times, size_t count, float value) {
-    for (size_t i = 0; i < count; i++)
-        if (times[i].value == value)
-            return times[i].offset;
+    size_t lo = 0;
+    size_t hi = count;
+    while (lo < hi) {
+        size_t mid = lo + (hi - lo) / 2;
+        if (times[mid].value < value)
+            lo = mid + 1;
+        else
+            hi = mid;
+    }
+    if (lo < count && times[lo].value == value)
+        return times[lo].offset;
     return -1;
 }
 
@@ -1548,7 +1579,8 @@ static sf_result_t tae_write_event_headers(sf_binary_writer_t *bw, const sf_tae_
     for (size_t i = 0; i < anim->event_count; i++) {
         event_header_offsets[i] = sf_binary_writer_position(bw);
         int64_t start_offset = tae_find_time_offset(times, time_count, anim->events[i]->start_time);
-        int64_t end_offset = tae_find_time_offset(times, time_count, anim->events[i]->end_time);
+        int64_t end_offset = tae_find_time_offset(times, time_count,
+                                                  tae_wire_end_time(anim->events[i]->end_time));
         if (start_offset < 0 || end_offset < 0)
             return SF_ERR_INTERNAL;
         r = sf_binary_writer_write_varint(bw, start_offset);
