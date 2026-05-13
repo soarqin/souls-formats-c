@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(souls_formats_c
-    VERSION 0.4.1
+    VERSION 0.5.0
     DESCRIPTION "Pure C library for FromSoftware game file formats"
     HOMEPAGE_URL "https://github.com/soar/souls-formats-c"
     LANGUAGES C)
@@ -103,7 +103,46 @@ set(SF_PUBLIC_HEADERS
 
 list(APPEND SF_PUBLIC_HEADERS
     include/souls_formats/sf_tae.h
+    include/souls_formats/sf_tae_template.h
     include/souls_formats/sf_fxr3.h
+    include/souls_formats/sf_ffxdlse.h
+    include/souls_formats/sf_fxr1.h
+    include/souls_formats/sf_nmb.h
+    include/souls_formats/sf_nsa.h
+)
+
+list(APPEND SF_PUBLIC_HEADERS
+    include/souls_formats/sf_acparts4.h
+    include/souls_formats/sf_fsdata.h
+    include/souls_formats/sf_fsliblzs.h
+    include/souls_formats/sf_mlb.h
+    include/souls_formats/sf_paramdbp.h
+)
+
+list(APPEND SF_PUBLIC_HEADERS
+    include/souls_formats/sf_aip.h
+    include/souls_formats/sf_f2tr.h
+    include/souls_formats/sf_clm2.h
+    include/souls_formats/sf_rmb.h
+    include/souls_formats/sf_grass.h
+    include/souls_formats/sf_ccm.h
+    include/souls_formats/sf_edd.h
+    include/souls_formats/sf_acb.h
+    include/souls_formats/sf_smd4.h
+    include/souls_formats/sf_drb.h
+    include/souls_formats/sf_kf4.h
+    include/souls_formats/sf_kuon.h
+    include/souls_formats/sf_mwc.h
+    include/souls_formats/sf_legacy_misc.h
+    include/souls_formats/sf_ani.h
+    include/souls_formats/sf_mqb.h
+)
+
+list(APPEND SF_PUBLIC_HEADERS
+    include/souls_formats/sf_luagnl.h
+    include/souls_formats/sf_luainfo.h
+    include/souls_formats/sf_emeld.h
+    include/souls_formats/sf_fmb.h
 )
 
 list(APPEND SF_PUBLIC_HEADERS
@@ -118,6 +157,22 @@ list(APPEND SF_PUBLIC_HEADERS
     include/souls_formats/sf_msbn.h
     include/souls_formats/sf_msbv.h
     include/souls_formats/sf_msbvd.h
+)
+
+list(APPEND SF_PUBLIC_HEADERS
+    include/souls_formats/sf_edge.h
+    include/souls_formats/sf_nvm.h
+    include/souls_formats/sf_mcg.h
+    include/souls_formats/sf_mcp.h
+    include/souls_formats/sf_nva.h
+    include/souls_formats/sf_ngp.h
+)
+
+list(APPEND SF_PUBLIC_HEADERS
+    include/souls_formats/sf_btab.h
+    include/souls_formats/sf_btl.h
+    include/souls_formats/sf_gparam.h
+    include/souls_formats/sf_pmdcl.h
 )
 
 set(SF_SOURCES
@@ -217,9 +272,58 @@ list(APPEND SF_SOURCES
 
 list(APPEND SF_SOURCES
     src/effects/tae.c
+    src/effects/tae_template.c
     src/effects/fxr3.c
     src/effects/fxr3_xml_read.c
     src/effects/fxr3_xml_write.c
+    src/effects/ffxdlse.c
+    src/effects/fxr1.c
+    src/effects/nmb.c
+    src/effects/nsa.c
+)
+
+list(APPEND SF_SOURCES
+    src/ac/acparts4.c
+    src/ac/fsdata.c
+    src/ac/fsliblzs.c
+    src/ac/mlb_ac4.c
+    src/ac/mlb_ac5.c
+    src/ac/paramdbp.c
+)
+
+list(APPEND SF_SOURCES
+    src/misc/aip.c
+    src/misc/f2tr.c
+    src/misc/clm2.c
+    src/misc/rmb.c
+    src/misc/grass.c
+    src/misc/ccm.c
+    src/misc/edd.c
+    src/misc/acb.c
+    src/misc/smd4.c
+    src/misc/drb.c
+    src/misc/kf4.c
+    src/misc/kuon.c
+    src/misc/mwc.c
+    src/misc/legacy_misc.c
+    src/misc/fmb.c
+    src/misc/ani.c
+    src/misc/mqb.c
+)
+
+list(APPEND SF_SOURCES
+    src/script/luagnl.c
+    src/script/luainfo.c
+    src/script/emeld.c
+)
+
+list(APPEND SF_SOURCES
+    src/navmesh/edge.c
+    src/navmesh/nvm.c
+    src/navmesh/mcg.c
+    src/navmesh/mcp.c
+    src/navmesh/nva.c
+    src/navmesh/ngp.c
 )
 
 list(APPEND SF_SOURCES
