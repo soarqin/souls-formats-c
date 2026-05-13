@@ -34,6 +34,7 @@ struct sf_istream {
     /*  File backend. */
     HANDLE file;        /* INVALID_HANDLE_VALUE if not used */
     int64_t file_len;
+    int64_t file_pos;   /* tracked locally so position() doesn't syscall */
 
     /*  Memory backend (always borrowed; we never free input data). */
     const uint8_t *mem;
@@ -137,9 +138,7 @@ void sf_istream_close(sf_istream_t *s) {
 int64_t sf_istream_position(const sf_istream_t *s) {
     if (!s) return 0;
     if (s->backend == SFI_BK_MEMORY) return s->mem_pos;
-    LARGE_INTEGER cur, zero = {0};
-    if (!SetFilePointerEx(s->file, zero, &cur, FILE_CURRENT)) return -1;
-    return (int64_t)cur.QuadPart;
+    return s->file_pos;
 }
 
 int64_t sf_istream_length(const sf_istream_t *s) {
@@ -164,6 +163,7 @@ sf_result_t sf_istream_seek(sf_istream_t *s, int64_t pos) {
     LARGE_INTEGER li;
     li.QuadPart = pos;
     if (!SetFilePointerEx(s->file, li, NULL, FILE_BEGIN)) return SF_ERR_IO;
+    s->file_pos = pos;
     return SF_OK;
 }
 
@@ -190,6 +190,7 @@ sf_result_t sf_istream_read(sf_istream_t *s, void *buf, size_t n) {
         if (got == 0) return SF_ERR_TRUNCATED;
         p    += got;
         left -= got;
+        s->file_pos += (int64_t)got;
     }
     return SF_OK;
 }
