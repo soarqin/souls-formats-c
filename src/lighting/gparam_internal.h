@@ -24,7 +24,7 @@ struct sf_gparam_unk_param_extra {
  *  `unk` holds the post-type byte (V<V6: int16 padding asserted = 0;
  *  V>=V6: single unk byte zero-extended for round-trip). */
 struct sf_gparam_field {
-    int32_t                key;
+    const char            *key;
     const char            *name;
     sf_gparam_field_type_t type;
     int32_t                capacity;
@@ -37,7 +37,7 @@ struct sf_gparam_field {
  *  is NO Group layer in upstream. `name` and each `comments[i]` are
  *  borrowed from sf_gparam.name_pool. */
 struct sf_gparam_param {
-    int32_t                  key;
+    const char              *key;
     const char              *name;
     struct sf_gparam_field  *fields;
     size_t                   field_count;

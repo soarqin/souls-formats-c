@@ -98,7 +98,7 @@ SF_API const uint8_t *sf_gparam_get_data30(const sf_gparam_t *gparam, size_t *ou
 SF_API size_t sf_gparam_param_count(const sf_gparam_t *gparam);
 SF_API const sf_gparam_param_t *sf_gparam_get_param(const sf_gparam_t *gparam, size_t index);
 
-SF_API int32_t sf_gparam_param_get_key(const sf_gparam_param_t *param);
+SF_API const char *sf_gparam_param_get_key(const sf_gparam_param_t *param);
 SF_API const char *sf_gparam_param_get_name(const sf_gparam_param_t *param);
 SF_API size_t sf_gparam_param_field_count(const sf_gparam_param_t *param);
 SF_API const sf_gparam_field_t *sf_gparam_param_get_field(const sf_gparam_param_t *param,
@@ -106,7 +106,7 @@ SF_API const sf_gparam_field_t *sf_gparam_param_get_field(const sf_gparam_param_
 SF_API size_t sf_gparam_param_comment_count(const sf_gparam_param_t *param);
 SF_API const char *sf_gparam_param_get_comment(const sf_gparam_param_t *param, size_t index);
 
-SF_API int32_t sf_gparam_field_get_key(const sf_gparam_field_t *field);
+SF_API const char *sf_gparam_field_get_key(const sf_gparam_field_t *field);
 SF_API const char *sf_gparam_field_get_name(const sf_gparam_field_t *field);
 SF_API sf_gparam_field_type_t sf_gparam_field_get_type(const sf_gparam_field_t *field);
 SF_API size_t sf_gparam_field_value_count(const sf_gparam_field_t *field);
