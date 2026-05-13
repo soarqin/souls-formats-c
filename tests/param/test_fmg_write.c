@@ -78,8 +78,8 @@ static void test_v0_round_trip_shift_jis(void) {
     assert_entry(roundtrip, 0, 100, "Hello");
     assert_entry(roundtrip, 1, 101, "World");
 
-    sf_fmg_destroy(roundtrip, NULL);
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(roundtrip);
+    sf_fmg_destroy(fmg);
     free(buf);
 }
 
@@ -104,8 +104,8 @@ static void test_v1_round_trip_unicode(void) {
     assert_entry(roundtrip, 1, 1001, "Bar");
     assert_entry(roundtrip, 2, 1002, "Baz");
 
-    sf_fmg_destroy(roundtrip, NULL);
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(roundtrip);
+    sf_fmg_destroy(fmg);
     free(buf);
 }
 
@@ -132,8 +132,8 @@ static void test_v2_wide_round_trip_utf16(void) {
     assert_entry(roundtrip, 1, 5001, "\xCE\xB2");
     assert_entry(roundtrip, 2, 5002, "\xCE\xB3");
 
-    sf_fmg_destroy(roundtrip, NULL);
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(roundtrip);
+    sf_fmg_destroy(fmg);
     free(buf);
 }
 
@@ -155,8 +155,8 @@ static void test_md5_prefix_is_written_and_round_trips(void) {
     TEST_ASSERT_TRUE(sf_fmg_has_md5(roundtrip));
     assert_entry(roundtrip, 0, 42, "MD5_OK");
 
-    sf_fmg_destroy(roundtrip, NULL);
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(roundtrip);
+    sf_fmg_destroy(fmg);
     free(buf);
 }
 
@@ -192,9 +192,9 @@ static void test_reuse_offsets_dedup_shrinks_output(void) {
     assert_entry(roundtrip, 0, 1, shared);
     assert_entry(roundtrip, 1, 2, shared);
 
-    sf_fmg_destroy(roundtrip, NULL);
-    sf_fmg_destroy(deduped,   NULL);
-    sf_fmg_destroy(plain,     NULL);
+    sf_fmg_destroy(roundtrip);
+    sf_fmg_destroy(deduped);
+    sf_fmg_destroy(plain);
     free(plain_buf);
     free(dedup_buf);
 }
@@ -222,8 +222,8 @@ static void test_deleted_entry_writes_zero_offset(void) {
     assert_entry(roundtrip, 0, 1, "OK");
     assert_entry(roundtrip, 1, 2, NULL);
 
-    sf_fmg_destroy(roundtrip, NULL);
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(roundtrip);
+    sf_fmg_destroy(fmg);
     free(buf);
 }
 
@@ -256,8 +256,8 @@ static void test_group_merging_splits_on_id_gap(void) {
     assert_entry(roundtrip, 3, 6,   "six");
     assert_entry(roundtrip, 4, 100, "hundred");
 
-    sf_fmg_destroy(roundtrip, NULL);
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(roundtrip);
+    sf_fmg_destroy(fmg);
     free(buf);
 }
 
@@ -278,8 +278,8 @@ static void test_empty_fmg_round_trip(void) {
     TEST_ASSERT_EQUAL(SF_OK, sf_fmg_read_from_memory(&roundtrip, buf, sz, NULL));
     TEST_ASSERT_EQUAL_size_t(0, sf_fmg_get_entry_count(roundtrip));
 
-    sf_fmg_destroy(roundtrip, NULL);
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(roundtrip);
+    sf_fmg_destroy(fmg);
     free(buf);
 }
 
@@ -301,7 +301,7 @@ static void test_v2_wide_offsets_are_8_bytes(void) {
     TEST_ASSERT_GREATER_THAN_INT64(0, offset_0);
     TEST_ASSERT_TRUE(offset_1 > offset_0);
 
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(fmg);
     free(buf);
 }
 

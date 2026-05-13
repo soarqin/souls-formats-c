@@ -260,7 +260,7 @@ static sf_result_t fmg_read(sf_binary_reader_t *br, sf_fmg_t **out,
     return SF_OK;
 
 fail:
-    sf_fmg_destroy(fmg, alloc);
+    sf_fmg_destroy(fmg);
     return r;
 }
 
@@ -333,11 +333,8 @@ sf_result_t sf_fmg_create(const sf_allocator_t *alloc, sf_fmg_version_t version,
     return SF_OK;
 }
 
-void sf_fmg_destroy(sf_fmg_t *fmg, const sf_allocator_t *alloc) {
+void sf_fmg_destroy(sf_fmg_t *fmg) {
     if (!fmg) return;
-    /*  Honour the allocator the object was created with; the parameter is
-     *  accepted for symmetry with other modules but ignored. */
-    (void)alloc;
     const sf_allocator_t *a = fmg->alloc;
     for (size_t i = 0; i < fmg->entry_count; i++) {
         entry_clear(&fmg->entries[i], a);

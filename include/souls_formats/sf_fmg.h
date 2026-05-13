@@ -38,7 +38,7 @@ _Static_assert(SF_FMG_VERSION_DARK_SOULS_3 == 2, "FMG version constants must be 
 
 SF_API sf_result_t sf_fmg_create(const sf_allocator_t *alloc, sf_fmg_version_t version,
                                  sf_fmg_t **out);
-SF_API void        sf_fmg_destroy(sf_fmg_t *fmg, const sf_allocator_t *alloc);
+SF_API void        sf_fmg_destroy(sf_fmg_t *fmg);
 
 SF_API sf_result_t sf_fmg_read_from_memory(sf_fmg_t **out, const uint8_t *data, size_t size,
                                            const sf_allocator_t *alloc);

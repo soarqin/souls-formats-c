@@ -65,7 +65,7 @@ static void test_fmg_e2e_ds3_item_msgbnd(void)
     }
     TEST_ASSERT_NOT_NULL(fmg);
     TEST_ASSERT_GREATER_THAN(0, (int)sf_fmg_get_entry_count(fmg));
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(fmg);
     sf_bnd4_destroy(bnd);
 }
 

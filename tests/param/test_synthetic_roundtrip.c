@@ -408,9 +408,9 @@ static void test_fmg_synthetic_roundtrip(void) {
     TEST_ASSERT_EQUAL_MEMORY(write1, write2, size1);
 
     sf_free(NULL, write2);
-    sf_fmg_destroy(rebound, NULL);
+    sf_fmg_destroy(rebound);
     sf_free(NULL, write1);
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(fmg);
 }
 
 int main(void) {

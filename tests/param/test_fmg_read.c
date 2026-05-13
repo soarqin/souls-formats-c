@@ -276,7 +276,7 @@ static void test_v0_demons_souls_basic(void) {
     TEST_ASSERT_EQUAL_INT32(101, sf_fmg_entry_get_id(e1));
     TEST_ASSERT_EQUAL_STRING("World", sf_fmg_entry_get_text(e1));
 
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(fmg);
 }
 
 static void test_v1_dark_souls_1_basic(void) {
@@ -305,7 +305,7 @@ static void test_v1_dark_souls_1_basic(void) {
     TEST_ASSERT_EQUAL_STRING("Bar", sf_fmg_entry_get_text(found));
     TEST_ASSERT_NULL(sf_fmg_find_entry_by_id(fmg, 9999));
 
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(fmg);
 }
 
 static void test_v2_wide_utf16(void) {
@@ -329,7 +329,7 @@ static void test_v2_wide_utf16(void) {
         TEST_ASSERT_EQUAL_STRING(expected[i], sf_fmg_entry_get_text(e));
     }
 
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(fmg);
 }
 
 static void test_md5_prefix_detected_and_skipped(void) {
@@ -349,7 +349,7 @@ static void test_md5_prefix_detected_and_skipped(void) {
     TEST_ASSERT_EQUAL_INT32(42, sf_fmg_entry_get_id(e));
     TEST_ASSERT_EQUAL_STRING("MD5_OK", sf_fmg_entry_get_text(e));
 
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(fmg);
 }
 
 static void test_deleted_entry_offset_zero_yields_null_text(void) {
@@ -368,7 +368,7 @@ static void test_deleted_entry_offset_zero_yields_null_text(void) {
     TEST_ASSERT_EQUAL_INT32(2, sf_fmg_entry_get_id(e1));
     TEST_ASSERT_NULL(sf_fmg_entry_get_text(e1));
 
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(fmg);
 }
 
 static void test_truncated_input_returns_error(void) {

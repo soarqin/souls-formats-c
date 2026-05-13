@@ -75,7 +75,7 @@ static void test_fmg_itemname_e2e(void)
     }
     TEST_ASSERT_TRUE(found_any);
 
-    sf_fmg_destroy(fmg, NULL);
+    sf_fmg_destroy(fmg);
     sf_free(NULL, fmg_bytes);
 }
 
