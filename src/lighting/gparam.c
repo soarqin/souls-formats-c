@@ -1326,3 +1326,25 @@ SF_API const sf_gparam_unk_param_extra_t *sf_gparam_get_unk_param_extra(const sf
     if (!gparam || index >= gparam->unk_param_extra_count) return NULL;
     return &gparam->unk_param_extras[index];
 }
+
+SF_API int32_t sf_gparam_unk_param_extra_get_unk00(const sf_gparam_unk_param_extra_t *extra)
+{
+    return extra ? extra->unk00 : 0;
+}
+
+SF_API size_t sf_gparam_unk_param_extra_id_count(const sf_gparam_unk_param_extra_t *extra)
+{
+    return extra ? extra->id_count : 0;
+}
+
+SF_API int32_t sf_gparam_unk_param_extra_get_id(const sf_gparam_unk_param_extra_t *extra,
+                                                 size_t index)
+{
+    if (!extra || index >= extra->id_count) return 0;
+    return extra->ids[index];
+}
+
+SF_API int32_t sf_gparam_unk_param_extra_get_unk0c(const sf_gparam_unk_param_extra_t *extra)
+{
+    return extra ? extra->unk0c : 0;
+}

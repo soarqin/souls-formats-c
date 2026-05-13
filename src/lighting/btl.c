@@ -512,6 +512,14 @@ sf_btl_light_type_t sf_btl_light_type(const sf_btl_light_t *light) {
     return light ? light->type : SF_BTL_LIGHT_TYPE_POINT;
 }
 
+const uint8_t *sf_btl_light_unk00(const sf_btl_light_t *light) {
+    return light ? light->unk00 : NULL;
+}
+
+bool sf_btl_light_unk1c(const sf_btl_light_t *light) {
+    return light ? light->unk1c : false;
+}
+
 sf_color_t sf_btl_light_diffuse_color(const sf_btl_light_t *light) {
     sf_color_t zero = {0, 0, 0, 0};
     return light ? light->diffuse_color : zero;
@@ -519,6 +527,31 @@ sf_color_t sf_btl_light_diffuse_color(const sf_btl_light_t *light) {
 
 float sf_btl_light_diffuse_power(const sf_btl_light_t *light) {
     return light ? light->diffuse_power : 0.0f;
+}
+
+sf_color_t sf_btl_light_specular_color(const sf_btl_light_t *light) {
+    sf_color_t zero = {0, 0, 0, 0};
+    return light ? light->specular_color : zero;
+}
+
+bool sf_btl_light_cast_shadows(const sf_btl_light_t *light) {
+    return light ? light->cast_shadows : false;
+}
+
+float sf_btl_light_specular_power(const sf_btl_light_t *light) {
+    return light ? light->specular_power : 0.0f;
+}
+
+float sf_btl_light_cone_angle(const sf_btl_light_t *light) {
+    return light ? light->cone_angle : 0.0f;
+}
+
+float sf_btl_light_unk30(const sf_btl_light_t *light) {
+    return light ? light->unk30 : 0.0f;
+}
+
+float sf_btl_light_unk34(const sf_btl_light_t *light) {
+    return light ? light->unk34 : 0.0f;
 }
 
 sf_vec3_t sf_btl_light_position(const sf_btl_light_t *light) {
@@ -531,6 +564,131 @@ sf_vec3_t sf_btl_light_rotation(const sf_btl_light_t *light) {
     return light ? light->rotation : zero;
 }
 
+int32_t sf_btl_light_unk50(const sf_btl_light_t *light) {
+    return light ? light->unk50 : 0;
+}
+
+float sf_btl_light_unk54(const sf_btl_light_t *light) {
+    return light ? light->unk54 : 0.0f;
+}
+
 float sf_btl_light_radius(const sf_btl_light_t *light) {
     return light ? light->radius : 0.0f;
+}
+
+int32_t sf_btl_light_unk5c(const sf_btl_light_t *light) {
+    return light ? light->unk5c : 0;
+}
+
+const uint8_t *sf_btl_light_unk64(const sf_btl_light_t *light) {
+    return light ? light->unk64 : NULL;
+}
+
+float sf_btl_light_unk68(const sf_btl_light_t *light) {
+    return light ? light->unk68 : 0.0f;
+}
+
+sf_color_t sf_btl_light_shadow_color(const sf_btl_light_t *light) {
+    sf_color_t zero = {0, 0, 0, 0};
+    return light ? light->shadow_color : zero;
+}
+
+float sf_btl_light_unk70(const sf_btl_light_t *light) {
+    return light ? light->unk70 : 0.0f;
+}
+
+float sf_btl_light_flicker_interval_min(const sf_btl_light_t *light) {
+    return light ? light->flicker_interval_min : 0.0f;
+}
+
+float sf_btl_light_flicker_interval_max(const sf_btl_light_t *light) {
+    return light ? light->flicker_interval_max : 0.0f;
+}
+
+float sf_btl_light_flicker_brightness_mult(const sf_btl_light_t *light) {
+    return light ? light->flicker_brightness_mult : 0.0f;
+}
+
+int32_t sf_btl_light_unk80(const sf_btl_light_t *light) {
+    return light ? light->unk80 : 0;
+}
+
+const uint8_t *sf_btl_light_unk84(const sf_btl_light_t *light) {
+    return light ? light->unk84 : NULL;
+}
+
+float sf_btl_light_unk88(const sf_btl_light_t *light) {
+    return light ? light->unk88 : 0.0f;
+}
+
+float sf_btl_light_unk90(const sf_btl_light_t *light) {
+    return light ? light->unk90 : 0.0f;
+}
+
+float sf_btl_light_unk98(const sf_btl_light_t *light) {
+    return light ? light->unk98 : 0.0f;
+}
+
+float sf_btl_light_near_clip(const sf_btl_light_t *light) {
+    return light ? light->near_clip : 0.0f;
+}
+
+const uint8_t *sf_btl_light_unk_a0(const sf_btl_light_t *light) {
+    return light ? light->unk_a0 : NULL;
+}
+
+float sf_btl_light_sharpness(const sf_btl_light_t *light) {
+    return light ? light->sharpness : 0.0f;
+}
+
+float sf_btl_light_unk_ac(const sf_btl_light_t *light) {
+    return light ? light->unk_ac : 0.0f;
+}
+
+float sf_btl_light_width(const sf_btl_light_t *light) {
+    return light ? light->width : 0.0f;
+}
+
+float sf_btl_light_unk_bc(const sf_btl_light_t *light) {
+    return light ? light->unk_bc : 0.0f;
+}
+
+const uint8_t *sf_btl_light_unk_c0(const sf_btl_light_t *light) {
+    return light ? light->unk_c0 : NULL;
+}
+
+float sf_btl_light_unk_c4(const sf_btl_light_t *light) {
+    return light ? light->unk_c4 : 0.0f;
+}
+
+float sf_btl_light_unk_c8(const sf_btl_light_t *light) {
+    return light ? light->unk_c8 : 0.0f;
+}
+
+float sf_btl_light_unk_cc(const sf_btl_light_t *light) {
+    return light ? light->unk_cc : 0.0f;
+}
+
+float sf_btl_light_unk_d0(const sf_btl_light_t *light) {
+    return light ? light->unk_d0 : 0.0f;
+}
+
+float sf_btl_light_unk_d4(const sf_btl_light_t *light) {
+    return light ? light->unk_d4 : 0.0f;
+}
+
+float sf_btl_light_unk_d8(const sf_btl_light_t *light) {
+    return light ? light->unk_d8 : 0.0f;
+}
+
+int32_t sf_btl_light_unk_dc(const sf_btl_light_t *light) {
+    return light ? light->unk_dc : 0;
+}
+
+float sf_btl_light_unk_e0(const sf_btl_light_t *light) {
+    return light ? light->unk_e0 : 0.0f;
+}
+
+int32_t sf_btl_light_unk_e4(const sf_btl_light_t *light) {
+    return light ? light->unk_e4 : 0;
 }

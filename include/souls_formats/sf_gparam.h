@@ -116,6 +116,12 @@ SF_API size_t sf_gparam_unk_param_extra_count(const sf_gparam_t *gparam);
 SF_API const sf_gparam_unk_param_extra_t *sf_gparam_get_unk_param_extra(const sf_gparam_t *gparam,
                                                                         size_t index);
 
+SF_API int32_t sf_gparam_unk_param_extra_get_unk00(const sf_gparam_unk_param_extra_t *extra);
+SF_API size_t sf_gparam_unk_param_extra_id_count(const sf_gparam_unk_param_extra_t *extra);
+SF_API int32_t sf_gparam_unk_param_extra_get_id(const sf_gparam_unk_param_extra_t *extra,
+                                                 size_t index);
+SF_API int32_t sf_gparam_unk_param_extra_get_unk0c(const sf_gparam_unk_param_extra_t *extra);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
