@@ -232,6 +232,8 @@ static sf_param_cell_kind_t cell_kind_for_field(sf_paramdef_def_type_t type,
     case SF_PARAMDEF_DEF_TYPE_U16: return SF_PARAM_CELL_KIND_U16;
     case SF_PARAMDEF_DEF_TYPE_S32: return SF_PARAM_CELL_KIND_S32;
     case SF_PARAMDEF_DEF_TYPE_U32: return SF_PARAM_CELL_KIND_U32;
+    case SF_PARAMDEF_DEF_TYPE_S64: return SF_PARAM_CELL_KIND_S64;
+    case SF_PARAMDEF_DEF_TYPE_U64: return SF_PARAM_CELL_KIND_U64;
     case SF_PARAMDEF_DEF_TYPE_B32: return SF_PARAM_CELL_KIND_B32;
     case SF_PARAMDEF_DEF_TYPE_F32: return SF_PARAM_CELL_KIND_F32;
     case SF_PARAMDEF_DEF_TYPE_ANGLE32: return SF_PARAM_CELL_KIND_ANGLE32;
@@ -270,12 +272,17 @@ static sf_result_t init_cell_from_layout(sf_param_cell_t *cell,
     memset(cell, 0, sizeof(*cell));
     const char *name = entry->field->internal_name ? entry->field->internal_name : "";
     cell->internal_name = (char *)name;
+    cell->alloc = alloc;
     cell->owns_internal_name = false;
 
     cell->display_type = entry->display_type;
     cell->bit_size = entry->declared_bit_size;
     cell->array_length = entry->array_length;
     cell->byte_count = entry->declared_byte_count;
+    cell->byte_offset = entry->byte_offset;
+    cell->bit_offset = entry->bit_offset;
+    cell->bit_limit = entry->bit_limit;
+    cell->is_bit_field = entry->is_bit_field;
     cell->value.kind = entry->cell_kind;
     return SF_OK;
 }
@@ -618,6 +625,12 @@ static sf_result_t read_nonbit_cell(sf_param_cell_t *cell, const uint8_t *data,
     case SF_PARAMDEF_DEF_TYPE_U32:
         cell->value.v.u32 = load_u32(p, big_endian);
         break;
+    case SF_PARAMDEF_DEF_TYPE_S64:
+        cell->value.v.s64 = (int64_t)load_u64(p, big_endian);
+        break;
+    case SF_PARAMDEF_DEF_TYPE_U64:
+        cell->value.v.u64 = load_u64(p, big_endian);
+        break;
     case SF_PARAMDEF_DEF_TYPE_DUMMY8:
         r = set_cell_bytes(cell, p, count, alloc);
         if (r != SF_OK) return r;
@@ -658,6 +671,8 @@ static sf_result_t populate_row_cells(sf_param_row_t *row, const sf_param_t *par
         sf_param_cell_t *cell = &cells[cell_count];
         r = init_cell_from_layout(cell, entry, param->alloc);
         if (r != SF_OK) goto fail;
+        cell->parent_param = param;
+        cell->parent_row = row;
 
         if (entry->is_bit_field) {
             r = read_layout_bit_cell(cell, entry, row->data, row->data_size,
@@ -919,6 +934,12 @@ static sf_result_t write_nonbit_cell(const sf_param_cell_t *cell, uint8_t *out,
         break;
     case SF_PARAMDEF_DEF_TYPE_U32:
         store_u32(p, cell->value.v.u32, big_endian);
+        break;
+    case SF_PARAMDEF_DEF_TYPE_S64:
+        store_u64(p, (uint64_t)cell->value.v.s64, big_endian);
+        break;
+    case SF_PARAMDEF_DEF_TYPE_U64:
+        store_u64(p, cell->value.v.u64, big_endian);
         break;
     case SF_PARAMDEF_DEF_TYPE_B32:
         store_u32(p, cell->value.v.b32, big_endian);

@@ -124,6 +124,8 @@ static bool sfi_parse_def_type(const char *name, size_t len,
         { "u16",     3, SF_PARAMDEF_DEF_TYPE_U16 },
         { "s32",     3, SF_PARAMDEF_DEF_TYPE_S32 },
         { "u32",     3, SF_PARAMDEF_DEF_TYPE_U32 },
+        { "s64",     3, SF_PARAMDEF_DEF_TYPE_S64 },
+        { "u64",     3, SF_PARAMDEF_DEF_TYPE_U64 },
         { "b32",     3, SF_PARAMDEF_DEF_TYPE_B32 },
         { "f32",     3, SF_PARAMDEF_DEF_TYPE_F32 },
         { "angle32", 7, SF_PARAMDEF_DEF_TYPE_ANGLE32 },
@@ -234,6 +236,8 @@ static sf_paramdef_default_value_t sfi_default_increment(sf_paramdef_def_type_t 
     case SF_PARAMDEF_DEF_TYPE_U16:
     case SF_PARAMDEF_DEF_TYPE_S32:
     case SF_PARAMDEF_DEF_TYPE_U32:
+    case SF_PARAMDEF_DEF_TYPE_S64:
+    case SF_PARAMDEF_DEF_TYPE_U64:
     case SF_PARAMDEF_DEF_TYPE_B32:
         v.v.s32 = 1; break;
     case SF_PARAMDEF_DEF_TYPE_F32:
@@ -280,6 +284,8 @@ static const char *sfi_def_type_name(sf_paramdef_def_type_t type) {
     case SF_PARAMDEF_DEF_TYPE_U16:     return "u16";
     case SF_PARAMDEF_DEF_TYPE_S32:     return "s32";
     case SF_PARAMDEF_DEF_TYPE_U32:     return "u32";
+    case SF_PARAMDEF_DEF_TYPE_S64:     return "s64";
+    case SF_PARAMDEF_DEF_TYPE_U64:     return "u64";
     case SF_PARAMDEF_DEF_TYPE_B32:     return "b32";
     case SF_PARAMDEF_DEF_TYPE_F32:     return "f32";
     case SF_PARAMDEF_DEF_TYPE_ANGLE32: return "angle32";
@@ -336,6 +342,8 @@ static sf_paramdef_default_value_t sfi_make_value_i32(sf_paramdef_def_type_t typ
     case SF_PARAMDEF_DEF_TYPE_U16: v.v.u16 = (uint16_t)value; break;
     case SF_PARAMDEF_DEF_TYPE_S32: v.v.s32 = value; break;
     case SF_PARAMDEF_DEF_TYPE_U32: v.v.u32 = (uint32_t)value; break;
+    case SF_PARAMDEF_DEF_TYPE_S64: v.v.s64 = value; break;
+    case SF_PARAMDEF_DEF_TYPE_U64: v.v.u64 = (uint32_t)value; break;
     case SF_PARAMDEF_DEF_TYPE_B32: v.v.b32 = (uint32_t)value; break;
     default: v.v.s32 = value; break;
     }
@@ -376,6 +384,8 @@ static sf_paramdef_default_value_t sfi_make_value_float_fallback(sf_paramdef_def
     case SF_PARAMDEF_DEF_TYPE_U16: v.v.u16 = (uint16_t)value; break;
     case SF_PARAMDEF_DEF_TYPE_S32: v.v.s32 = (int32_t)value; break;
     case SF_PARAMDEF_DEF_TYPE_U32: v.v.u32 = (uint32_t)value; break;
+    case SF_PARAMDEF_DEF_TYPE_S64: v.v.s64 = (int64_t)value; break;
+    case SF_PARAMDEF_DEF_TYPE_U64: v.v.u64 = (uint64_t)value; break;
     case SF_PARAMDEF_DEF_TYPE_B32: v.v.b32 = (uint32_t)value; break;
     case SF_PARAMDEF_DEF_TYPE_F32: v.v.f32 = value; break;
     case SF_PARAMDEF_DEF_TYPE_ANGLE32: v.v.angle32 = value; break;
@@ -396,6 +406,8 @@ static bool sfi_parse_typed_value(const char *text, sf_paramdef_def_type_t type,
         case SF_PARAMDEF_DEF_TYPE_U16:
         case SF_PARAMDEF_DEF_TYPE_S32:
         case SF_PARAMDEF_DEF_TYPE_U32:
+        case SF_PARAMDEF_DEF_TYPE_S64:
+        case SF_PARAMDEF_DEF_TYPE_U64:
         case SF_PARAMDEF_DEF_TYPE_B32: {
             int32_t v = 0;
             if (!sfi_parse_i32(text, &v)) return false;

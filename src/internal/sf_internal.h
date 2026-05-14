@@ -13,6 +13,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdarg.h>
 
 /*===========================================================================
  * Allocator helpers
@@ -74,6 +75,9 @@ const sf_allocator_t *sfi_istream_allocator(const sf_istream_t *s);
 const sf_allocator_t *sfi_ostream_allocator(const sf_ostream_t *s);
 sf_result_t sfi_ostream_to_array(const sf_ostream_t *s, const sf_allocator_t *a,
                                  uint8_t **out, size_t *out_size);
+
+void sfi_set_last_error_detail(const char *fmt, ...);
+void sfi_clear_last_error_detail(void);
 
 /*===========================================================================
  * Argument check macro — common path of returning SF_ERR_INVALID_ARG.

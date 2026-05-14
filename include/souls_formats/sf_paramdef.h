@@ -38,6 +38,8 @@ typedef enum sf_paramdef_def_type {
     SF_PARAMDEF_DEF_TYPE_U16,
     SF_PARAMDEF_DEF_TYPE_S32,
     SF_PARAMDEF_DEF_TYPE_U32,
+    SF_PARAMDEF_DEF_TYPE_S64,
+    SF_PARAMDEF_DEF_TYPE_U64,
     SF_PARAMDEF_DEF_TYPE_B32,
     SF_PARAMDEF_DEF_TYPE_F32,
     SF_PARAMDEF_DEF_TYPE_ANGLE32,
@@ -46,8 +48,8 @@ typedef enum sf_paramdef_def_type {
     SF_PARAMDEF_DEF_TYPE_FIXSTR,
     SF_PARAMDEF_DEF_TYPE_FIXSTR_W,
 } sf_paramdef_def_type_t;
-SF_PARAMDEF_STATIC_ASSERT(SF_PARAMDEF_DEF_TYPE_FIXSTR_W + 1 == 13,
-                          "DefType count must be 13");
+SF_PARAMDEF_STATIC_ASSERT(SF_PARAMDEF_DEF_TYPE_FIXSTR_W + 1 == 15,
+                          "DefType count must be 15");
 
 typedef enum sf_paramdef_edit_flags {
     SF_PARAMDEF_EDIT_FLAGS_NONE = 0,
@@ -77,6 +79,8 @@ typedef struct sf_paramdef_default_value {
         uint16_t u16;
         int32_t s32;
         uint32_t u32;
+        int64_t s64;
+        uint64_t u64;
         uint32_t b32;
         float f32;
         float angle32;
