@@ -643,9 +643,10 @@ static sf_result_t read_nonbit_cell(sf_param_cell_t *cell, const uint8_t *data,
     return SF_OK;
 }
 
-static sf_result_t populate_row_cells(sf_param_row_t *row, const sf_param_t *param,
-                                      const sf_paramdef_t *def) {
-    if (row->data_offset == 0) return SF_OK;
+sf_result_t sfi_param_apply_paramdef_to_row(sf_param_row_t *row,
+                                            const sf_param_t *param,
+                                            const sf_paramdef_t *def) {
+    if (row->data_offset == 0 && row->data_size == 0) return SF_OK;
     if (row->data_size > 0 && !row->data) return SF_ERR_INVALID_ARG;
 
     const sf_paramdef_field_layout_t *layout = NULL;
@@ -722,7 +723,7 @@ static bool data_version_matches_or_headerless(const sf_param_t *param,
 
 static sf_result_t populate_all_cells(sf_param_t *param, const sf_paramdef_t *def) {
     for (size_t i = 0; i < param->row_count; i++) {
-        sf_result_t r = populate_row_cells(&param->rows[i], param, def);
+        sf_result_t r = sfi_param_apply_paramdef_to_row(&param->rows[i], param, def);
         if (r != SF_OK) return r;
     }
     return SF_OK;
@@ -751,7 +752,9 @@ sf_result_t sf_param_apply_paramdef(sf_param_t *param, const sf_paramdef_t *para
         return SF_ERR_INVALID_ARG;
     }
 
-    return populate_all_cells(param, paramdef);
+    sf_result_t r = populate_all_cells(param, paramdef);
+    if (r == SF_OK) param->applied_paramdef = paramdef;
+    return r;
 }
 
 sf_result_t sf_param_apply_paramdef_multi(sf_param_t *param,

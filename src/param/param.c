@@ -780,6 +780,116 @@ sf_param_row_t *sf_param_find_row_by_id_mut(sf_param_t *param, int64_t id) {
     return (sf_param_row_t *)sf_param_find_row_by_id(param, (int32_t)id);
 }
 
+static sf_result_t checked_add_size(size_t a, size_t b, size_t *out) {
+    if (a > SIZE_MAX - b) return SF_ERR_OUT_OF_RANGE;
+    *out = a + b;
+    return SF_OK;
+}
+
+static void repair_cell_parent_links(sf_param_t *param) {
+    for (size_t i = 0; i < param->row_count; i++) {
+        sf_param_row_t *row = &param->rows[i];
+        for (size_t j = 0; j < row->cell_count; j++) {
+            row->cells[j].parent_param = param;
+            row->cells[j].parent_row = row;
+        }
+    }
+}
+
+SF_API sf_result_t sf_param_add_row_by_id(sf_param_t *param, int32_t id,
+                                          const char *name_optional,
+                                          sf_param_row_t **out_row) {
+    SF_CHECK_ARG(param != NULL && out_row != NULL);
+    *out_row = NULL;
+    if (!param->applied_paramdef) return SF_ERR_INVALID_STATE;
+
+    int32_t row_size_i32 = sf_paramdef_get_row_size(param->applied_paramdef);
+    if (row_size_i32 <= 0) return SF_ERR_INVALID_STATE;
+    size_t row_size = (size_t)row_size_i32;
+
+    size_t existing_data_size = 0;
+    for (size_t i = 0; i < param->row_count; i++) {
+        sf_result_t r = checked_add_size(existing_data_size, param->rows[i].data_size,
+                                         &existing_data_size);
+        if (r != SF_OK) return r;
+    }
+
+    size_t new_arena_size = 0;
+    sf_result_t r = checked_add_size(existing_data_size, row_size, &new_arena_size);
+    if (r != SF_OK) return r;
+    if (param->row_count > (SIZE_MAX / sizeof(*param->rows)) - 1u) return SF_ERR_OUT_OF_RANGE;
+
+    char *name_copy = NULL;
+    if (name_optional) {
+        name_copy = sf_strdup(param->alloc, name_optional);
+        if (!name_copy) return SF_ERR_OOM;
+    }
+
+    sf_param_row_t *new_rows = (sf_param_row_t *)sf_xalloc(
+        param->alloc, (param->row_count + 1u) * sizeof(*new_rows));
+    if (!new_rows) {
+        sf_xfree(param->alloc, name_copy);
+        return SF_ERR_OOM;
+    }
+    memset(new_rows, 0, (param->row_count + 1u) * sizeof(*new_rows));
+    if (param->row_count > 0) memcpy(new_rows, param->rows, param->row_count * sizeof(*new_rows));
+
+    uint8_t *new_arena = NULL;
+    if (new_arena_size > 0) {
+        new_arena = (uint8_t *)sf_xalloc(param->alloc, new_arena_size);
+        if (!new_arena) {
+            sf_xfree(param->alloc, new_rows);
+            sf_xfree(param->alloc, name_copy);
+            return SF_ERR_OOM;
+        }
+    }
+
+    uint8_t *cursor = new_arena;
+    for (size_t i = 0; i < param->row_count; i++) {
+        if (param->rows[i].data_size > 0) {
+            if (!param->rows[i].data) {
+                sf_xfree(param->alloc, new_arena);
+                sf_xfree(param->alloc, new_rows);
+                sf_xfree(param->alloc, name_copy);
+                return SF_ERR_INVALID_ARG;
+            }
+            memcpy(cursor, param->rows[i].data, param->rows[i].data_size);
+            new_rows[i].data = cursor;
+            cursor += param->rows[i].data_size;
+        } else {
+            new_rows[i].data = NULL;
+        }
+    }
+
+    sf_param_row_t *new_row = &new_rows[param->row_count];
+    new_row->id = id;
+    new_row->data_offset = (int64_t)existing_data_size;
+    new_row->data = new_arena ? new_arena + existing_data_size : NULL;
+    new_row->data_size = row_size;
+    new_row->name = name_copy;
+    if (new_row->data && row_size > 0) memset(new_row->data, 0, row_size);
+
+    bool rows_own_data = param->row_data_arena == NULL;
+    if (rows_own_data) {
+        for (size_t i = 0; i < param->row_count; i++) sf_xfree(param->alloc, param->rows[i].data);
+    } else {
+        sf_xfree(param->alloc, param->row_data_arena);
+    }
+    sf_xfree(param->alloc, param->rows);
+
+    param->rows = new_rows;
+    param->row_data_arena = new_arena;
+    param->row_data_arena_size = new_arena_size;
+    param->row_count++;
+    if (param->detected_size == -1) param->detected_size = (int64_t)row_size;
+    repair_cell_parent_links(param);
+
+    r = sfi_param_apply_paramdef_to_row(new_row, param, param->applied_paramdef);
+    if (r != SF_OK) return r;
+    *out_row = new_row;
+    return SF_OK;
+}
+
 int32_t sf_param_row_get_id(const sf_param_row_t *row) {
     return row ? row->id : 0;
 }

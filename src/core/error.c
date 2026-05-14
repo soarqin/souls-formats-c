@@ -29,6 +29,7 @@ static const char *const k_result_strings[] = {
     [SF_ERR_CRYPTO]               = "crypto error",
     [SF_ERR_NOT_FOUND]            = "entry not found",
     [SF_ERR_ALREADY_EXISTS]       = "entry already exists",
+    [SF_ERR_INVALID_STATE]        = "invalid state",
     [SF_ERR_INTERNAL]             = "internal error",
 };
 

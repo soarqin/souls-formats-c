@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.7.0] - 2026-05-14
+
+### Added
+- `sf_param_add_row_by_id()` public API.
+
 ## [0.6.0] - 2026-05-14
 
 ### Added

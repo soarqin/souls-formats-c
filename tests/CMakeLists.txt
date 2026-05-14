@@ -317,6 +317,7 @@ sf_add_test(souls_formats_test_esd_synthetic_rt script/test_esd_synthetic_rt.c "
 sf_add_test(souls_formats_test_paramdef_bitstream param/test_paramdef_bitstream.c "param")
 sf_add_test(souls_formats_test_param_binary_read param/test_param_binary_read.c "param")
 sf_add_test(souls_formats_test_param_binary_write param/test_param_binary_write.c "param")
+sf_add_test(souls_formats_test_param_add_row param/test_param_add_row.c "param")
 sf_add_test(souls_formats_test_param_apply_paramdef param/test_param_apply_paramdef.c "param")
 sf_add_test(souls_formats_test_param_setters_int param/test_param_setters_int.c "param")
 sf_add_test(souls_formats_test_param_setters_ext param/test_param_setters_ext.c "param")
@@ -366,6 +367,12 @@ target_compile_definitions(param_setters_e2e_er PRIVATE
     SF_E2E_OODLE_DIR=L"\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle"
     SF_E2E_PARAMDEX_DIR="${CMAKE_SOURCE_DIR}/../../dev/paramdex/ER/Defs")
 add_custom_target(souls_formats_test_param_setters_e2e_er DEPENDS param_setters_e2e_er)
+
+target_link_libraries(souls_formats_test_param_add_row PRIVATE souls_formats_e2e_helpers)
+target_compile_definitions(souls_formats_test_param_add_row PRIVATE
+    SF_E2E_ELDEN_RING_DIR=L"C:/Games/ELDEN RING"
+    SF_E2E_OODLE_DIR=L"\\\\wsl.localhost\\Ubuntu\\home\\soar\\dev\\oodle"
+    SF_E2E_ITEM_LOT_PARAMDEF="${CMAKE_SOURCE_DIR}/../../external/paramdefs/ItemLotParam.xml")
 
 sf_add_test(emevd_mutation_e2e_er script/test_emevd_mutation_e2e_er.c "script")
 target_link_libraries(emevd_mutation_e2e_er PRIVATE souls_formats_e2e_helpers)

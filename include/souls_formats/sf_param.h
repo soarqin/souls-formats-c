@@ -142,6 +142,25 @@ SF_API const sf_param_row_t *sf_param_find_row_by_id(const sf_param_t *param, in
 SF_API sf_param_row_t *sf_param_get_row_mut(sf_param_t *param, size_t index);
 SF_API sf_param_row_t *sf_param_find_row_by_id_mut(sf_param_t *param, int64_t id);
 
+/**
+ * Append a new row with the given id to the PARAM, and apply the previously-attached
+ * paramdef to it so its cells become writable. Returns the new row pointer in *out_row.
+ *
+ * The new row is allocated using the PARAM's allocator. It is appended to the rows array
+ * (at index row_count-1 after a row_count++). The row's data buffer is zeroed initially.
+ * After this call, sf_param_row_find_cell_mut() works on the new row identically to
+ * existing rows.
+ *
+ * Requires: sf_param_apply_paramdef() has been called on this PARAM. If not applied,
+ * returns SF_ERR_INVALID_STATE.
+ *
+ * If row with same id already exists, the new row is still appended (PARAM tolerates
+ * duplicates per upstream C# behavior).
+ */
+SF_API sf_result_t sf_param_add_row_by_id(sf_param_t *param, int32_t id,
+                                          const char *name_optional,
+                                          sf_param_row_t **out_row);
+
 SF_API int32_t sf_param_row_get_id(const sf_param_row_t *row);
 SF_API const char *sf_param_row_get_name(const sf_param_row_t *row);
 SF_API size_t sf_param_row_get_cell_count(const sf_param_row_t *row);

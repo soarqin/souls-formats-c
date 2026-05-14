@@ -55,6 +55,7 @@ struct sf_param {
     size_t row_data_arena_size;
 
     char *param_type;
+    const sf_paramdef_t *applied_paramdef;
 
     bool big_endian;
     bool headerless_rows;
@@ -67,6 +68,10 @@ struct sf_param {
 };
 
 void sfi_param_row_clear_cells(sf_param_row_t *row, const sf_allocator_t *alloc);
+
+sf_result_t sfi_param_apply_paramdef_to_row(sf_param_row_t *row,
+                                            const sf_param_t *param,
+                                            const sf_paramdef_t *paramdef);
 
 sf_result_t sfi_param_row_cells_to_bytes(const sf_param_t *param,
                                          const sf_param_row_t *row,

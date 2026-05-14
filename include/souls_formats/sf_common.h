@@ -62,6 +62,7 @@ typedef enum sf_result {
     SF_ERR_CRYPTO,
     SF_ERR_NOT_FOUND,
     SF_ERR_ALREADY_EXISTS,
+    SF_ERR_INVALID_STATE,
     SF_ERR_INTERNAL,
     /* Sentinel — must remain the last entry. */
     SF_RESULT_COUNT_

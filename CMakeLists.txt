@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(souls_formats_c
-    VERSION 0.6.0
+    VERSION 0.7.0
     DESCRIPTION "Pure C library for FromSoftware game file formats"
     HOMEPAGE_URL "https://github.com/soar/souls-formats-c"
     LANGUAGES C)
@@ -443,7 +443,7 @@ target_compile_definitions(souls_formats_shared
     PRIVATE SF_BUILD_DLL
 )
 
-if(MSVC)
+if(MSVC OR CMAKE_IMPORT_LIBRARY_SUFFIX STREQUAL ".lib")
     set_target_properties(souls_formats_static PROPERTIES
         OUTPUT_NAME souls_formats_static)
 endif()
