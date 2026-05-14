@@ -853,9 +853,21 @@ static sf_result_t sfi_paramdef_from_tree(mxml_node_t *tree, sf_paramdef_t **out
             sfi_paramdef_free(def);
             return r;
         }
-        def->row_size += def->fields[i].byte_count;
+        /* Track whether any field carries FirstVersion/RemovedVersion
+         * attributes. C# Paramdef.VersionAware is set when ANY field is
+         * gated on a regulation version; row_size and apply both consult
+         * it to skip removed fields under ulong.MaxValue. The XML reader
+         * never set this flag previously, so removed fields were silently
+         * counted toward row_size, producing 673/178/324/468 sizes that
+         * disagreed with the C# ApplyParamdefCarefully expectation of
+         * 664/176/320/456. */
+        if (def->fields[i].first_regulation_version != 0 ||
+            def->fields[i].removed_regulation_version != 0) {
+            def->version_aware = true;
+        }
         i++;
     }
+    def->row_size = sf_paramdef_internal_compute_row_size(def);
 
     *out = def;
     return SF_OK;

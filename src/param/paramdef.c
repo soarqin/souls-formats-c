@@ -642,8 +642,8 @@ static sf_result_t paramdef_read(sf_binary_reader_t *br, sf_paramdef_t **out,
     for (size_t i = 0; i < def->field_count; i++) {
         r = read_field(br, def, &def->fields[i]);
         if (r != SF_OK) goto fail;
-        def->row_size += def->fields[i].byte_count;
     }
+    def->row_size = sf_paramdef_internal_compute_row_size(def);
 
     *out = def;
     return SF_OK;
@@ -1067,6 +1067,69 @@ const sf_paramdef_field_t *sf_paramdef_get_field(const sf_paramdef_t *paramdef, 
 
 int32_t sf_paramdef_get_row_size(const sf_paramdef_t *paramdef) {
     return paramdef ? paramdef->row_size : 0;
+}
+
+int32_t sf_paramdef_internal_compute_row_size(const sf_paramdef_t *def) {
+    if (!def || def->field_count == 0) return 0;
+
+    int32_t size = 0;
+    size_t field_count = def->field_count;
+    for (size_t i = 0; i < field_count; i++) {
+        const sf_paramdef_field_t *field = &def->fields[i];
+
+        /* Mirrors C# Field.IsValidForRegulationVersion(ulong.MaxValue):
+         * for version-aware defs, a field with a non-zero
+         * removed_regulation_version has already been removed and must not
+         * contribute to the row size. */
+        if (def->version_aware && field->removed_regulation_version != 0) continue;
+
+        sf_paramdef_def_type_t type = field->display_type;
+        size_t value_size = sf_param_util_get_value_size(type);
+        if (is_array_type(type)) {
+            int32_t len = field->array_length > 0 ? field->array_length : 0;
+            size += (int32_t)value_size * len;
+        } else {
+            size += (int32_t)value_size;
+        }
+
+        /* If this is a sized bit field, fold subsequent bit fields that pack
+         * into the same byte window (same bit-limit type, total <= bit limit).
+         * They share the byte we just counted, so skip them.
+         *
+         * Crucially the C# upstream XmlDeserialize defaults `versionAware=false`,
+         * which drops every RemovedVersion field at parse time. The C port
+         * retains the full field list for round-trip fidelity, so the fold
+         * walk has to skip those removed slots inline; otherwise a removed
+         * bitfield would consume bit budget and force the next valid bitfield
+         * into a new byte, over-counting the row size (EquipParamWeapon 665 vs
+         * upstream 664, EquipParamGoods 177 vs upstream 176). */
+        if (sf_param_util_is_bit_type(type) && field->bit_size != -1) {
+            int bit_offset = field->bit_size;
+            int bit_limit = sf_param_util_get_bit_limit(type);
+
+            for (;;) {
+                size_t next_idx = i + 1;
+                while (next_idx < field_count) {
+                    const sf_paramdef_field_t *probe = &def->fields[next_idx];
+                    if (!(def->version_aware && probe->removed_regulation_version != 0)) break;
+                    next_idx++;
+                }
+                if (next_idx >= field_count) break;
+
+                const sf_paramdef_field_t *next = &def->fields[next_idx];
+                sf_paramdef_def_type_t next_type = next->display_type;
+                if (!sf_param_util_is_bit_type(next_type) ||
+                    next->bit_size == -1 ||
+                    sf_param_util_get_bit_limit(next_type) != bit_limit ||
+                    bit_offset + next->bit_size > bit_limit) {
+                    break;
+                }
+                bit_offset += next->bit_size;
+                i = next_idx; /* advance outer i past the consumed field */
+            }
+        }
+    }
+    return size;
 }
 
 int32_t sf_paramdef_get_index(const sf_paramdef_t *paramdef) {

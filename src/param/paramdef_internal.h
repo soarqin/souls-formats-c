@@ -78,4 +78,17 @@ struct sf_paramdef {
     sf_paramdef_field_layout_t *layout_cache;
 };
 
+/* Compute paramdef row size with the same semantics as
+ * SoulsFormatsNEXT/PARAMDEF.cs `GetFieldsSize(field_count, ulong.MaxValue)`:
+ *  - For version-aware defs, skip fields whose removed_regulation_version != 0
+ *    (a field that has been removed is invalid when reading with MaxValue).
+ *  - Fold runs of consecutive sized bit fields that share a byte window so the
+ *    second/third/... bit field in the same byte does not double-count.
+ * The previous implementation summed every field's `byte_count`, which
+ * over-counted bitfields and produced row sizes that disagreed with both the
+ * binary PARAM's detected row stride and the upstream C# reference.
+ * Defined in paramdef.c; declared here so both binary and XML readers can
+ * call it after parsing all fields. */
+int32_t sf_paramdef_internal_compute_row_size(const sf_paramdef_t *def);
+
 #endif /* SF_PARAMDEF_INTERNAL_H */
