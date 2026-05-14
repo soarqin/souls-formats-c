@@ -341,7 +341,7 @@ SF_API void sf_gparam_destroy(sf_gparam_t *gparam)
                 }
                 sf_xfree(a, p->fields);
             }
-            sf_xfree(a, p->comments);
+            sf_xfree(a, (void *)p->comments);
         }
         sf_xfree(a, gparam->params);
     }
@@ -770,7 +770,7 @@ SF_API sf_result_t sf_gparam_read_from_memory(sf_gparam_t **out, const void *byt
         param->comments = (const char **)sf_xalloc(
             alloc, comment_count * sizeof(*param->comments));
         if (!param->comments) { e = SF_ERR_OOM; goto cleanup; }
-        memset(param->comments, 0, comment_count * sizeof(*param->comments));
+        memset((void *)param->comments, 0, comment_count * sizeof(*param->comments));
 
         for (size_t ci = 0; ci < comment_count; ci++) {
             int64_t com_off = base.comments + (int64_t)comment_offsets_tmp[ci];
