@@ -570,6 +570,49 @@ const sf_emevd_event_t *sf_emevd_get_event(const sf_emevd_t *emevd, size_t index
     return &emevd->events[index];
 }
 
+sf_result_t sf_emevd_event_find_by_id(sf_emevd_t *emevd, int64_t event_id,
+                                      sf_emevd_event_t **out) {
+    SF_CHECK_ARG(emevd != NULL && out != NULL);
+    *out = NULL;
+    for (size_t i = 0; i < emevd->event_count; i++) {
+        if (emevd->events[i].id == event_id) {
+            *out = &emevd->events[i];
+            return SF_OK;
+        }
+    }
+    return SF_ERR_NOT_FOUND;
+}
+
+sf_result_t sf_emevd_add_event(sf_emevd_t *emevd, int64_t event_id,
+                               sf_emevd_rest_behavior_t rest, sf_emevd_event_t **out) {
+    SF_CHECK_ARG(emevd != NULL && out != NULL);
+    *out = NULL;
+    if (rest < SF_EMEVD_REST_BEHAVIOR_DEFAULT || rest > SF_EMEVD_REST_BEHAVIOR_END) {
+        return SF_ERR_INVALID_ARG;
+    }
+    for (size_t i = 0; i < emevd->event_count; i++) {
+        if (emevd->events[i].id == event_id) return SF_ERR_ALREADY_EXISTS;
+    }
+    if (emevd->event_count == SIZE_MAX) return SF_ERR_OUT_OF_RANGE;
+    if (emevd->event_count > SIZE_MAX / sizeof(*emevd->events) - 1) {
+        return SF_ERR_OUT_OF_RANGE;
+    }
+    size_t old_bytes = emevd->event_count * sizeof(*emevd->events);
+    size_t new_bytes = (emevd->event_count + 1) * sizeof(*emevd->events);
+    sf_emevd_event_t *events = (sf_emevd_event_t *)sf_xrealloc(emevd->alloc, emevd->events,
+                                                               old_bytes, new_bytes);
+    if (!events) return SF_ERR_OOM;
+    emevd->events = events;
+    sf_emevd_event_t *event = &emevd->events[emevd->event_count];
+    memset(event, 0, sizeof(*event));
+    event->alloc = emevd->alloc;
+    event->id = event_id;
+    event->rest_behavior = rest;
+    emevd->event_count++;
+    *out = event;
+    return SF_OK;
+}
+
 size_t sf_emevd_get_linked_file_count(const sf_emevd_t *emevd) {
     return emevd ? emevd->linked_file_count : 0;
 }

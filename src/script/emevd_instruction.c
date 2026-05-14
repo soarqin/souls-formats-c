@@ -72,11 +72,22 @@ int32_t sf_emevd_instruction_get_id(const sf_emevd_instruction_t *instr) {
 }
 
 sf_result_t sf_emevd_instruction_get_arg_data(const sf_emevd_instruction_t *instr,
-                                             const uint8_t **out_data, size_t *out_size) {
+                                              const uint8_t **out_data, size_t *out_size) {
     SF_CHECK_ARG(out_data != NULL && out_size != NULL);
     *out_data = instr ? instr->arg_data : NULL;
     *out_size = instr ? instr->arg_data_size : 0;
     return instr ? SF_OK : SF_ERR_INVALID_ARG;
+}
+
+sf_result_t sf_emevd_instruction_set_arg_data(sf_emevd_instruction_t *instr,
+                                             const uint8_t *data, size_t size) {
+    SF_CHECK_ARG(instr != NULL && (size == 0 || data != NULL));
+    if (size != instr->arg_data_size) return SF_ERR_INVALID_ARG;
+    if (size > 0) {
+        if (!instr->arg_data) return SF_ERR_INVALID_ARG;
+        memcpy(instr->arg_data, data, size);
+    }
+    return SF_OK;
 }
 
 const sf_emevd_layer_t *sf_emevd_instruction_get_layer(const sf_emevd_instruction_t *instr) {
