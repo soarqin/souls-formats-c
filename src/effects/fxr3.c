@@ -595,7 +595,7 @@ typedef struct fxr3_vec {
 
 static void vec_free(fxr3_vec_t *v) {
     if (!v) return;
-    sf_xfree(v->alloc, v->items);
+    sf_xfree(v->alloc, (void *)v->items);
     v->items = NULL;
     v->count = 0;
     v->capacity = 0;

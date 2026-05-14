@@ -44,7 +44,7 @@ ctest --test-dir build-mingw --output-on-failure
 ### Windows + MSVC (release / canonical)
 
 ```powershell
-# In a VS 2022 Developer PowerShell:
+# In a VS 2019 (or later) Developer PowerShell:
 cmake -B build-msvc -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build-msvc
 ctest --test-dir build-msvc --output-on-failure
