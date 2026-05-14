@@ -44,6 +44,7 @@ sf_result_t sfi_emevd_event_read(sf_binary_reader_t *br, sf_emevd_format_t forma
                                  sf_emevd_event_t *out, const sf_allocator_t *alloc) {
     SF_CHECK_ARG(br != NULL && offsets != NULL && out != NULL);
     memset(out, 0, sizeof(*out));
+    out->alloc = sf_alloc_or_default(alloc);
 
     int64_t instruction_count_i64 = 0;
     int64_t instruction_offset = 0;
@@ -116,9 +117,130 @@ size_t sf_emevd_event_get_instruction_count(const sf_emevd_event_t *event) {
 }
 
 const sf_emevd_instruction_t *sf_emevd_event_get_instruction(const sf_emevd_event_t *event,
-                                                            size_t index) {
+                                                             size_t index) {
     if (!event || index >= event->instruction_count) return NULL;
     return &event->instructions[index];
+}
+
+static sf_result_t emevd_mul_count(size_t count, size_t elem_size, size_t *out) {
+    SF_CHECK_ARG(out != NULL && elem_size > 0);
+    if (count > SIZE_MAX / elem_size) return SF_ERR_OUT_OF_RANGE;
+    *out = count * elem_size;
+    return SF_OK;
+}
+
+static sf_result_t emevd_instruction_init(sf_emevd_instruction_t *instr,
+                                          const sf_allocator_t *alloc,
+                                          int32_t bank, int32_t id,
+                                          const uint8_t *arg_data, size_t arg_size) {
+    SF_CHECK_ARG(instr != NULL && (arg_size == 0 || arg_data != NULL));
+    memset(instr, 0, sizeof(*instr));
+    instr->bank = bank;
+    instr->id = id;
+    instr->arg_data_size = arg_size;
+    if (arg_size > 0) {
+        instr->arg_data = (uint8_t *)sf_xalloc(alloc, arg_size);
+        if (!instr->arg_data) {
+            memset(instr, 0, sizeof(*instr));
+            return SF_ERR_OOM;
+        }
+        memcpy(instr->arg_data, arg_data, arg_size);
+    }
+    return SF_OK;
+}
+
+static void emevd_shift_parameter_indices_after_insert(sf_emevd_event_t *event,
+                                                       size_t at_index) {
+    for (size_t i = 0; i < event->parameter_count; i++) {
+        if (event->parameters[i].instruction_index >= 0 &&
+            (uint64_t)event->parameters[i].instruction_index >= (uint64_t)at_index) {
+            event->parameters[i].instruction_index++;
+        }
+    }
+}
+
+sf_result_t sf_emevd_event_insert_instruction(sf_emevd_event_t *event, size_t at_index,
+                                             int32_t bank, int32_t id,
+                                             const uint8_t *arg_data, size_t arg_size) {
+    SF_CHECK_ARG(event != NULL && at_index <= event->instruction_count &&
+                 (arg_size == 0 || arg_data != NULL));
+    if (event->instruction_count == SIZE_MAX) return SF_ERR_OUT_OF_RANGE;
+    size_t old_bytes = 0;
+    size_t new_bytes = 0;
+    sf_result_t r = emevd_mul_count(event->instruction_count, sizeof(*event->instructions),
+                                    &old_bytes);
+    if (r != SF_OK) return r;
+    r = emevd_mul_count(event->instruction_count + 1, sizeof(*event->instructions),
+                        &new_bytes);
+    if (r != SF_OK) return r;
+    const sf_allocator_t *alloc = sf_alloc_or_default(event->alloc);
+    sf_emevd_instruction_t *instructions = (sf_emevd_instruction_t *)sf_xrealloc(
+        alloc, event->instructions, old_bytes, new_bytes);
+    if (!instructions) return SF_ERR_OOM;
+    event->instructions = instructions;
+    if (at_index < event->instruction_count) {
+        memmove(&event->instructions[at_index + 1], &event->instructions[at_index],
+                (event->instruction_count - at_index) * sizeof(*event->instructions));
+    }
+    memset(&event->instructions[at_index], 0, sizeof(event->instructions[at_index]));
+    r = emevd_instruction_init(&event->instructions[at_index], alloc, bank, id, arg_data,
+                               arg_size);
+    if (r != SF_OK) {
+        if (at_index < event->instruction_count) {
+            memmove(&event->instructions[at_index], &event->instructions[at_index + 1],
+                    (event->instruction_count - at_index) * sizeof(*event->instructions));
+        }
+        (void)memset(&event->instructions[event->instruction_count], 0,
+                     sizeof(event->instructions[event->instruction_count]));
+        return r;
+    }
+    event->instruction_count++;
+    emevd_shift_parameter_indices_after_insert(event, at_index);
+    return SF_OK;
+}
+
+sf_result_t sf_emevd_event_replace_instruction(sf_emevd_event_t *event, size_t at_index,
+                                              int32_t bank, int32_t id,
+                                              const uint8_t *arg_data, size_t arg_size) {
+    SF_CHECK_ARG(event != NULL && at_index < event->instruction_count &&
+                 (arg_size == 0 || arg_data != NULL));
+    const sf_allocator_t *alloc = sf_alloc_or_default(event->alloc);
+    sf_emevd_instruction_t replacement;
+    sf_result_t r = emevd_instruction_init(&replacement, alloc, bank, id, arg_data, arg_size);
+    if (r != SF_OK) return r;
+    sf_xfree(alloc, event->instructions[at_index].arg_data);
+    event->instructions[at_index] = replacement;
+    return SF_OK;
+}
+
+sf_result_t sf_emevd_event_remove_instruction_at(sf_emevd_event_t *event, size_t at_index) {
+    SF_CHECK_ARG(event != NULL && at_index < event->instruction_count);
+    const sf_allocator_t *alloc = sf_alloc_or_default(event->alloc);
+    sf_xfree(alloc, event->instructions[at_index].arg_data);
+    if (at_index + 1 < event->instruction_count) {
+        memmove(&event->instructions[at_index], &event->instructions[at_index + 1],
+                (event->instruction_count - at_index - 1) * sizeof(*event->instructions));
+    }
+    event->instruction_count--;
+    if (event->instruction_count > 0) {
+        memset(&event->instructions[event->instruction_count], 0,
+               sizeof(event->instructions[event->instruction_count]));
+    }
+    size_t write = 0;
+    for (size_t read = 0; read < event->parameter_count; read++) {
+        sf_emevd_parameter_t param = event->parameters[read];
+        if (param.instruction_index >= 0 &&
+            (uint64_t)param.instruction_index == (uint64_t)at_index) {
+            continue;
+        }
+        if (param.instruction_index >= 0 &&
+            (uint64_t)param.instruction_index > (uint64_t)at_index) {
+            param.instruction_index--;
+        }
+        event->parameters[write++] = param;
+    }
+    event->parameter_count = write;
+    return SF_OK;
 }
 
 size_t sf_emevd_event_get_parameter_count(const sf_emevd_event_t *event) {

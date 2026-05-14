@@ -93,6 +93,19 @@ SF_API void sf_emevd_destroy(sf_emevd_t *emevd, const sf_allocator_t *alloc);
 SF_API sf_emevd_format_t sf_emevd_get_format(const sf_emevd_t *emevd);
 SF_API size_t sf_emevd_get_event_count(const sf_emevd_t *emevd);
 SF_API const sf_emevd_event_t *sf_emevd_get_event(const sf_emevd_t *emevd, size_t index);
+/* Mutation ownership notes:
+ * - sf_emevd_event_find_by_id() and sf_emevd_add_event() return borrowed event pointers;
+ *   their lifetime is owned by the parent sf_emevd_t and ends at sf_emevd_destroy().
+ * - Instruction insertion/replacement deep-copies arg_data; callers retain ownership of the
+ *   input buffer and may release or reuse it immediately after the call.
+ * - Writers recompute event, instruction, parameter, layer, argument, and string offsets from
+ *   the current in-memory graph when serializing.
+ */
+SF_API sf_result_t sf_emevd_event_find_by_id(sf_emevd_t *emevd, int64_t event_id,
+                                            sf_emevd_event_t **out);
+SF_API sf_result_t sf_emevd_add_event(sf_emevd_t *emevd, int64_t event_id,
+                                      sf_emevd_rest_behavior_t rest,
+                                      sf_emevd_event_t **out);
 SF_API size_t sf_emevd_get_linked_file_count(const sf_emevd_t *emevd);
 SF_API int64_t sf_emevd_get_linked_file_offset(const sf_emevd_t *emevd, size_t index);
 SF_API const uint8_t *sf_emevd_get_string_data(const sf_emevd_t *emevd);
@@ -104,15 +117,30 @@ SF_API sf_emevd_rest_behavior_t sf_emevd_event_get_rest_behavior(
 SF_API size_t sf_emevd_event_get_instruction_count(const sf_emevd_event_t *event);
 SF_API const sf_emevd_instruction_t *sf_emevd_event_get_instruction(
     const sf_emevd_event_t *event, size_t index);
+SF_API sf_result_t sf_emevd_event_insert_instruction(sf_emevd_event_t *event, size_t at_index,
+                                                     int32_t bank, int32_t id,
+                                                     const uint8_t *arg_data,
+                                                     size_t arg_size);
+SF_API sf_result_t sf_emevd_event_replace_instruction(sf_emevd_event_t *event, size_t at_index,
+                                                      int32_t bank, int32_t id,
+                                                      const uint8_t *arg_data,
+                                                      size_t arg_size);
+SF_API sf_result_t sf_emevd_event_remove_instruction_at(sf_emevd_event_t *event,
+                                                        size_t at_index);
 SF_API size_t sf_emevd_event_get_parameter_count(const sf_emevd_event_t *event);
 SF_API const sf_emevd_parameter_t *sf_emevd_event_get_parameter(const sf_emevd_event_t *event,
                                                                 size_t index);
+SF_API sf_result_t sf_emevd_event_clear_parameters(sf_emevd_event_t *event);
+SF_API sf_result_t sf_emevd_event_remove_parameter_at(sf_emevd_event_t *event,
+                                                      size_t at_index);
 
 SF_API int32_t sf_emevd_instruction_get_bank(const sf_emevd_instruction_t *instr);
 SF_API int32_t sf_emevd_instruction_get_id(const sf_emevd_instruction_t *instr);
 SF_API sf_result_t sf_emevd_instruction_get_arg_data(const sf_emevd_instruction_t *instr,
                                                      const uint8_t **out_data,
                                                      size_t *out_size);
+SF_API sf_result_t sf_emevd_instruction_set_arg_data(sf_emevd_instruction_t *instr,
+                                                     const uint8_t *data, size_t size);
 SF_API const sf_emevd_layer_t *sf_emevd_instruction_get_layer(
     const sf_emevd_instruction_t *instr);
 

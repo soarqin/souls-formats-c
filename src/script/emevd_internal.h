@@ -45,6 +45,7 @@ struct sf_emevd_instruction {
 };
 
 struct sf_emevd_event {
+    const sf_allocator_t *alloc;
     int64_t id;
     sf_emevd_rest_behavior_t rest_behavior;
     sf_emevd_instruction_t *instructions;

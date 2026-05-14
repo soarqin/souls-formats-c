@@ -36,6 +36,28 @@ int32_t sf_emevd_parameter_get_unk_id(const sf_emevd_parameter_t *parameter) {
     return parameter ? parameter->unk_id : 0;
 }
 
+sf_result_t sf_emevd_event_clear_parameters(sf_emevd_event_t *event) {
+    SF_CHECK_ARG(event != NULL);
+    sf_xfree(event->alloc, event->parameters);
+    event->parameters = NULL;
+    event->parameter_count = 0;
+    return SF_OK;
+}
+
+sf_result_t sf_emevd_event_remove_parameter_at(sf_emevd_event_t *event, size_t at_index) {
+    SF_CHECK_ARG(event != NULL && at_index < event->parameter_count);
+    if (at_index + 1 < event->parameter_count) {
+        memmove(&event->parameters[at_index], &event->parameters[at_index + 1],
+                (event->parameter_count - at_index - 1) * sizeof(*event->parameters));
+    }
+    event->parameter_count--;
+    if (event->parameter_count > 0) {
+        memset(&event->parameters[event->parameter_count], 0,
+               sizeof(event->parameters[event->parameter_count]));
+    }
+    return SF_OK;
+}
+
 sf_result_t sfi_emevd_parameter_write(sf_binary_writer_t *bw,
                                       const sf_emevd_parameter_t *parameter) {
     SF_CHECK_ARG(bw != NULL && parameter != NULL);
