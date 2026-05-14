@@ -6,9 +6,12 @@
 
 #include "souls_formats/sf_common.h"
 #include "souls_formats/sf_io.h"
+#include "internal/sf_internal.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 /*  Keep this table in lock-step with sf_result_t in sf_common.h.
  *  Build-time assert below catches drift. */
@@ -41,10 +44,30 @@ const char *sf_result_str(sf_result_t r) {
     return s ? s : "(unknown sf_result_t)";
 }
 
-/*  Thread-local detail buffer. Phase 0: read-only stub returning NULL.
- *  Phase 1 will add internal `sf_set_last_error_detail(fmt, ...)`. */
+#if defined(_MSC_VER)
+__declspec(thread) static char g_last_error_detail[256];
+#else
+static _Thread_local char g_last_error_detail[256];
+#endif
+
+void sfi_set_last_error_detail(const char *fmt, ...) {
+    if (!fmt) {
+        g_last_error_detail[0] = '\0';
+        return;
+    }
+    va_list ap;
+    va_start(ap, fmt);
+    (void)vsnprintf(g_last_error_detail, sizeof(g_last_error_detail), fmt, ap);
+    va_end(ap);
+    g_last_error_detail[sizeof(g_last_error_detail) - 1] = '\0';
+}
+
+void sfi_clear_last_error_detail(void) {
+    g_last_error_detail[0] = '\0';
+}
+
 const char *sf_last_error_detail(void) {
-    return NULL;
+    return g_last_error_detail[0] ? g_last_error_detail : NULL;
 }
 
 /*  Default allocator: malloc / realloc / free. */

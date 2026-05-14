@@ -771,6 +771,15 @@ const sf_param_row_t *sf_param_find_row_by_id(const sf_param_t *param, int32_t i
     return NULL;
 }
 
+sf_param_row_t *sf_param_get_row_mut(sf_param_t *param, size_t index) {
+    return (sf_param_row_t *)sf_param_get_row(param, index);
+}
+
+sf_param_row_t *sf_param_find_row_by_id_mut(sf_param_t *param, int64_t id) {
+    if (!param || id < INT32_MIN || id > INT32_MAX) return NULL;
+    return (sf_param_row_t *)sf_param_find_row_by_id(param, (int32_t)id);
+}
+
 int32_t sf_param_row_get_id(const sf_param_row_t *row) {
     return row ? row->id : 0;
 }
@@ -796,6 +805,15 @@ const sf_param_cell_t *sf_param_row_find_cell(const sf_param_row_t *row,
         if (strcmp(name, internal_name) == 0) return &row->cells[i];
     }
     return NULL;
+}
+
+sf_param_cell_t *sf_param_row_get_cell_mut(sf_param_row_t *row, size_t index) {
+    return (sf_param_cell_t *)sf_param_row_get_cell(row, index);
+}
+
+sf_param_cell_t *sf_param_row_find_cell_mut(sf_param_row_t *row,
+                                            const char *internal_name) {
+    return (sf_param_cell_t *)sf_param_row_find_cell(row, internal_name);
 }
 
 sf_param_cell_value_t sf_param_cell_get_value(const sf_param_cell_t *cell) {
@@ -837,6 +855,22 @@ uint32_t sf_param_cell_get_b32(const sf_param_cell_t *cell) {
     return (cell && cell->value.kind == SF_PARAM_CELL_KIND_B32) ? cell->value.v.b32 : 0;
 }
 
+static const sf_allocator_t *cell_alloc(const sf_param_cell_t *cell) {
+    return (cell && cell->alloc) ? cell->alloc : NULL;
+}
+
+static size_t cell_declared_size(const sf_param_cell_t *cell) {
+    if (!cell) return 0;
+    if (cell->byte_count > 0) return (size_t)cell->byte_count;
+    if (cell->array_length > 0) return (size_t)cell->array_length;
+    return 0;
+}
+
+static sf_result_t reject_cell_kind(sf_param_cell_t *cell, const char *setter_name);
+static sf_result_t check_cell_backing(sf_param_cell_t *cell, size_t bytes_needed);
+static sf_result_t write_cell_backing(sf_param_cell_t *cell, uint64_t value,
+                                      size_t byte_count);
+
 float sf_param_cell_get_f32(const sf_param_cell_t *cell) {
     return (cell && cell->value.kind == SF_PARAM_CELL_KIND_F32) ? cell->value.v.f32 : 0.0f;
 }
@@ -873,4 +907,324 @@ const char *sf_param_cell_get_string(const sf_param_cell_t *cell) {
 
 bool sf_param_cell_get_bool(const sf_param_cell_t *cell) {
     return cell && cell->value.kind == SF_PARAM_CELL_KIND_B32 && cell->value.v.b32 != 0;
+}
+
+sf_result_t sf_param_cell_set_s64(sf_param_cell_t *cell, int64_t value) {
+    if (!cell) {
+        sfi_set_last_error_detail("sf_param_cell_set_s64 requires a non-NULL cell");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_S64) return reject_cell_kind(cell, "s64");
+    sf_result_t r = write_cell_backing(cell, (uint64_t)value, 8);
+    if (r != SF_OK) return r;
+    cell->value.v.s64 = value;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_u64(sf_param_cell_t *cell, uint64_t value) {
+    if (!cell) {
+        sfi_set_last_error_detail("sf_param_cell_set_u64 requires a non-NULL cell");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_U64) return reject_cell_kind(cell, "u64");
+    sf_result_t r = write_cell_backing(cell, value, 8);
+    if (r != SF_OK) return r;
+    cell->value.v.u64 = value;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_f32(sf_param_cell_t *cell, float value) {
+    if (!cell) {
+        sfi_set_last_error_detail("sf_param_cell_set_f32 requires a non-NULL cell");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_F32) return reject_cell_kind(cell, "f32");
+    uint32_t raw = 0;
+    memcpy(&raw, &value, sizeof(raw));
+    sf_result_t r = write_cell_backing(cell, raw, 4);
+    if (r != SF_OK) return r;
+    cell->value.v.f32 = value;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_f64(sf_param_cell_t *cell, double value) {
+    if (!cell) {
+        sfi_set_last_error_detail("sf_param_cell_set_f64 requires a non-NULL cell");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_F64) return reject_cell_kind(cell, "f64");
+    uint64_t raw = 0;
+    memcpy(&raw, &value, sizeof(raw));
+    sf_result_t r = write_cell_backing(cell, raw, 8);
+    if (r != SF_OK) return r;
+    cell->value.v.f64 = value;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_bool(sf_param_cell_t *cell, bool value) {
+    if (!cell) {
+        sfi_set_last_error_detail("sf_param_cell_set_bool requires a non-NULL cell");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_B32) return reject_cell_kind(cell, "bool");
+    uint32_t raw = value ? 1u : 0u;
+    sf_result_t r = write_cell_backing(cell, raw, 4);
+    if (r != SF_OK) return r;
+    cell->value.v.b32 = raw;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_byte(sf_param_cell_t *cell, uint8_t value) {
+    if (!cell) {
+        sfi_set_last_error_detail("sf_param_cell_set_byte requires a non-NULL cell");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_U8) return reject_cell_kind(cell, "byte");
+    sf_result_t r = write_cell_backing(cell, value, 1);
+    if (r != SF_OK) return r;
+    cell->value.v.u8 = value;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_fixstr(sf_param_cell_t *cell, const char *value, size_t value_len) {
+    if (!cell || (!value && value_len != 0)) {
+        sfi_set_last_error_detail("sf_param_cell_set_fixstr requires valid cell/value arguments");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_FIXSTR) return reject_cell_kind(cell, "fixstr");
+    size_t capacity = cell_declared_size(cell);
+    if (capacity == 0) {
+        sfi_set_last_error_detail("fixstr cell has zero capacity");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (value_len > capacity) {
+        sfi_set_last_error_detail("value length %zu > cell capacity %zu", value_len, capacity);
+        return SF_ERR_OUT_OF_RANGE;
+    }
+    sf_result_t r = check_cell_backing(cell, capacity);
+    if (r != SF_OK) return r;
+    uint8_t *p = cell->parent_row->data + cell->byte_offset;
+    memset(p, 0, capacity);
+    if (value_len > 0) memcpy(p, value, value_len);
+    char *copy = (char *)sf_xalloc(cell_alloc(cell), value_len + 1u);
+    if (!copy) return SF_ERR_OOM;
+    if (value_len > 0) memcpy(copy, value, value_len);
+    copy[value_len] = '\0';
+    sf_xfree(cell_alloc(cell), (void *)cell->value.v.str_utf8);
+    cell->value.v.str_utf8 = copy;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
+static const char *cell_kind_name(sf_param_cell_kind_t kind) {
+    switch (kind) {
+    case SF_PARAM_CELL_KIND_U8: return "u8";
+    case SF_PARAM_CELL_KIND_S8: return "s8";
+    case SF_PARAM_CELL_KIND_U16: return "u16";
+    case SF_PARAM_CELL_KIND_S16: return "s16";
+    case SF_PARAM_CELL_KIND_U32: return "u32";
+    case SF_PARAM_CELL_KIND_S32: return "s32";
+    case SF_PARAM_CELL_KIND_U64: return "u64";
+    case SF_PARAM_CELL_KIND_S64: return "s64";
+    case SF_PARAM_CELL_KIND_B32: return "b32";
+    case SF_PARAM_CELL_KIND_F32: return "f32";
+    case SF_PARAM_CELL_KIND_ANGLE32: return "angle32";
+    case SF_PARAM_CELL_KIND_F64: return "f64";
+    case SF_PARAM_CELL_KIND_DUMMY8_BIT: return "dummy8_bit";
+    case SF_PARAM_CELL_KIND_DUMMY8_ARRAY: return "dummy8_array";
+    case SF_PARAM_CELL_KIND_U8_ARRAY: return "u8_array";
+    case SF_PARAM_CELL_KIND_FIXSTR: return "fixstr";
+    case SF_PARAM_CELL_KIND_FIXSTR_W: return "fixstr_w";
+    default: return "unknown";
+    }
+}
+
+static sf_result_t reject_cell_kind(sf_param_cell_t *cell, const char *setter_name) {
+    sf_param_cell_kind_t kind = cell ? cell->value.kind : SF_PARAM_CELL_KIND_U8;
+    sfi_set_last_error_detail("cell kind %s does not accept %s",
+                              cell_kind_name(kind), setter_name);
+    return SF_ERR_INVALID_ARG;
+}
+
+static void store_cell_u16(uint8_t *p, uint16_t value, bool big_endian) {
+    if (big_endian) {
+        p[0] = (uint8_t)(value >> 8);
+        p[1] = (uint8_t)value;
+    } else {
+        p[0] = (uint8_t)value;
+        p[1] = (uint8_t)(value >> 8);
+    }
+}
+
+static void store_cell_u32(uint8_t *p, uint32_t value, bool big_endian) {
+    if (big_endian) {
+        p[0] = (uint8_t)(value >> 24);
+        p[1] = (uint8_t)(value >> 16);
+        p[2] = (uint8_t)(value >> 8);
+        p[3] = (uint8_t)value;
+    } else {
+        p[0] = (uint8_t)value;
+        p[1] = (uint8_t)(value >> 8);
+        p[2] = (uint8_t)(value >> 16);
+        p[3] = (uint8_t)(value >> 24);
+    }
+}
+
+static void store_cell_u64(uint8_t *p, uint64_t value, bool big_endian) {
+    if (big_endian) {
+        for (size_t i = 0; i < 8; i++) p[i] = (uint8_t)(value >> ((7 - i) * 8));
+    } else {
+        for (size_t i = 0; i < 8; i++) p[i] = (uint8_t)(value >> (i * 8));
+    }
+}
+
+static uint64_t load_cell_bit_window(const uint8_t *p, size_t byte_count, bool big_endian) {
+    switch (byte_count) {
+    case 1:
+        return p[0];
+    case 2:
+        return big_endian ? ((uint16_t)p[0] << 8) | p[1]
+                          : ((uint16_t)p[1] << 8) | p[0];
+    case 4:
+        return big_endian
+            ? ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) |
+              ((uint32_t)p[2] << 8) | p[3]
+            : ((uint32_t)p[3] << 24) | ((uint32_t)p[2] << 16) |
+              ((uint32_t)p[1] << 8) | p[0];
+    default:
+        return 0;
+    }
+}
+
+static void store_cell_bit_window(uint8_t *p, size_t byte_count, uint64_t value,
+                                  bool big_endian) {
+    switch (byte_count) {
+    case 1:
+        p[0] = (uint8_t)value;
+        break;
+    case 2:
+        store_cell_u16(p, (uint16_t)value, big_endian);
+        break;
+    case 4:
+        store_cell_u32(p, (uint32_t)value, big_endian);
+        break;
+    case 8:
+        store_cell_u64(p, value, big_endian);
+        break;
+    default:
+        break;
+    }
+}
+
+static sf_result_t check_cell_backing(sf_param_cell_t *cell, size_t bytes_needed) {
+    if (!cell || !cell->parent_row || !cell->parent_param) {
+        sfi_set_last_error_detail("cell has no mutable backing row");
+        return SF_ERR_INVALID_ARG;
+    }
+    sf_param_row_t *row = cell->parent_row;
+    if (!row->data || bytes_needed > row->data_size ||
+        cell->byte_offset > row->data_size - bytes_needed) {
+        sfi_set_last_error_detail("cell backing range %zu + %zu exceeds row size %zu",
+                                  cell->byte_offset, bytes_needed, row->data_size);
+        return SF_ERR_INVALID_ARG;
+    }
+    return SF_OK;
+}
+
+static sf_result_t write_cell_backing(sf_param_cell_t *cell, uint64_t value,
+                                      size_t byte_count) {
+    bool big_endian = cell->parent_param->big_endian;
+    if (cell->is_bit_field) {
+        if (cell->bit_size <= 0 || cell->bit_limit == 0) return SF_ERR_INVALID_ARG;
+        size_t window_bytes = cell->bit_limit / 8;
+        sf_result_t r = check_cell_backing(cell, window_bytes);
+        if (r != SF_OK) return r;
+        uint8_t *p = cell->parent_row->data + cell->byte_offset;
+        uint64_t window = load_cell_bit_window(p, window_bytes, big_endian);
+        uint64_t mask = ((uint64_t)1 << (size_t)cell->bit_size) - 1u;
+        window = (window & ~(mask << cell->bit_offset)) |
+                 ((value & mask) << cell->bit_offset);
+        store_cell_bit_window(p, window_bytes, window, big_endian);
+        return SF_OK;
+    }
+
+    sf_result_t r = check_cell_backing(cell, byte_count);
+    if (r != SF_OK) return r;
+    uint8_t *p = cell->parent_row->data + cell->byte_offset;
+    switch (byte_count) {
+    case 1:
+        p[0] = (uint8_t)value;
+        return SF_OK;
+    case 2:
+        store_cell_u16(p, (uint16_t)value, big_endian);
+        return SF_OK;
+    case 4:
+        store_cell_u32(p, (uint32_t)value, big_endian);
+        return SF_OK;
+    case 8:
+        store_cell_u64(p, value, big_endian);
+        return SF_OK;
+    default:
+        return SF_ERR_INVALID_ARG;
+    }
+}
+
+sf_result_t sf_param_cell_set_s8(sf_param_cell_t *cell, int8_t value) {
+    if (!cell) return SF_ERR_INVALID_ARG;
+    if (cell->value.kind != SF_PARAM_CELL_KIND_S8) return reject_cell_kind(cell, "s8");
+    sf_result_t r = write_cell_backing(cell, (uint8_t)value, 1);
+    if (r != SF_OK) return r;
+    cell->value.v.s8 = value;
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_u8(sf_param_cell_t *cell, uint8_t value) {
+    if (!cell) return SF_ERR_INVALID_ARG;
+    if (cell->value.kind != SF_PARAM_CELL_KIND_U8) return reject_cell_kind(cell, "u8");
+    sf_result_t r = write_cell_backing(cell, value, 1);
+    if (r != SF_OK) return r;
+    cell->value.v.u8 = value;
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_s16(sf_param_cell_t *cell, int16_t value) {
+    if (!cell) return SF_ERR_INVALID_ARG;
+    if (cell->value.kind != SF_PARAM_CELL_KIND_S16) return reject_cell_kind(cell, "s16");
+    sf_result_t r = write_cell_backing(cell, (uint16_t)value, 2);
+    if (r != SF_OK) return r;
+    cell->value.v.s16 = value;
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_u16(sf_param_cell_t *cell, uint16_t value) {
+    if (!cell) return SF_ERR_INVALID_ARG;
+    if (cell->value.kind != SF_PARAM_CELL_KIND_U16) return reject_cell_kind(cell, "u16");
+    sf_result_t r = write_cell_backing(cell, value, 2);
+    if (r != SF_OK) return r;
+    cell->value.v.u16 = value;
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_s32(sf_param_cell_t *cell, int32_t value) {
+    if (!cell) return SF_ERR_INVALID_ARG;
+    if (cell->value.kind != SF_PARAM_CELL_KIND_S32) return reject_cell_kind(cell, "s32");
+    sf_result_t r = write_cell_backing(cell, (uint32_t)value, 4);
+    if (r != SF_OK) return r;
+    cell->value.v.s32 = value;
+    return SF_OK;
+}
+
+sf_result_t sf_param_cell_set_u32(sf_param_cell_t *cell, uint32_t value) {
+    if (!cell) return SF_ERR_INVALID_ARG;
+    if (cell->value.kind != SF_PARAM_CELL_KIND_U32) return reject_cell_kind(cell, "u32");
+    sf_result_t r = write_cell_backing(cell, value, 4);
+    if (r != SF_OK) return r;
+    cell->value.v.u32 = value;
+    return SF_OK;
 }

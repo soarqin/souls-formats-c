@@ -69,6 +69,8 @@ static bool parse_def_type(const char *s, sf_paramdef_def_type_t *out) {
     else if (strcmp(s, "u16") == 0) *out = SF_PARAMDEF_DEF_TYPE_U16;
     else if (strcmp(s, "s32") == 0) *out = SF_PARAMDEF_DEF_TYPE_S32;
     else if (strcmp(s, "u32") == 0) *out = SF_PARAMDEF_DEF_TYPE_U32;
+    else if (strcmp(s, "s64") == 0) *out = SF_PARAMDEF_DEF_TYPE_S64;
+    else if (strcmp(s, "u64") == 0) *out = SF_PARAMDEF_DEF_TYPE_U64;
     else if (strcmp(s, "b32") == 0) *out = SF_PARAMDEF_DEF_TYPE_B32;
     else if (strcmp(s, "f32") == 0) *out = SF_PARAMDEF_DEF_TYPE_F32;
     else if (strcmp(s, "angle32") == 0) *out = SF_PARAMDEF_DEF_TYPE_ANGLE32;
@@ -103,6 +105,8 @@ size_t sf_param_util_get_value_size(sf_paramdef_def_type_t type) {
     case SF_PARAMDEF_DEF_TYPE_ANGLE32:
         return 4;
     case SF_PARAMDEF_DEF_TYPE_F64:
+    case SF_PARAMDEF_DEF_TYPE_S64:
+    case SF_PARAMDEF_DEF_TYPE_U64:
         return 8;
     default:
         return 0;
@@ -195,6 +199,8 @@ static const char *def_type_name(sf_paramdef_def_type_t type) {
     case SF_PARAMDEF_DEF_TYPE_U16: return "u16";
     case SF_PARAMDEF_DEF_TYPE_S32: return "s32";
     case SF_PARAMDEF_DEF_TYPE_U32: return "u32";
+    case SF_PARAMDEF_DEF_TYPE_S64: return "s64";
+    case SF_PARAMDEF_DEF_TYPE_U64: return "u64";
     case SF_PARAMDEF_DEF_TYPE_B32: return "b32";
     case SF_PARAMDEF_DEF_TYPE_F32: return "f32";
     case SF_PARAMDEF_DEF_TYPE_ANGLE32: return "angle32";
@@ -246,6 +252,8 @@ static float default_value_to_f32(sf_paramdef_default_value_t value) {
     case SF_PARAMDEF_DEF_TYPE_U16: return (float)value.v.u16;
     case SF_PARAMDEF_DEF_TYPE_S32: return (float)value.v.s32;
     case SF_PARAMDEF_DEF_TYPE_U32: return (float)value.v.u32;
+    case SF_PARAMDEF_DEF_TYPE_S64: return (float)value.v.s64;
+    case SF_PARAMDEF_DEF_TYPE_U64: return (float)value.v.u64;
     case SF_PARAMDEF_DEF_TYPE_B32: return (float)value.v.b32;
     case SF_PARAMDEF_DEF_TYPE_F32: return value.v.f32;
     case SF_PARAMDEF_DEF_TYPE_ANGLE32: return value.v.angle32;
@@ -262,6 +270,8 @@ static int32_t default_value_to_i32(sf_paramdef_default_value_t value) {
     case SF_PARAMDEF_DEF_TYPE_U16: return value.v.u16;
     case SF_PARAMDEF_DEF_TYPE_S32: return value.v.s32;
     case SF_PARAMDEF_DEF_TYPE_U32: return (int32_t)value.v.u32;
+    case SF_PARAMDEF_DEF_TYPE_S64: return (int32_t)value.v.s64;
+    case SF_PARAMDEF_DEF_TYPE_U64: return (int32_t)value.v.u64;
     case SF_PARAMDEF_DEF_TYPE_B32: return (int32_t)value.v.b32;
     case SF_PARAMDEF_DEF_TYPE_F32: return (int32_t)value.v.f32;
     case SF_PARAMDEF_DEF_TYPE_ANGLE32: return (int32_t)value.v.angle32;
@@ -296,6 +306,8 @@ static sf_result_t read_variable_value(sf_binary_reader_t *br, sf_paramdef_def_t
     sf_result_t r;
     int32_t i32 = 0;
     uint32_t u32 = 0;
+    int64_t i64 = 0;
+    uint64_t u64 = 0;
     float f32 = 0.0f;
     double f64 = 0.0;
     switch (type) {
@@ -330,6 +342,14 @@ static sf_result_t read_variable_value(sf_binary_reader_t *br, sf_paramdef_def_t
         r = sf_binary_reader_assert_i32_one(br, 0); if (r != SF_OK) return r;
         if (type == SF_PARAMDEF_DEF_TYPE_U32) out->v.u32 = u32;
         else out->v.b32 = u32;
+        return SF_OK;
+    case SF_PARAMDEF_DEF_TYPE_S64:
+        r = sf_binary_reader_read_i64(br, &i64); if (r != SF_OK) return r;
+        out->v.s64 = i64;
+        return SF_OK;
+    case SF_PARAMDEF_DEF_TYPE_U64:
+        r = sf_binary_reader_read_u64(br, &u64); if (r != SF_OK) return r;
+        out->v.u64 = u64;
         return SF_OK;
     case SF_PARAMDEF_DEF_TYPE_F32:
     case SF_PARAMDEF_DEF_TYPE_ANGLE32:
@@ -704,6 +724,14 @@ static sf_result_t write_variable_value(sf_binary_writer_t *bw, sf_paramdef_def_
     case SF_PARAMDEF_DEF_TYPE_B32:
         r = sf_binary_writer_write_i32(bw, default_value_to_i32(value)); if (r != SF_OK) return r;
         return sf_binary_writer_write_i32(bw, 0);
+    case SF_PARAMDEF_DEF_TYPE_S64:
+        return sf_binary_writer_write_i64(bw, value.type == SF_PARAMDEF_DEF_TYPE_S64
+                                                  ? value.v.s64
+                                                  : (int64_t)default_value_to_i32(value));
+    case SF_PARAMDEF_DEF_TYPE_U64:
+        return sf_binary_writer_write_u64(bw, value.type == SF_PARAMDEF_DEF_TYPE_U64
+                                                  ? value.v.u64
+                                                  : (uint64_t)(uint32_t)default_value_to_i32(value));
     case SF_PARAMDEF_DEF_TYPE_F32:
     case SF_PARAMDEF_DEF_TYPE_ANGLE32:
         r = sf_binary_writer_write_f32(bw, default_value_to_f32(value)); if (r != SF_OK) return r;

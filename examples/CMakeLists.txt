@@ -5,3 +5,16 @@ sf_apply_warnings(sf_bnd_extract)
 add_executable(sf_param_dump sf_param_dump.c)
 target_link_libraries(sf_param_dump PRIVATE souls_formats_static)
 sf_apply_warnings(sf_param_dump)
+
+add_executable(sf_param_set_demo_ext sf_param_set_demo_ext.c)
+target_link_libraries(sf_param_set_demo_ext PRIVATE souls_formats_static)
+target_include_directories(sf_param_set_demo_ext PRIVATE ${CMAKE_SOURCE_DIR}/src)
+sf_apply_warnings(sf_param_set_demo_ext)
+
+add_executable(sf_emevd_mutate_demo sf_emevd_mutate_demo.c)
+target_link_libraries(sf_emevd_mutate_demo PRIVATE souls_formats_static)
+sf_apply_warnings(sf_emevd_mutate_demo)
+
+add_executable(sf_param_set_demo_int sf_param_set_demo_int.c)
+target_link_libraries(sf_param_set_demo_int PRIVATE souls_formats_static)
+sf_apply_warnings(sf_param_set_demo_int)

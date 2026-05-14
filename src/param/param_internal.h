@@ -14,8 +14,16 @@
 #include <stdint.h>
 
 struct sf_param_cell {
+    const sf_allocator_t *alloc;
     char *internal_name;
     bool owns_internal_name;
+
+    const sf_param_t *parent_param;
+    sf_param_row_t *parent_row;
+    size_t byte_offset;
+    size_t bit_offset;
+    size_t bit_limit;
+    bool is_bit_field;
 
     sf_paramdef_def_type_t display_type;
     int32_t bit_size;

@@ -318,6 +318,8 @@ sf_add_test(souls_formats_test_paramdef_bitstream param/test_paramdef_bitstream.
 sf_add_test(souls_formats_test_param_binary_read param/test_param_binary_read.c "param")
 sf_add_test(souls_formats_test_param_binary_write param/test_param_binary_write.c "param")
 sf_add_test(souls_formats_test_param_apply_paramdef param/test_param_apply_paramdef.c "param")
+sf_add_test(souls_formats_test_param_setters_int param/test_param_setters_int.c "param")
+sf_add_test(souls_formats_test_param_setters_ext param/test_param_setters_ext.c "param")
 sf_add_test(souls_formats_test_paramdef_binary_read param/test_paramdef_binary_read.c "param")
 sf_add_test(souls_formats_test_paramdef_binary_write param/test_paramdef_binary_write.c "param")
 sf_add_test(souls_formats_test_paramdef_xml_read param/test_paramdef_xml_read.c "param")
@@ -348,6 +350,7 @@ add_custom_target(souls_formats_test_fmg_e2e_er DEPENDS fmg_e2e_er)
 sf_add_test(souls_formats_test_emevd_read script/test_emevd_read.c "script")
 sf_add_test(souls_formats_test_emevd_write script/test_emevd_write.c "script")
 sf_add_test(souls_formats_test_emevd_synthetic script/test_emevd_synthetic.c "script")
+sf_add_test(souls_formats_test_emevd_mutation script/test_emevd_mutation.c "script")
 sf_add_test(emevd_e2e_er script/test_emevd_e2e_er.c "script")
 target_link_libraries(emevd_e2e_er PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(emevd_e2e_er PRIVATE
@@ -838,3 +841,13 @@ sf_add_test(souls_formats_test_nvm_e2e_ds1r navmesh/test_nvm_e2e_ds1r.c "navmesh
 target_link_libraries(souls_formats_test_nvm_e2e_ds1r PRIVATE souls_formats_e2e_helpers)
 target_compile_definitions(souls_formats_test_nvm_e2e_ds1r PRIVATE
     SF_E2E_DS1R_DIR=L"C:/Games/DARK SOULS REMASTERED")
+
+#-----------------------------------------------------------------------------
+# Downstream integration suite (T1.4 — bingo APIs against real ER data).
+#
+# These tests are end-to-end against a real game install and use a
+# downstream-specific environment variable to gate execution. They skip
+# cleanly with exit 0 when the env var is absent so unrelated CI runs
+# stay green.
+#-----------------------------------------------------------------------------
+include(${CMAKE_CURRENT_SOURCE_DIR}/integration/CMakeLists.txt)
