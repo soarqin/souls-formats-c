@@ -28,6 +28,7 @@ include(CTest)
 option(SF_BUILD_EXAMPLES    "Build the examples/ tools"           OFF)
 option(SF_BUILD_PROBES      "Build one-shot diagnostic probe binaries (debug aids)" OFF)
 option(SF_ENABLE_SANITIZERS "Build with ASan/UBSan (Clang/GCC)"   OFF)
+option(SF_BUILD_SHARED      "Build the shared (DLL) library target" OFF)
 
 #-----------------------------------------------------------------------------
 # Module path & helpers
@@ -429,21 +430,25 @@ set_target_properties(souls_formats_static PROPERTIES OUTPUT_NAME souls_formats)
 # souls_formats. Follow the common convention used by zlib / libpng / etc:
 # leave the DLL + its import lib as souls_formats.{dll,lib}, and tag the
 # static archive with a _static suffix on MSVC only.
+#
+# Only built when SF_BUILD_SHARED=ON (default: OFF).
 #-----------------------------------------------------------------------------
-add_library(souls_formats_shared SHARED ${SF_SOURCES})
-add_library(souls_formats::shared ALIAS souls_formats_shared)
-_sf_configure_library(souls_formats_shared)
-set_target_properties(souls_formats_shared PROPERTIES
-    OUTPUT_NAME              souls_formats
-    WINDOWS_EXPORT_ALL_SYMBOLS OFF
-    POSITION_INDEPENDENT_CODE ON
-)
-target_compile_definitions(souls_formats_shared
-    PUBLIC  SF_BUILD_SHARED
-    PRIVATE SF_BUILD_DLL
-)
+if(SF_BUILD_SHARED)
+    add_library(souls_formats_shared SHARED ${SF_SOURCES})
+    add_library(souls_formats::shared ALIAS souls_formats_shared)
+    _sf_configure_library(souls_formats_shared)
+    set_target_properties(souls_formats_shared PROPERTIES
+        OUTPUT_NAME              souls_formats
+        WINDOWS_EXPORT_ALL_SYMBOLS OFF
+        POSITION_INDEPENDENT_CODE ON
+    )
+    target_compile_definitions(souls_formats_shared
+        PUBLIC  SF_BUILD_SHARED
+        PRIVATE SF_BUILD_DLL
+    )
+endif()
 
-if(MSVC OR CMAKE_IMPORT_LIBRARY_SUFFIX STREQUAL ".lib")
+if(SF_BUILD_SHARED AND (MSVC OR CMAKE_IMPORT_LIBRARY_SUFFIX STREQUAL ".lib"))
     set_target_properties(souls_formats_static PROPERTIES
         OUTPUT_NAME souls_formats_static)
 endif()
@@ -474,5 +479,6 @@ message(STATUS "  Top-level project : ${PROJECT_IS_TOP_LEVEL}")
 message(STATUS "  Build tests       : ${BUILD_TESTING}")
 message(STATUS "  Build examples    : ${SF_BUILD_EXAMPLES}")
 message(STATUS "  Build probes      : ${SF_BUILD_PROBES}")
+message(STATUS "  Build shared lib  : ${SF_BUILD_SHARED}")
 message(STATUS "  Sanitizers        : ${SF_ENABLE_SANITIZERS}")
 message(STATUS "")
