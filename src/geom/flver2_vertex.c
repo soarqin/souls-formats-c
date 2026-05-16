@@ -17,23 +17,23 @@ static inline void write_f32(uint8_t *p, float v) {
     memcpy(p, &v, 4);
 }
 
-static inline uint32_t read_u32(const uint8_t *p) {
+static SF_UNUSED inline uint32_t read_u32(const uint8_t *p) {
     uint32_t v;
     memcpy(&v, p, 4);
     return v;
 }
 
-static inline void write_u32(uint8_t *p, uint32_t v) {
+static SF_UNUSED inline void write_u32(uint8_t *p, uint32_t v) {
     memcpy(p, &v, 4);
 }
 
-static inline int32_t read_i32(const uint8_t *p) {
+static SF_UNUSED inline int32_t read_i32(const uint8_t *p) {
     int32_t v;
     memcpy(&v, p, 4);
     return v;
 }
 
-static inline void write_i32(uint8_t *p, int32_t v) {
+static SF_UNUSED inline void write_i32(uint8_t *p, int32_t v) {
     memcpy(p, &v, 4);
 }
 

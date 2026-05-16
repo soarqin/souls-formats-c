@@ -43,6 +43,20 @@ extern "C" {
 #endif
 
 /*===========================================================================
+ * Portability helpers
+ *===========================================================================*/
+
+/* SF_UNUSED — suppress "defined but not used" on static functions/variables.
+ * Place between the storage class and the return type:
+ *   static SF_UNUSED int my_fn(void) { ... }
+ */
+#if defined(__GNUC__) || defined(__clang__)
+#  define SF_UNUSED __attribute__((unused))
+#else
+#  define SF_UNUSED
+#endif
+
+/*===========================================================================
  * Result codes
  *
  * Every API that may fail returns sf_result_t. Output is via pointer
