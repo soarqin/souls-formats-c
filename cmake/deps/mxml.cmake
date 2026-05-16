@@ -31,6 +31,9 @@ file(WRITE "${_sf_mxml_config_dir}/config.h"
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
+#ifdef _WIN32
+#  include <io.h>   /* read(), write() used by mxml-file.c on Windows */
+#endif
 #define MXML_VERSION \"Mini-XML v4.0.4\"
 /* HAVE_PTHREAD_H intentionally undefined — single-threaded use. */
 #endif /* MXML_CONFIG_H */

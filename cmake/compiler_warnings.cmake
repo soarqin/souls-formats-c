@@ -30,5 +30,11 @@ function(sf_apply_warnings target)
         if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
             target_compile_options(${target} PRIVATE -Wlogical-op -Wduplicated-cond)
         endif()
+        # Clang 16+ promotes UINT32_MAX enum sentinels to a C23 extension
+        # warning. Our enums intentionally use UINT32_MAX as an "unknown/other"
+        # sentinel; suppress the pedantic diagnostic rather than change the API.
+        if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+            target_compile_options(${target} PRIVATE -Wno-c23-extensions)
+        endif()
     endif()
 endfunction()
