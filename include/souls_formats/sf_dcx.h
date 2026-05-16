@@ -92,6 +92,28 @@ typedef struct sf_dcx_dcx_dflt_info {
     uint8_t unk38;
 } sf_dcx_dcx_dflt_info_t;
 
+/*
+ * Kraken / Oodle compression descriptor.
+ *
+ *   compression_level     — directly passed to OodleLZ_Compress. Higher
+ *                           values cost more CPU; lower values cost more
+ *                           output bytes. Game-shipped presets:
+ *                             Elden Ring / Sekiro: 6 (Optimal2)
+ *                             Armored Core 6     : 9 (Optimal5 / Max)
+ *                           Callers who need to ship the exact bytes the
+ *                           game does MUST use the matching preset.
+ *                           Callers doing internal dev iterations may
+ *                           override this field after calling
+ *                           sf_dcx_compression_info_from_krak_preset()
+ *                           with any value from sf_oodle_lz_compression_level_t
+ *                           (e.g. NORMAL=4, FAST=3, HYPER_FAST1=-1).
+ *                           Going from 6 to 4 is typically 3-5x faster at
+ *                           the cost of 5-10% larger output; the game
+ *                           decodes either way.
+ *
+ *   oodle_compressor_type — keep as SF_OODLE_LZ_COMPRESSOR_KRAKEN unless
+ *                           you know exactly why you are not.
+ */
 typedef struct sf_dcx_dcx_krak_info {
     uint8_t                  compression_level;
     sf_oodle_lz_compressor_t oodle_compressor_type;

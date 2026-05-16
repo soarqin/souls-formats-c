@@ -67,6 +67,21 @@ SF_API const sf_binder_file_t *sf_bnd4_get_file(const sf_bnd4_t *b, size_t index
 /** Append a deep copy of `file` to the entry list. */
 SF_API sf_result_t sf_bnd4_add_file(sf_bnd4_t *b, const sf_binder_file_t *file);
 
+/**
+ * Append `file` while transferring ownership of `file->data` directly into
+ * the binder without copying. The name is still duplicated internally.
+ *
+ * On success (SF_OK), the binder owns `file->data` and frees it on destroy;
+ * the caller MUST NOT free it. On failure, ownership stays with the caller
+ * (still responsible for freeing).
+ *
+ * `file->data` MUST have been allocated with the same allocator the binder
+ * was constructed with (see sf_bnd4_create). For the common case of feeding
+ * the output of sf_fmg_write_to_memory / sf_bnd4_write_to_memory directly
+ * into an enclosing binder using the default allocator, this is automatic.
+ */
+SF_API sf_result_t sf_bnd4_add_file_take(sf_bnd4_t *b, const sf_binder_file_t *file);
+
 /** Remove the entry at `index`. Returns SF_ERR_OUT_OF_RANGE if absent. */
 SF_API sf_result_t sf_bnd4_remove_file(sf_bnd4_t *b, size_t index);
 

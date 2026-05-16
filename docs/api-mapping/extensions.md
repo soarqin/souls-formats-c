@@ -10,6 +10,8 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 | `sf_oodle_load` | `sf_oodle.h` | Explicit load trigger (no upstream equivalent) | stable | `include/souls_formats/sf_oodle.h` |
 | `sf_oodle_unload` | `sf_oodle.h` | Explicit unload (no upstream equivalent) | stable | `include/souls_formats/sf_oodle.h` |
 | `sf_oodle_version` | `sf_oodle.h` | Query currently loaded Oodle DLL major version | stable | `include/souls_formats/sf_oodle.h` |
+| DCX_KRAK concurrent compression contract | `sf_oodle.h` / `sf_dcx.h` | Post-load, compress/decompress entry points are thread-safe against independent buffers. Upstream does not formally guarantee this. See "DCX_KRAK: parallel compression + level tuning" below. | stable | `include/souls_formats/sf_oodle.h`; `src/compression/oodle/oodle_loader.c` |
+| DCX_KRAK compression-level override | `sf_dcx.h` | Mutating `sf_dcx_compression_info_t::u.dcx_krak.compression_level` after `sf_dcx_compression_info_from_krak_preset()` is a supported speed/ratio knob. Upstream uses an opaque preset enum. See "DCX_KRAK: parallel compression + level tuning" below. | stable | `include/souls_formats/sf_dcx.h` |
 | `sf_istream_t + sf_ostream_t dual-layer stream` | `sf_io.h` | Layered abstraction over Win32 handles + memory; upstream BinaryReaderEx wraps a .NET Stream directly | stable | `include/souls_formats/sf_io.h` |
 | `sf_path_hash_64` | `sf_hash.h` | Extension. Upstream `HashHelper.FromPathHash` returns `uint` (32-bit). BHD5 ER+ stores hash as `UInt64` on disk via implicit cast (`BHD5.cs:474`). We expose a named 64-bit wrapper for consumer clarity. Same algorithm, no functional divergence — just a widening cast. | stable | `include/souls_formats/sf_hash.h` |
 | `sfi_dds_parse_header` | extension | Upstream `DDS.cs` is `_skipped_` (full pixel decoder out of scope); we add minimal header-only reader to derive TPF Texture metadata without depending on full DDS class. | internal | `src/internal/dds_header.h` |
@@ -32,6 +34,54 @@ This document tracks symbols and features in `souls-formats-c` that have no dire
 | `sf_paramdef_field_get_sort_id` | `sf_paramdef.h` | Paramdex XML `<SortID>` element; binary returns 0 | stable | `include/souls_formats/sf_paramdef.h` |
 | BND3/BND4 name pool | archive | Name strings bulk-allocated in one contiguous block per archive; `_destroy` frees the pool. Upstream C# uses GC. | + extension | `src/archive/bnd3.c`; `src/archive/bnd4.c` |
 | MSB shared scaffolding engine | map | Internal callback-based polymorphism to mirror C# `Param<T>` generics without code duplication. | stable | `src/map/msb_common.c` |
+
+## DCX_KRAK: parallel compression + level tuning
+
+Both of these are properties of the existing public API; they do not introduce new symbols. They are documented here because the upstream `SoulsFormatsNEXT` C# library does not formally expose either as a supported pattern.
+
+### Parallel compression across independent payloads
+
+`sf_oodle_load()`, `sf_oodle_unload()`, and `sf_oodle_set_search_path()` are internally serialized via a process-wide `CRITICAL_SECTION` initialized with `InitOnceExecuteOnce`. After `sf_oodle_load()` has succeeded once on any thread, all DCX compression and decompression entry points (`sf_dcx_compress_to_*`, `sf_dcx_decompress_from_*`) may be called concurrently from any number of threads against independent input/output buffers. Oodle's `OodleLZ_Compress` and `OodleLZ_Decompress` are themselves thread-safe per Oodle's documentation, and the wrapper holds no per-call mutable state.
+
+Canonical pattern for callers building, e.g., a 14-language msgbnd set in parallel:
+
+```c
+sf_oodle_set_search_path(L"C:\\Path\\To\\Oodle");
+sf_oodle_load();
+// Pre-warm: ensures the DLL is loaded before any worker starts, so worker
+// threads only take the lock-free fast path inside sfi_oodle_compress.
+
+// Fan out:
+for (size_t i = 0; i < lang_count; i++)
+    queue_job(&jobs[i]);  // Each job calls sf_dcx_compress_to_path() once.
+
+// Join.
+```
+
+This is the property that takes 14 sequential ~2 s DCX_KRAK Optimal2 compressions from ~28 s down to ~4–6 s on an 8-core host.
+
+### Compression level override
+
+`sf_dcx_compression_info_from_krak_preset()` populates `info.u.dcx_krak.compression_level` with the game-shipped value (6 for `SF_DCX_KRAK_COMPRESSION_PRESET_ELDEN_RING`, 9 for `SF_DCX_KRAK_COMPRESSION_PRESET_ARMORED_CORE_6`). Callers may overwrite the field directly between getting the preset and calling `sf_dcx_compress_to_*`:
+
+```c
+sf_dcx_compression_info_t info;
+sf_dcx_compression_info_from_krak_preset(SF_DCX_KRAK_COMPRESSION_PRESET_ELDEN_RING, &info);
+info.u.dcx_krak.compression_level = SF_OODLE_LZ_COMPRESSION_LEVEL_NORMAL;  // = 4
+sf_dcx_compress_to_path(bnd, bnd_size, &info, out_path, alloc);
+```
+
+Approximate cost tradeoffs (Kraken on a few-MB BND4):
+
+| Level | Name           | vs Optimal2 | Output growth |
+|-------|----------------|-------------|---------------|
+| 9     | Optimal5 / Max | ~3–5× slower | -2 … -5%      |
+| 6     | Optimal2 (ER)  | 1.0×        | baseline      |
+| 4     | Normal         | ~0.2–0.3×   | +5 … +10%     |
+| 3     | Fast           | ~0.1×       | +10 … +20%    |
+| -1    | HyperFast1     | ~0.05×      | +20 … +30%    |
+
+The game decoder accepts any Kraken level. Shipping a final modpack should keep the game-matching preset; only switch for internal dev iteration.
 
 ## Phase 6: Geometry + Material
 

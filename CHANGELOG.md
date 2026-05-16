@@ -5,6 +5,71 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.9.0] - 2026-05-16
+
+### Added
+- `sf_bnd4_add_file_take()` public API. Variant of `sf_bnd4_add_file()` that
+  transfers ownership of `file->data` into the binder without an internal
+  memcpy. The name string is still duplicated. Required: `file->data` must
+  have been allocated with the same allocator the BND4 was constructed
+  with. On failure, ownership stays with the caller. Eliminates one full
+  FMG-payload memcpy per entry when feeding `sf_fmg_write_to_memory()`
+  output directly into a msgbnd builder.
+- DCX_KRAK concurrent compression contract documented in `sf_oodle.h` and
+  `docs/api-mapping/extensions.md`. After `sf_oodle_load()` has succeeded
+  once, all DCX compress/decompress entry points may be called
+  concurrently from any number of threads against independent input/output
+  buffers. Includes a canonical "pre-warm + fan-out" pattern for callers
+  building, e.g., a 14-language msgbnd set in parallel.
+- DCX_KRAK compression-level override documented in `sf_dcx.h` and
+  `docs/api-mapping/extensions.md`. Callers can override
+  `sf_dcx_compression_info_t::u.dcx_krak.compression_level` after a preset
+  call to trade output bytes for CPU time. Includes a level-cost table
+  (Optimal2 = baseline, Normal ≈ 0.2–0.3×, HyperFast1 ≈ 0.05×) for
+  dev-iteration scenarios.
+- `tests/compression/test_dcx_krak_parallel.c` — 8-thread stress test that
+  gates the new concurrent-compression contract. Verifies both the
+  concurrent first-load race and 32 independent KRAK roundtrips across
+  worker threads.
+
+### Performance
+- **DCX_KRAK loader is now thread-safe with a lock-free fast path.**
+  Previously, `sf_oodle_load()` had a TOCTOU race on `g_oodle` between the
+  cached check and `LoadLibraryW`, so two threads entering the first call
+  could double-load the DLL and partially overwrite the bound function
+  pointers. `sf_oodle_load` / `sf_oodle_unload` / `sf_oodle_set_search_path`
+  are now serialized via a process-wide `CRITICAL_SECTION` initialized
+  with `InitOnceExecuteOnce`. The common-case "already loaded" path skips
+  the lock entirely, relying on x86_64 acquire load semantics — the
+  library is x86_64-Windows-only per `AGENTS.md §1`, so this is safe.
+  This unblocks caller-side parallel compression, which on an 8-core host
+  takes a typical 14×~2 s Optimal2 msgbnd build from ~28 s down to ~4–6 s.
+- **DCX_KRAK wrapper now compresses directly into the final DCX buffer.**
+  `wrap_dcx_payload()` previously called Oodle into a heap-allocated
+  scratch buffer, then `memcpy`-ed the compressed bytes into a separate
+  output buffer that included the 0x4C-byte DCX header. The KRAK path now
+  pre-sizes one buffer of `0x4C + OodleLZ_GetCompressedBufferSizeNeeded`,
+  asks Oodle to write at `buf + 0x4C`, and back-patches the header in
+  place — eliminating one full compressed-payload `memcpy` per compress.
+  DFLT and ZSTD branches are unaffected (they go through stream-based
+  codecs that already produce an output buffer).
+- **BND4 `sf_bnd4_write_to_memory()` now pre-reserves the output stream
+  and detaches it zero-copy.** Previously the memory ostream grew from 64
+  bytes via geometric doubling and the writer's `finish_bytes()` did a
+  full-buffer `memcpy` into a fresh allocation at the end. A new internal
+  `bnd4_estimate_size()` walks files + format flags to compute an upper
+  bound (file headers + name pool + optional hash table + 16-byte-padded
+  payloads) and `sf_ostream_reserve()`s up front. On finish, the buffer is
+  detached via `sf_ostream_detach_buffer()` rather than copied. Multi-MB
+  msgbnd builds skip ~17 doubling reallocs and one final whole-archive
+  copy.
+
+### Fixed
+- `sf_bnd4_write_to_memory()` and `sf_bnd4_write_to_path()` no longer leak
+  the `sf_binary_writer_t` on the success path. Both paths now uniformly
+  call `sf_binary_writer_finish()` to validate outstanding reservations,
+  destroy the writer, then close the ostream.
+
 ## [0.8.0] - 2026-05-16
 
 ### Added

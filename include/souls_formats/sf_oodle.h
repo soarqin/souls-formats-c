@@ -149,6 +149,24 @@ SF_OODLE_STATIC_ASSERT(sizeof(sf_oodle_lz_compress_options_t) == 48,
 
 #undef SF_OODLE_STATIC_ASSERT
 
+/*
+ * Thread safety:
+ *
+ *   sf_oodle_load(), sf_oodle_unload(), and sf_oodle_set_search_path()
+ *   are internally serialized and safe to call concurrently. After
+ *   sf_oodle_load() has succeeded once, the DCX_KRAK compress and
+ *   decompress paths (sf_dcx_compress_to_* / sf_dcx_decompress_from_*)
+ *   may be called concurrently from any number of threads against
+ *   independent input/output buffers — Oodle's OodleLZ_Compress and
+ *   OodleLZ_Decompress are themselves thread-safe per Oodle's docs, and
+ *   this wrapper holds no per-call mutable state. This is the property
+ *   that enables caller-side parallel compression of independent
+ *   payloads (e.g. one DCX_KRAK pass per language in a 14-language
+ *   msgbnd build).
+ *
+ *   sf_oodle_unload() must NOT race with in-flight compress/decompress
+ *   calls — quiesce all workers first.
+ */
 SF_API sf_result_t sf_oodle_set_search_path(const wchar_t *dir);
 SF_API sf_result_t sf_oodle_load(void);
 SF_API void        sf_oodle_unload(void);

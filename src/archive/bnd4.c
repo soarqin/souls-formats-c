@@ -612,6 +612,49 @@ cleanup:
     return r;
 }
 
+/* Best-effort upper-bound estimate of the on-disk BND4 size, used to
+ * pre-grow the memory ostream and skip ~17 doubling reallocs on multi-MB
+ * archives. Over-estimates are harmless (the ostream's detach hands back
+ * exactly the written prefix); SIZE_MAX is returned on arithmetic overflow
+ * and the caller falls back to geometric growth. */
+static size_t bnd4_estimate_size(const sf_bnd4_t *b) {
+    const size_t fixed_header = 0x40u;
+    const size_t per_file_header = sfi_binder_get_bnd4_file_header_size(b->format);
+    const size_t per_name_char = b->unicode ? 2u : 1u;
+    const size_t name_terminator = per_name_char;
+
+    size_t est = fixed_header;
+
+    if (b->file_count > SIZE_MAX / (per_file_header ? per_file_header : 1u)) return SIZE_MAX;
+    est += b->file_count * per_file_header;
+
+    for (size_t i = 0; i < b->file_count; i++) {
+        const sf_binder_file_t *f = &b->files[i];
+        if (f->name_utf8) {
+            size_t name_len_chars = strlen(f->name_utf8);
+            if (name_len_chars > SIZE_MAX / per_name_char) return SIZE_MAX;
+            size_t name_bytes = name_len_chars * per_name_char + name_terminator;
+            if (est > SIZE_MAX - name_bytes) return SIZE_MAX;
+            est += name_bytes;
+        }
+    }
+
+    if (b->extended == 4) {
+        uint32_t group_count = sfi_binder_hash_table_group_count(b->file_count);
+        size_t hash_block = 24u + (size_t)group_count * 8u + b->file_count * 8u;
+        if (est > SIZE_MAX - hash_block) return SIZE_MAX;
+        est += hash_block;
+    }
+
+    for (size_t i = 0; i < b->file_count; i++) {
+        size_t sz = b->files[i].size;
+        size_t padded = (sz + 0xFu) & ~(size_t)0xFu;
+        if (est > SIZE_MAX - padded) return SIZE_MAX;
+        est += padded;
+    }
+    return est;
+}
+
 sf_result_t sf_bnd4_write_to_memory(const sf_bnd4_t *b, uint8_t **out, size_t *out_size,
                                     const sf_allocator_t *a) {
     SF_CHECK_ARG(b != NULL);
@@ -623,14 +666,26 @@ sf_result_t sf_bnd4_write_to_memory(const sf_bnd4_t *b, uint8_t **out, size_t *o
     sf_result_t r = sf_ostream_open_memory(&os, a);
     if (r != SF_OK) return r;
 
+    size_t estimate = bnd4_estimate_size(b);
+    if (estimate != SIZE_MAX) (void)sf_ostream_reserve(os, estimate);
+
     sf_binary_writer_t *bw = NULL;
     r = sf_binary_writer_create(&bw, os, false, a);
     if (r != SF_OK) { sf_ostream_close(os); return r; }
 
     r = bnd4_write_to_writer(b, bw);
-    if (r != SF_OK) { sf_binary_writer_destroy(bw); sf_ostream_close(os); return r; }
+    if (r == SF_OK) r = sf_binary_writer_finish(bw);
+    sf_binary_writer_destroy(bw);
 
-    r = sf_binary_writer_finish_bytes(bw, out, out_size);
+    if (r == SF_OK) {
+        void *data = NULL;
+        size_t size = 0;
+        r = sf_ostream_detach_buffer(os, &data, &size);
+        if (r == SF_OK) {
+            *out = (uint8_t *)data;
+            *out_size = size;
+        }
+    }
     sf_ostream_close(os);
     return r;
 }
@@ -648,11 +703,8 @@ sf_result_t sf_bnd4_write_to_path(const sf_bnd4_t *b, const wchar_t *path) {
     if (r != SF_OK) { sf_ostream_close(os); return r; }
 
     r = bnd4_write_to_writer(b, bw);
-    if (r == SF_OK) {
-        r = sf_binary_writer_finish(bw);
-    } else {
-        sf_binary_writer_destroy(bw);
-    }
+    if (r == SF_OK) r = sf_binary_writer_finish(bw);
+    sf_binary_writer_destroy(bw);
     sf_ostream_close(os);
     return r;
 }
@@ -688,24 +740,49 @@ void sf_bnd4_set_extended      (sf_bnd4_t *b, uint8_t v)            { if (b) b->
 void sf_bnd4_set_unk04         (sf_bnd4_t *b, bool v)               { if (b) b->unk04 = v; }
 void sf_bnd4_set_unk05         (sf_bnd4_t *b, bool v)               { if (b) b->unk05 = v; }
 
+static sf_result_t bnd4_grow_files(sf_bnd4_t *b) {
+    if (b->file_count < b->file_capacity) return SF_OK;
+    size_t new_cap = b->file_capacity ? b->file_capacity * 2 : 8;
+    size_t old_bytes = b->file_capacity * sizeof(sf_binder_file_t);
+    size_t new_bytes = new_cap * sizeof(sf_binder_file_t);
+    void *new_buf = sf_xrealloc(b->alloc, b->files, old_bytes, new_bytes);
+    if (!new_buf) return SF_ERR_OOM;
+    b->files = (sf_binder_file_t *)new_buf;
+    memset(&b->files[b->file_capacity], 0,
+           (new_cap - b->file_capacity) * sizeof(sf_binder_file_t));
+    b->file_capacity = new_cap;
+    return SF_OK;
+}
+
 sf_result_t sf_bnd4_add_file(sf_bnd4_t *b, const sf_binder_file_t *file) {
     SF_CHECK_ARG(b != NULL);
     SF_CHECK_ARG(file != NULL);
 
-    if (b->file_count == b->file_capacity) {
-        size_t new_cap = b->file_capacity ? b->file_capacity * 2 : 8;
-        size_t old_bytes = b->file_capacity * sizeof(sf_binder_file_t);
-        size_t new_bytes = new_cap * sizeof(sf_binder_file_t);
-        void *new_buf = sf_xrealloc(b->alloc, b->files, old_bytes, new_bytes);
-        if (!new_buf) return SF_ERR_OOM;
-        b->files = (sf_binder_file_t *)new_buf;
-        memset(&b->files[b->file_capacity], 0,
-               (new_cap - b->file_capacity) * sizeof(sf_binder_file_t));
-        b->file_capacity = new_cap;
+    sf_result_t r = bnd4_grow_files(b);
+    if (r != SF_OK) return r;
+    r = bnd4_file_dup(&b->files[b->file_count], file, b->alloc);
+    if (r != SF_OK) return r;
+    b->file_count++;
+    return SF_OK;
+}
+
+sf_result_t sf_bnd4_add_file_take(sf_bnd4_t *b, const sf_binder_file_t *file) {
+    SF_CHECK_ARG(b != NULL);
+    SF_CHECK_ARG(file != NULL);
+
+    sf_result_t r = bnd4_grow_files(b);
+    if (r != SF_OK) return r;
+
+    char *name = NULL;
+    if (file->name_utf8) {
+        name = sf_strdup(b->alloc, file->name_utf8);
+        if (!name) return SF_ERR_OOM;
     }
 
-    sf_result_t r = bnd4_file_dup(&b->files[b->file_count], file, b->alloc);
-    if (r != SF_OK) return r;
+    sf_binder_file_t *dst = &b->files[b->file_count];
+    *dst = *file;
+    dst->name_utf8 = name;
+    if (!file->data) dst->size = 0;
     b->file_count++;
     return SF_OK;
 }

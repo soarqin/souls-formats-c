@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(souls_formats_c
-    VERSION 0.8.0
+    VERSION 0.9.0
     DESCRIPTION "Pure C library for FromSoftware game file formats"
     HOMEPAGE_URL "https://github.com/soar/souls-formats-c"
     LANGUAGES C)

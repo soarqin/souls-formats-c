@@ -260,6 +260,58 @@ static void test_bnd4_reader_pattern(void) {
     DeleteFileW(tmppath);
 }
 
+static void test_bnd4_add_file_take_round_trip(void) {
+    sf_bnd4_t *b = NULL;
+    TEST_ASSERT_EQUAL(SF_OK, sf_bnd4_create(&b, NULL));
+    sf_bnd4_set_version(b, "11A1A0");
+
+    const size_t n0 = sizeof k_payload_a;
+    const size_t n1 = sizeof k_payload_b;
+    const sf_allocator_t *def = sf_default_allocator();
+    uint8_t *p0 = (uint8_t *)def->alloc(n0, def->user);
+    uint8_t *p1 = (uint8_t *)def->alloc(n1, def->user);
+    TEST_ASSERT_NOT_NULL(p0);
+    TEST_ASSERT_NOT_NULL(p1);
+    memcpy(p0, k_payload_a, n0);
+    memcpy(p1, k_payload_b, n1);
+
+    sf_binder_file_t f0 = make_file(100, "taken_a.txt", p0, n0);
+    sf_binder_file_t f1 = make_file(200, "taken_b.bin", p1, n1);
+    TEST_ASSERT_EQUAL(SF_OK, sf_bnd4_add_file_take(b, &f0));
+    TEST_ASSERT_EQUAL(SF_OK, sf_bnd4_add_file_take(b, &f1));
+
+    const sf_binder_file_t *stored0 = sf_bnd4_get_file(b, 0);
+    const sf_binder_file_t *stored1 = sf_bnd4_get_file(b, 1);
+    TEST_ASSERT_EQUAL_PTR(p0, stored0->data);
+    TEST_ASSERT_EQUAL_PTR(p1, stored1->data);
+    TEST_ASSERT_TRUE(stored0->name_utf8 != f0.name_utf8);
+    TEST_ASSERT_EQUAL_STRING("taken_a.txt", stored0->name_utf8);
+
+    roundtrip_assert(b);
+    sf_bnd4_destroy(b);
+}
+
+static void test_bnd4_add_file_take_null_data(void) {
+    sf_bnd4_t *b = NULL;
+    TEST_ASSERT_EQUAL(SF_OK, sf_bnd4_create(&b, NULL));
+    sf_bnd4_set_version(b, "11A1A0");
+
+    sf_binder_file_t empty;
+    memset(&empty, 0, sizeof empty);
+    empty.id = 42;
+    empty.name_utf8 = "empty.bin";
+    empty.flags = SF_BINDER_FILE_FLAG_FLAG1;
+    empty.compression_info = zlib_info();
+    empty.size = 17;
+    empty.data = NULL;
+
+    TEST_ASSERT_EQUAL(SF_OK, sf_bnd4_add_file_take(b, &empty));
+    const sf_binder_file_t *stored = sf_bnd4_get_file(b, 0);
+    TEST_ASSERT_EQUAL_size_t(0, stored->size);
+    TEST_ASSERT_NULL(stored->data);
+    sf_bnd4_destroy(b);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_bnd4_names1_pcsave);
@@ -270,5 +322,7 @@ int main(void) {
     RUN_TEST(test_bnd4_extended_variants);
     RUN_TEST(test_bnd4_unk04_unk05);
     RUN_TEST(test_bnd4_reader_pattern);
+    RUN_TEST(test_bnd4_add_file_take_round_trip);
+    RUN_TEST(test_bnd4_add_file_take_null_data);
     return UNITY_END();
 }

@@ -594,33 +594,8 @@ static sf_result_t wrap_dcp_dflt(const uint8_t *in, size_t in_size, uint8_t **ou
     return SF_OK;
 }
 
-static sf_result_t wrap_dcx_payload(const uint8_t *in, size_t in_size,
-                                    const sf_dcx_compression_info_t *info,
-                                    uint8_t **out, size_t *out_size,
-                                    const sf_allocator_t *alloc) {
-    SF_CHECK_ARG(info);
-
-    void *comp = NULL;
-    size_t csz = 0;
-    sf_result_t r = SF_OK;
-    if (info->type == SF_DCX_TYPE_DCX_DFLT) {
-        r = sfi_zlib_compress(in, in_size, &comp, &csz, alloc);
-    } else if (info->type == SF_DCX_TYPE_DCX_ZSTD) {
-        r = sfi_zstd_compress(in, in_size, (int)info->u.dcx_zstd.compression_level,
-                              &comp, &csz, alloc);
-    } else {
-        r = sfi_oodle_compress((int)info->u.dcx_krak.oodle_compressor_type,
-                               (int)info->u.dcx_krak.compression_level, in, in_size,
-                               &comp, &csz, alloc);
-    }
-    if (r != SF_OK) return r;
-
-    uint8_t *buf = (uint8_t *)sf_xalloc(alloc, 0x4Cu + csz);
-    if (!buf) {
-        sf_xfree(alloc, comp);
-        return SF_ERR_OOM;
-    }
-
+static void wrap_dcx_write_header(uint8_t *buf, const sf_dcx_compression_info_t *info,
+                                  size_t in_size, size_t csz) {
     int32_t unk04 = 0x11000;
     int32_t unk10 = 0x44;
     int32_t unk14 = 0x4C;
@@ -664,8 +639,53 @@ static sf_result_t wrap_dcx_payload(const uint8_t *in, size_t in_size,
     wr32(buf + 64, 0x00010100);
     memcpy(buf + 68, "DCA\0", 4);
     wr32(buf + 72, 8);
-    memcpy(buf + 76, comp, csz);
+}
 
+static sf_result_t wrap_dcx_payload(const uint8_t *in, size_t in_size,
+                                    const sf_dcx_compression_info_t *info,
+                                    uint8_t **out, size_t *out_size,
+                                    const sf_allocator_t *alloc) {
+    SF_CHECK_ARG(info);
+
+    if (info->type == SF_DCX_TYPE_DCX_KRAK) {
+        int64_t bound = sfi_oodle_bound(in_size);
+        SF_RETURN_IF(bound <= 0, SF_ERR_DECOMPRESS);
+        uint8_t *buf = (uint8_t *)sf_xalloc(alloc, 0x4Cu + (size_t)bound);
+        if (!buf) return SF_ERR_OOM;
+
+        size_t csz = 0;
+        sf_result_t r = sfi_oodle_compress_into(
+            (int)info->u.dcx_krak.oodle_compressor_type,
+            (int)info->u.dcx_krak.compression_level,
+            in, in_size, buf + 0x4Cu, (size_t)bound, &csz);
+        if (r != SF_OK) {
+            sf_xfree(alloc, buf);
+            return r;
+        }
+        wrap_dcx_write_header(buf, info, in_size, csz);
+        *out = buf;
+        *out_size = 0x4Cu + csz;
+        return SF_OK;
+    }
+
+    void *comp = NULL;
+    size_t csz = 0;
+    sf_result_t r = SF_OK;
+    if (info->type == SF_DCX_TYPE_DCX_DFLT) {
+        r = sfi_zlib_compress(in, in_size, &comp, &csz, alloc);
+    } else {
+        r = sfi_zstd_compress(in, in_size, (int)info->u.dcx_zstd.compression_level,
+                              &comp, &csz, alloc);
+    }
+    if (r != SF_OK) return r;
+
+    uint8_t *buf = (uint8_t *)sf_xalloc(alloc, 0x4Cu + csz);
+    if (!buf) {
+        sf_xfree(alloc, comp);
+        return SF_ERR_OOM;
+    }
+    wrap_dcx_write_header(buf, info, in_size, csz);
+    memcpy(buf + 76, comp, csz);
     sf_xfree(alloc, comp);
     *out = buf;
     *out_size = 0x4Cu + csz;

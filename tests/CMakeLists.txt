@@ -79,6 +79,7 @@ sf_add_test(souls_formats_test_dcx_dflt compression/test_dcx_dflt.c "compression
 sf_add_test(souls_formats_test_dcx_edge compression/test_dcx_edge.c "compression")
 sf_add_test(souls_formats_test_dcx_zstd compression/test_dcx_zstd.c "compression")
 sf_add_test(souls_formats_test_dcx_krak compression/test_dcx_krak.c "compression")
+sf_add_test(souls_formats_test_dcx_krak_parallel compression/test_dcx_krak_parallel.c "compression")
 sf_add_test(souls_formats_test_dcx_sniff compression/test_dcx_sniff.c "compression")
 
 sf_add_test(souls_formats_test_aes_kat crypto/test_aes_kat.c "crypto")
@@ -94,6 +95,7 @@ add_custom_target(souls_formats_test_compression
         souls_formats_test_dcx_edge
         souls_formats_test_dcx_zstd
         souls_formats_test_dcx_krak
+        souls_formats_test_dcx_krak_parallel
         souls_formats_test_dcx_sniff)
 
 add_custom_target(souls_formats_test_crypto
