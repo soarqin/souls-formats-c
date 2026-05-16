@@ -955,7 +955,8 @@ SF_API sf_result_t sf_param_row_copy(sf_param_row_t *dst, const sf_param_row_t *
     SF_CHECK_ARG(dst != NULL && src != NULL);
     if (dst == src) return SF_OK;
     if (dst->cell_count != src->cell_count || dst->data_size != src->data_size) return SF_ERR_INVALID_ARG;
-    memcpy(dst->data, src->data, src->data_size);
+    if (src->data_size > 0 && src->data && dst->data)
+        memcpy(dst->data, src->data, src->data_size);
     for (size_t i = 0; i < dst->cell_count; i++) {
         (void)sf_param_cell_copy(&dst->cells[i], &src->cells[i]);
     }
@@ -1511,11 +1512,10 @@ SF_API sf_result_t sf_param_cell_copy(sf_param_cell_t *dst, const sf_param_cell_
     case SF_PARAM_CELL_KIND_U8_ARRAY:
         return sf_param_cell_set_bytes(dst, src->value.v.bytes.data, src->value.v.bytes.size);
     case SF_PARAM_CELL_KIND_FIXSTR:
-        return sf_param_cell_set_fixstr(dst, src->value.v.str_utf8,
-                                       strlen(src->value.v.str_utf8));
-    case SF_PARAM_CELL_KIND_FIXSTR_W:
-        return sf_param_cell_set_fixstr(dst, src->value.v.str_utf8,
-                                       strlen(src->value.v.str_utf8));
+    case SF_PARAM_CELL_KIND_FIXSTR_W: {
+        const char *s = src->value.v.str_utf8 ? src->value.v.str_utf8 : "";
+        return sf_param_cell_set_fixstr(dst, s, strlen(s));
+    }
     default:
         sfi_set_last_error_detail("copying cells of kind %s is not supported",
                                   cell_kind_name(src->value.kind));
