@@ -5,7 +5,13 @@
  * Borrows an sf_ostream_t (does not close it). Maintains:
  *   - mutable big-endian / varint-long flags
  *   - LIFO offset stack (StepIn / StepOut)
- *   - a flat list of pending Reservations (small N, linear scan is fine)
+ *   - an open-addressing hash table of pending Reservations keyed on
+ *     (name, kind). Hash = FNV-1a-32 over name; linear probing on collision.
+ *     Push / peek / pop are amortized O(1); resize on load > 70 %.
+ *
+ *     The flat-array predecessor was O(N²) on writers that emit thousands
+ *     of distinct snprintf-built reservation names (FMG, PARAM, FLVER2, …)
+ *     and dominated the total write cost on real-game-scale data.
  */
 
 #include "souls_formats/sf_io.h"
@@ -33,11 +39,31 @@ typedef enum {
     SFRES_F64,
 } sfres_kind_t;
 
-typedef struct sfres {
-    char        *name;     /* heap-owned via writer's allocator */
-    int64_t      pos;
-    sfres_kind_t kind;
-} sfres_t;
+/*===========================================================================
+ * Reservation hash table — open addressing, linear probing.
+ *===========================================================================*/
+
+enum {
+    SFRES_SLOT_EMPTY     = 0,  /* never used — zero-init friendly */
+    SFRES_SLOT_OCCUPIED  = 1,  /* live reservation, `name` is heap-owned */
+    SFRES_SLOT_TOMBSTONE = 2,  /* popped slot, must be skipped by probe walks */
+};
+
+typedef struct sfres_slot {
+    char    *name;       /* heap-owned via writer's allocator when OCCUPIED */
+    int64_t  pos;
+    uint32_t name_hash;
+    uint8_t  kind;       /* sfres_kind_t value — values fit in a byte */
+    uint8_t  state;      /* SFRES_SLOT_* */
+    uint16_t _pad;
+} sfres_slot_t;
+
+#define SFRES_INIT_CAP    16     /* must be a power of two */
+#define SFRES_LOAD_NUM    7
+#define SFRES_LOAD_DEN   10      /* resize when (used * 10) > (cap * 7)   */
+
+_Static_assert((SFRES_INIT_CAP & (SFRES_INIT_CAP - 1)) == 0,
+               "SFRES_INIT_CAP must be a power of two");
 
 struct sf_binary_writer {
     sf_ostream_t        *stream;       /* borrowed */
@@ -49,11 +75,24 @@ struct sf_binary_writer {
     size_t               steps_size;
     size_t               steps_cap;
 
-    sfres_t             *res;
-    size_t               res_size;
-    size_t               res_cap;
+    sfres_slot_t        *res_slots;   /* NULL until first reservation */
+    size_t               res_cap;     /* power of two, or 0 when unallocated */
+    size_t               res_used;    /* OCCUPIED + TOMBSTONE — for resize */
+    size_t               res_live;    /* OCCUPIED only       — for finish */
+
     bool                 closed;
 };
+
+/*  FNV-1a-32 over a NUL-terminated string. Cheap and good enough mixing
+ *  for the short, predictable reservation names callers build. */
+static uint32_t sfres_hash(const char *name) {
+    uint32_t h = 2166136261u;
+    for (const unsigned char *p = (const unsigned char *)name; *p; p++) {
+        h ^= (uint32_t)*p;
+        h *= 16777619u;
+    }
+    return h;
+}
 
 static sf_result_t writer_open(const sf_binary_writer_t *w) {
     SF_CHECK_ARG(w != NULL);
@@ -83,14 +122,20 @@ sf_result_t sf_binary_writer_create(sf_binary_writer_t **out, sf_ostream_t *s,
 void sf_binary_writer_destroy(sf_binary_writer_t *w) {
     if (!w) return;
     sf_xfree(w->alloc, w->steps);
-    for (size_t i = 0; i < w->res_size; i++) sf_xfree(w->alloc, w->res[i].name);
-    sf_xfree(w->alloc, w->res);
+    if (w->res_slots) {
+        for (size_t i = 0; i < w->res_cap; i++) {
+            if (w->res_slots[i].state == SFRES_SLOT_OCCUPIED) {
+                sf_xfree(w->alloc, w->res_slots[i].name);
+            }
+        }
+        sf_xfree(w->alloc, w->res_slots);
+    }
     sf_xfree(w->alloc, w);
 }
 
 sf_result_t sf_binary_writer_finish(sf_binary_writer_t *w) {
     SF_CHECK_ARG(w != NULL);
-    if (w->res_size > 0) return SF_ERR_INTERNAL;
+    if (w->res_live > 0) return SF_ERR_INTERNAL;
     w->closed = true;
     return SF_OK;
 }
@@ -103,7 +148,7 @@ sf_result_t sf_binary_writer_to_array(sf_binary_writer_t *w, uint8_t **out, size
 sf_result_t sf_binary_writer_finish_bytes(sf_binary_writer_t *w, uint8_t **out, size_t *out_size) {
     SF_CHECK_ARG(w != NULL);
     SF_CHECK_ARG(out != NULL && out_size != NULL);
-    if (w->res_size > 0) return SF_ERR_INTERNAL;
+    if (w->res_live > 0) return SF_ERR_INTERNAL;
     sf_result_t e = sfi_ostream_to_array(w->stream, w->alloc, out, out_size);
     if (e != SF_OK) return e;
     w->closed = true;
@@ -349,55 +394,140 @@ static int kind_width(sfres_kind_t k) {
     return 0;
 }
 
-static sf_result_t reservations_push(sf_binary_writer_t *w, const char *name,
-                                     int64_t pos, sfres_kind_t kind) {
-    /*  Duplicate detection. */
-    for (size_t i = 0; i < w->res_size; i++) {
-        if (strcmp(w->res[i].name, name) == 0 && w->res[i].kind == kind) {
+/*  Locate the slot for (name_hash, kind, name) starting from `start` index.
+ *  Returns the matching OCCUPIED slot if present, or the first slot that
+ *  terminates the probe walk (EMPTY) otherwise. Tombstones are walked over
+ *  without being treated as terminators for lookups. */
+static size_t sfres_probe_lookup(const sfres_slot_t *slots, size_t cap,
+                                 uint32_t hash, uint8_t kind, const char *name) {
+    const size_t mask = cap - 1;
+    size_t i = (size_t)hash & mask;
+    for (;;) {
+        const sfres_slot_t *s = &slots[i];
+        if (s->state == SFRES_SLOT_EMPTY) return i;
+        if (s->state == SFRES_SLOT_OCCUPIED &&
+            s->name_hash == hash && s->kind == kind &&
+            strcmp(s->name, name) == 0) {
+            return i;
+        }
+        i = (i + 1) & mask;
+    }
+}
+
+/*  Locate the slot to insert (name_hash, kind, name) into, or detect an
+ *  existing duplicate. Sets `*out_idx` to the insertion / duplicate slot.
+ *  Returns SF_ERR_ALREADY_EXISTS if a matching OCCUPIED slot is found,
+ *  SF_OK otherwise (caller writes into *out_idx). */
+static sf_result_t sfres_probe_insert(const sfres_slot_t *slots, size_t cap,
+                                      uint32_t hash, uint8_t kind,
+                                      const char *name, size_t *out_idx) {
+    const size_t mask = cap - 1;
+    size_t i = (size_t)hash & mask;
+    size_t first_tomb = SIZE_MAX;
+    for (;;) {
+        const sfres_slot_t *s = &slots[i];
+        if (s->state == SFRES_SLOT_EMPTY) {
+            *out_idx = (first_tomb != SIZE_MAX) ? first_tomb : i;
+            return SF_OK;
+        }
+        if (s->state == SFRES_SLOT_TOMBSTONE) {
+            if (first_tomb == SIZE_MAX) first_tomb = i;
+        } else if (s->name_hash == hash && s->kind == kind &&
+                   strcmp(s->name, name) == 0) {
+            *out_idx = i;
             return SF_ERR_ALREADY_EXISTS;
         }
+        i = (i + 1) & mask;
     }
-    if (w->res_size == w->res_cap) {
-        size_t new_cap = w->res_cap ? w->res_cap * 2 : 8;
-        sfres_t *p = (sfres_t *)sf_xrealloc(w->alloc, w->res,
-                                            w->res_cap * sizeof(sfres_t),
-                                            new_cap * sizeof(sfres_t));
-        if (!p) return SF_ERR_OOM;
-        w->res = p; w->res_cap = new_cap;
+}
+
+static sf_result_t sfres_table_grow(sf_binary_writer_t *w, size_t new_cap) {
+    sfres_slot_t *new_slots =
+        (sfres_slot_t *)sf_xalloc(w->alloc, new_cap * sizeof(sfres_slot_t));
+    if (!new_slots) return SF_ERR_OOM;
+    memset(new_slots, 0, new_cap * sizeof(sfres_slot_t));
+
+    /*  Rehash live entries; tombstones drop out cleanly. */
+    if (w->res_slots) {
+        for (size_t i = 0; i < w->res_cap; i++) {
+            sfres_slot_t *src = &w->res_slots[i];
+            if (src->state != SFRES_SLOT_OCCUPIED) continue;
+            size_t idx;
+            (void)sfres_probe_insert(new_slots, new_cap, src->name_hash,
+                                     src->kind, src->name, &idx);
+            new_slots[idx] = *src;
+        }
+        sf_xfree(w->alloc, w->res_slots);
     }
+    w->res_slots = new_slots;
+    w->res_cap   = new_cap;
+    w->res_used  = w->res_live;  /* tombstones gone post-rehash */
+    return SF_OK;
+}
+
+static sf_result_t reservations_push(sf_binary_writer_t *w, const char *name,
+                                     int64_t pos, sfres_kind_t kind) {
+    /*  Lazy init / preemptive resize. We resize on (used+1)*DEN > cap*NUM so
+     *  the post-insert load stays below the threshold. */
+    if (w->res_cap == 0) {
+        sf_result_t e = sfres_table_grow(w, SFRES_INIT_CAP);
+        if (e != SF_OK) return e;
+    } else if ((w->res_used + 1) * SFRES_LOAD_DEN > w->res_cap * SFRES_LOAD_NUM) {
+        size_t new_cap = w->res_cap * 2;
+        if (new_cap < w->res_cap) return SF_ERR_OUT_OF_RANGE;  /* overflow */
+        sf_result_t e = sfres_table_grow(w, new_cap);
+        if (e != SF_OK) return e;
+    }
+
+    const uint32_t hash = sfres_hash(name);
+    size_t idx;
+    sf_result_t e = sfres_probe_insert(w->res_slots, w->res_cap, hash,
+                                       (uint8_t)kind, name, &idx);
+    if (e == SF_ERR_ALREADY_EXISTS) return e;
+
     char *dup = sf_strdup(w->alloc, name);
     if (!dup) return SF_ERR_OOM;
-    w->res[w->res_size].name = dup;
-    w->res[w->res_size].pos  = pos;
-    w->res[w->res_size].kind = kind;
-    w->res_size++;
+    sfres_slot_t *slot = &w->res_slots[idx];
+    bool was_tomb = (slot->state == SFRES_SLOT_TOMBSTONE);
+    slot->name      = dup;
+    slot->pos       = pos;
+    slot->name_hash = hash;
+    slot->kind      = (uint8_t)kind;
+    slot->state     = SFRES_SLOT_OCCUPIED;
+    if (!was_tomb) w->res_used++;
+    w->res_live++;
     return SF_OK;
 }
 
 static sf_result_t reservations_pop(sf_binary_writer_t *w, const char *name,
                                     sfres_kind_t kind, int64_t *out_pos) {
-    for (size_t i = 0; i < w->res_size; i++) {
-        if (strcmp(w->res[i].name, name) == 0 && w->res[i].kind == kind) {
-            *out_pos = w->res[i].pos;
-            sf_xfree(w->alloc, w->res[i].name);
-            /*  Compact: move last item into this slot. */
-            w->res[i] = w->res[w->res_size - 1];
-            w->res_size--;
-            return SF_OK;
-        }
-    }
-    return SF_ERR_NOT_FOUND;
+    if (w->res_cap == 0) return SF_ERR_NOT_FOUND;
+    const uint32_t hash = sfres_hash(name);
+    size_t idx = sfres_probe_lookup(w->res_slots, w->res_cap, hash,
+                                    (uint8_t)kind, name);
+    sfres_slot_t *slot = &w->res_slots[idx];
+    if (slot->state != SFRES_SLOT_OCCUPIED) return SF_ERR_NOT_FOUND;
+    *out_pos = slot->pos;
+    sf_xfree(w->alloc, slot->name);
+    slot->name = NULL;
+    /*  Mark as tombstone so subsequent probes still walk past this slot
+     *  to find later inserts that collided here. `res_used` keeps the
+     *  tombstone counted; rehash reclaims it. */
+    slot->state = SFRES_SLOT_TOMBSTONE;
+    w->res_live--;
+    return SF_OK;
 }
 
 static sf_result_t reservations_peek(const sf_binary_writer_t *w, const char *name,
                                      sfres_kind_t kind, int64_t *out_pos) {
-    for (size_t i = 0; i < w->res_size; i++) {
-        if (strcmp(w->res[i].name, name) == 0 && w->res[i].kind == kind) {
-            *out_pos = w->res[i].pos;
-            return SF_OK;
-        }
-    }
-    return SF_ERR_NOT_FOUND;
+    if (w->res_cap == 0) return SF_ERR_NOT_FOUND;
+    const uint32_t hash = sfres_hash(name);
+    size_t idx = sfres_probe_lookup(w->res_slots, w->res_cap, hash,
+                                    (uint8_t)kind, name);
+    const sfres_slot_t *slot = &w->res_slots[idx];
+    if (slot->state != SFRES_SLOT_OCCUPIED) return SF_ERR_NOT_FOUND;
+    *out_pos = slot->pos;
+    return SF_OK;
 }
 
 static sf_result_t reserve_kind(sf_binary_writer_t *w, const char *name,

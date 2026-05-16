@@ -5,6 +5,47 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.8.0] - 2026-05-16
+
+### Added
+- `sf_ostream_reserve()` public API. Pre-grows a memory-backed output stream
+  to a target capacity without changing position or logical length. Used by
+  FMG writes (and is broadly applicable to any caller that can cheaply
+  estimate the eventual output size) to skip the geometric realloc churn
+  on multi-MB outputs.
+
+### Performance
+- **`sf_binary_writer_t` reservations now use an open-addressing hash table**
+  (FNV-1a-32 keyed on name, linear probing) instead of a flat array with
+  linear `strcmp` scans. Push / peek / pop become amortized O(1) instead of
+  O(N), eliminating the dominant cost of writers that emit thousands of
+  distinct snprintf-built reservation names. Affects every format writer
+  that scales with entry count: FMG, PARAM, FLVER2, TAE, EMEVD, MSB, ESD,
+  LuaInfo, Emeld, F2TR, CLM2, PMDCL, NVA, NVM, MCG, and others. Public API
+  is unchanged.
+- **FMG write — offset-table emission rewritten.** Previously the writer
+  reserved one varint per string offset (N reservations × O(N) bookkeeping
+  per entry → O(N²) wall-time). Now the offset block is emitted as a single
+  0xFE pattern, string positions are collected into a local int64_t array
+  while bodies are written, and the block is back-patched in one
+  `step_in`/`step_out` pair at the end. Eliminates per-entry `snprintf`s
+  and reservation lookups entirely.
+- **FMG dedup (`reuse_offsets=true`) now uses a content-keyed hash table**
+  (FNV-1a-64) instead of an O(N²) `strcmp` scan over previously-written
+  strings. Same on-disk layout.
+- **FMG serialize — zero-copy detach + preallocation.** Replaced the
+  full-buffer copy in `sf_binary_writer_finish_bytes` with
+  `sf_ostream_detach_buffer`; pre-grew the memory ostream from an
+  entry-count + string-length estimate so multi-MB FMGs no longer pay for
+  ~17 cumulative doubling reallocs.
+- **FMG write — ASCII fast path for UTF-16 and Shift-JIS string emission.**
+  When a string contains only bytes `< 0x80` (the common case for Western
+  item names, IDs, format tokens), the writer skips the `MultiByteToWideChar`
+  / `WideCharToMultiByte` round-trip and emits the encoded bytes inline. Two
+  Win32 calls and two intermediate `malloc`/`free` pairs saved per entry.
+  Non-ASCII strings still go through the existing encoding helpers
+  unchanged.
+
 ## [0.7.0] - 2026-05-14
 
 ### Added

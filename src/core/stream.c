@@ -440,3 +440,10 @@ sf_result_t sf_ostream_detach_buffer(sf_ostream_t *s, void **out_data, size_t *o
     s->mem_pos  = 0;
     return SF_OK;
 }
+
+sf_result_t sf_ostream_reserve(sf_ostream_t *s, size_t capacity) {
+    SF_CHECK_ARG(s != NULL);
+    if (s->backend != SFI_BK_MEMORY) return SF_ERR_INVALID_ARG;
+    if (capacity <= s->mem_cap) return SF_OK;
+    return mem_grow(s, capacity);
+}

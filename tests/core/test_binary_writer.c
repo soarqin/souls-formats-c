@@ -9,6 +9,7 @@
 #include "unity.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 void setUp(void) {}
@@ -426,6 +427,65 @@ static void test_reservation_same_name_different_primitive_types(void) {
     expect_finish_bytes(s, w, expected, sizeof(expected));
 }
 
+/*  Stress: 10k reserve+fill pairs with snprintf-built names. With the
+ *  legacy O(N²) reservation table this loop took seconds; with the hash
+ *  table it should complete in milliseconds. Functional check: every
+ *  back-patched byte is the index modulo 256. */
+static void test_reservation_many_back_patches(void) {
+    enum { N = 10000 };
+    sf_ostream_t *s; sf_binary_writer_t *w;
+    make_writer(&s, &w, false);
+
+    /*  Reserve N u8 slots with distinct names, leaving room for back-patch. */
+    for (int i = 0; i < N; i++) {
+        char name[32];
+        (void)snprintf(name, sizeof(name), "Slot%d", i);
+        TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_reserve_u8(w, name));
+    }
+    /*  Fill out of order (reverse) to stress probe walks past tombstones. */
+    for (int i = N - 1; i >= 0; i--) {
+        char name[32];
+        (void)snprintf(name, sizeof(name), "Slot%d", i);
+        TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_fill_u8(w, name, (uint8_t)(i & 0xFF)));
+    }
+    /*  finish requires every reservation to be filled. */
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_finish(w));
+
+    void *bytes = NULL;
+    size_t n = 0;
+    TEST_ASSERT_EQUAL(SF_OK, sf_ostream_detach_buffer(s, &bytes, &n));
+    TEST_ASSERT_EQUAL_size_t(N, n);
+    const uint8_t *b = (const uint8_t *)bytes;
+    for (int i = 0; i < N; i++) {
+        TEST_ASSERT_EQUAL_HEX8((uint8_t)(i & 0xFF), b[i]);
+    }
+    sf_free(NULL, bytes);
+    destroy_writer(s, w);
+}
+
+/*  After popping a reservation, the slot becomes a tombstone. Re-inserting
+ *  the same (name, kind) must succeed and the new pos must be back-patched
+ *  correctly even after many other inserts collide through that slot. */
+static void test_reservation_reuse_after_pop(void) {
+    sf_ostream_t *s; sf_binary_writer_t *w;
+    make_writer(&s, &w, false);
+
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_reserve_u8(w, "x"));      /* off 0 */
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_fill_u8 (w, "x", 0xAA));  /* pop */
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_reserve_u8(w, "x"));      /* off 1, reuse-after-tomb */
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_fill_u8 (w, "x", 0xBB));
+    TEST_ASSERT_EQUAL(SF_OK, sf_binary_writer_finish(w));
+
+    static const uint8_t expected[] = { 0xAA, 0xBB };
+    void *bytes = NULL;
+    size_t n = 0;
+    TEST_ASSERT_EQUAL(SF_OK, sf_ostream_detach_buffer(s, &bytes, &n));
+    TEST_ASSERT_EQUAL_size_t(sizeof(expected), n);
+    TEST_ASSERT_EQUAL_MEMORY(expected, bytes, n);
+    sf_free(NULL, bytes);
+    destroy_writer(s, w);
+}
+
 /*===========================================================================
  * Step + pad
  *===========================================================================*/
@@ -713,6 +773,8 @@ int main(void) {
     RUN_TEST(test_reserve_fill_f64);
     RUN_TEST(test_reservation_mixing_types_errors_without_removing_reservation);
     RUN_TEST(test_reservation_same_name_different_primitive_types);
+    RUN_TEST(test_reservation_many_back_patches);
+    RUN_TEST(test_reservation_reuse_after_pop);
     RUN_TEST(test_step_in_out);
     RUN_TEST(test_pad_zero_and_ff);
     RUN_TEST(test_pad_ff_shorthand);

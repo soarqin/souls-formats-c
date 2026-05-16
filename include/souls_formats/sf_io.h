@@ -100,6 +100,17 @@ SF_API sf_result_t sf_ostream_write(sf_ostream_t *s, const void *buf, size_t n);
  *  returns SF_ERR_INVALID_ARG. */
 SF_API sf_result_t sf_ostream_detach_buffer(sf_ostream_t *s, void **out_data, size_t *out_size);
 
+/*  Memory-backed streams: pre-grow the internal buffer to at least `capacity`
+ *  bytes without changing position or logical length. Used to avoid the
+ *  geometric realloc churn when the eventual output size can be estimated
+ *  cheaply (e.g. FMG writes know entry_count + string lengths upfront).
+ *
+ *  Returns SF_OK on success. On a file-backed stream returns
+ *  SF_ERR_INVALID_ARG. The call is best-effort: callers may treat any
+ *  failure as advisory and continue writing — subsequent writes will fall
+ *  back to the default doubling growth strategy. */
+SF_API sf_result_t sf_ostream_reserve(sf_ostream_t *s, size_t capacity);
+
 /*===========================================================================
  * Binary reader
  *===========================================================================*/

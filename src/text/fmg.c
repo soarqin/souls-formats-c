@@ -355,17 +355,21 @@ void sf_fmg_destroy(sf_fmg_t *fmg) {
  * `const sf_fmg_t *` we take a shallow copy (id + text pointer) into a
  * scratch buffer and sort that instead; the original entry array is never
  * mutated. The text bytes themselves are still owned by the FMG.
+ *
+ * Offset table: rather than reserving one varint placeholder per string
+ * (N reservations through the writer's reservation table), we pre-fill
+ * the entire offset block with 0xFE pattern bytes, collect the actual
+ * positions in a local int64_t[] while writing the string bodies, and
+ * back-patch the whole block in a single step_in / step_out pair at the
+ * end. This avoids O(N) reservation bookkeeping and per-entry snprintf
+ * names, both of which dominated the previous implementation at FMG-scale
+ * (10k+ entries) before the reservation table was hashed.
  *===========================================================================*/
 
 typedef struct sf_fmg_sort_view {
     int32_t     id;
     const char *text_utf8;
 } sf_fmg_sort_view_t;
-
-typedef struct sf_fmg_dedup_slot {
-    const char *text;
-    int64_t     offset;
-} sf_fmg_dedup_slot_t;
 
 static int compare_sort_view_by_id(const void *a, const void *b) {
     const sf_fmg_sort_view_t *va = (const sf_fmg_sort_view_t *)a;
@@ -375,88 +379,181 @@ static int compare_sort_view_by_id(const void *a, const void *b) {
     return 0;
 }
 
-static int format_offset_name(char *buf, size_t cap, size_t i) {
-    int n = snprintf(buf, cap, "StringOffset%zu", i);
-    if (n < 0 || (size_t)n >= cap) return -1;
-    return 0;
+/*  ASCII-only fast path detection. Pure-ASCII strings (every byte < 0x80)
+ *  are common in real FMGs — Western item names, IDs, format tokens, etc.
+ *  Returns true if `s` contains only ASCII; false on the first high byte.
+ *  Empty strings are ASCII by definition. */
+static bool fmg_text_is_ascii(const char *s) {
+    if (!s) return true;
+    for (const unsigned char *p = (const unsigned char *)s; *p; p++) {
+        if (*p >= 0x80u) return false;
+    }
+    return true;
+}
+
+/*  Emit `s` as a NUL-terminated UTF-16 LE/BE string by direct byte
+ *  injection — no Win32 round-trip, no encoding state machines. Valid
+ *  ONLY when every byte of `s` is < 0x80 (ASCII subset of UTF-8, which is
+ *  also the BMP subset of UTF-16). Short strings use a stack buffer;
+ *  longer strings fall back to a single heap allocation (still much
+ *  cheaper than two MultiByteToWideChar calls + two intermediate mallocs
+ *  inside sf_utf8_to_utf16le). */
+static sf_result_t fmg_write_utf16_ascii(sf_binary_writer_t *bw, bool big_endian,
+                                         const char *s, const sf_allocator_t *alloc) {
+    size_t len = s ? strlen(s) : 0;
+    if (len > (SIZE_MAX / 2u) - 1u) return SF_ERR_OUT_OF_RANGE;
+    size_t total = (len + 1u) * 2u;
+
+    uint8_t stack_buf[512];
+    uint8_t *buf = stack_buf;
+    bool heap = (total > sizeof(stack_buf));
+    if (heap) {
+        buf = (uint8_t *)sf_xalloc(alloc, total);
+        if (!buf) return SF_ERR_OOM;
+    }
+
+    if (big_endian) {
+        for (size_t i = 0; i < len; i++) {
+            buf[i * 2u]       = 0;
+            buf[i * 2u + 1u]  = (uint8_t)s[i];
+        }
+    } else {
+        for (size_t i = 0; i < len; i++) {
+            buf[i * 2u]       = (uint8_t)s[i];
+            buf[i * 2u + 1u]  = 0;
+        }
+    }
+    buf[total - 2u] = 0;
+    buf[total - 1u] = 0;
+
+    sf_result_t r = sf_binary_writer_write_bytes(bw, buf, total);
+    if (heap) sf_xfree(alloc, buf);
+    return r;
+}
+
+/*  Emit `s` as a NUL-terminated Shift-JIS string. Shift-JIS is a strict
+ *  superset of 7-bit ASCII: any byte < 0x80 maps to itself, and a 0 byte
+ *  is a valid string terminator. So for ASCII-only `s` we can write the
+ *  bytes (plus the existing trailing NUL) directly. */
+static sf_result_t fmg_write_sjis_ascii(sf_binary_writer_t *bw, const char *s) {
+    size_t len = s ? strlen(s) : 0;
+    /*  +1 to also write the terminating NUL. */
+    return sf_binary_writer_write_bytes(bw, s ? s : "", len + 1u);
 }
 
 static sf_result_t write_one_string(sf_binary_writer_t *bw, bool unicode,
-                                    const char *text_utf8) {
+                                    const char *text_utf8,
+                                    const sf_allocator_t *alloc) {
+    /*  Fast path: ASCII-only content (very common). Skips Win32 encoding,
+     *  avoids two malloc/free pairs per string. */
+    if (fmg_text_is_ascii(text_utf8)) {
+        return unicode
+            ? fmg_write_utf16_ascii(bw, sf_binary_writer_big_endian(bw),
+                                    text_utf8, alloc)
+            : fmg_write_sjis_ascii(bw, text_utf8);
+    }
+    /*  Fallback: full Win32 conversion path via encoding_win32.c. */
     return unicode
         ? sf_binary_writer_write_utf16(bw, text_utf8, true)
         : sf_binary_writer_write_shift_jis(bw, text_utf8, true);
 }
 
-static sf_result_t write_strings_simple(sf_binary_writer_t *bw,
-                                        const sf_fmg_sort_view_t *view,
-                                        size_t count, bool unicode) {
-    char name[32];
+/*  Simple writer: every text entry is emitted once. NULL entries (deleted
+ *  tombstones) record offset 0. Mirrors WriteStringsSimple upstream behaviour
+ *  but accumulates offsets into a caller-owned buffer instead of round-
+ *  tripping through reservation bookkeeping. */
+static sf_result_t fmg_emit_strings_simple(sf_binary_writer_t *bw,
+                                           const sf_fmg_sort_view_t *view,
+                                           size_t count, bool unicode,
+                                           const sf_allocator_t *alloc,
+                                           int64_t *offsets_out) {
     for (size_t i = 0; i < count; i++) {
-        if (format_offset_name(name, sizeof(name), i) != 0) return SF_ERR_INTERNAL;
-
         const char *text = view[i].text_utf8;
-        if (text) {
-            int64_t pos = sf_binary_writer_position(bw);
-            sf_result_t r = sf_binary_writer_fill_varint(bw, name, pos);
-            if (r != SF_OK) return r;
-            r = write_one_string(bw, unicode, text);
-            if (r != SF_OK) return r;
-        } else {
-            sf_result_t r = sf_binary_writer_fill_varint(bw, name, 0);
-            if (r != SF_OK) return r;
+        if (!text) {
+            offsets_out[i] = 0;
+            continue;
         }
+        offsets_out[i] = sf_binary_writer_position(bw);
+        sf_result_t r = write_one_string(bw, unicode, text, alloc);
+        if (r != SF_OK) return r;
     }
     return SF_OK;
 }
 
-static sf_result_t write_strings_reuse_offsets(sf_binary_writer_t *bw,
-                                               const sf_fmg_sort_view_t *view,
-                                               size_t count, bool unicode,
-                                               const sf_allocator_t *alloc) {
-    sf_fmg_dedup_slot_t *table = NULL;
-    size_t table_size = 0;
-    sf_result_t r = SF_OK;
-    char name[32];
+/*  Dedup-aware writer: identical UTF-8 strings share a single in-file copy
+ *  and their offsets-table entries point to the same position. Replaces the
+ *  former O(N²) strcmp scan with an open-addressing hash table keyed on the
+ *  FNV-1a-64 of each string. Same on-disk layout. */
+typedef struct sf_fmg_dedup_slot {
+    uint64_t    hash;
+    int64_t     offset;
+    const char *text;  /* borrowed pointer into view */
+} sf_fmg_dedup_slot_t;
 
-    if (count > 0) {
-        table = (sf_fmg_dedup_slot_t *)sf_xalloc(alloc, count * sizeof(*table));
-        if (!table) return SF_ERR_OOM;
+static uint64_t fmg_text_hash(const char *s) {
+    uint64_t h = 0xCBF29CE484222325ULL;
+    for (const unsigned char *p = (const unsigned char *)s; *p; p++) {
+        h ^= (uint64_t)*p;
+        h *= 0x100000001B3ULL;
+    }
+    return h;
+}
+
+static sf_result_t fmg_emit_strings_dedup(sf_binary_writer_t *bw,
+                                          const sf_fmg_sort_view_t *view,
+                                          size_t count, bool unicode,
+                                          const sf_allocator_t *alloc,
+                                          int64_t *offsets_out) {
+    /*  Capacity = next power of two >= count*2, minimum 16. Load factor
+     *  caps near 50%, keeping probe runs short. */
+    size_t cap = 16;
+    while (cap < count * 2u) {
+        if (cap > (SIZE_MAX / 2)) return SF_ERR_OUT_OF_RANGE;
+        cap *= 2;
+    }
+    const size_t mask = cap - 1;
+
+    sf_fmg_dedup_slot_t *slots = (sf_fmg_dedup_slot_t *)sf_xalloc(
+        alloc, cap * sizeof(*slots));
+    if (!slots) return SF_ERR_OOM;
+    for (size_t k = 0; k < cap; k++) {
+        slots[k].text   = NULL;
+        slots[k].offset = 0;
+        slots[k].hash   = 0;
     }
 
+    sf_result_t r = SF_OK;
     for (size_t i = 0; i < count; i++) {
-        if (format_offset_name(name, sizeof(name), i) != 0) {
-            r = SF_ERR_INTERNAL; goto out;
-        }
         const char *text = view[i].text_utf8;
         if (!text) {
-            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, 0), goto out);
+            offsets_out[i] = 0;
             continue;
         }
 
-        int64_t found = -1;
-        for (size_t k = 0; k < table_size; k++) {
-            if (strcmp(table[k].text, text) == 0) {
-                found = table[k].offset;
+        const uint64_t h = fmg_text_hash(text);
+        size_t k = (size_t)h & mask;
+        for (;;) {
+            if (slots[k].text == NULL) {
+                /*  First occurrence: emit and remember offset. */
+                int64_t pos = sf_binary_writer_position(bw);
+                r = write_one_string(bw, unicode, text, alloc);
+                if (r != SF_OK) goto out;
+                slots[k].hash   = h;
+                slots[k].offset = pos;
+                slots[k].text   = text;
+                offsets_out[i]  = pos;
                 break;
             }
-        }
-
-        if (found < 0) {
-            int64_t offset = sf_binary_writer_position(bw);
-            table[table_size].text = text;
-            table[table_size].offset = offset;
-            table_size++;
-            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, offset), goto out);
-            r = write_one_string(bw, unicode, text);
-            if (r != SF_OK) goto out;
-        } else {
-            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, name, found), goto out);
+            if (slots[k].hash == h && strcmp(slots[k].text, text) == 0) {
+                offsets_out[i] = slots[k].offset;
+                break;
+            }
+            k = (k + 1) & mask;
         }
     }
 
 out:
-    sf_xfree(alloc, table);
+    sf_xfree(alloc, slots);
     return r;
 }
 
@@ -532,23 +629,51 @@ static sf_result_t fmg_write_body(sf_binary_writer_t *bw, const sf_fmg_t *fmg,
     }
 
     SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_i32(bw, "GroupCount", group_count), goto fail);
-    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "StringOffsets", sf_binary_writer_position(bw)), goto fail);
 
-    {
-        char name[32];
-        for (size_t k = 0; k < fmg->entry_count; k++) {
-            if (format_offset_name(name, sizeof(name), k) != 0) {
-                r = SF_ERR_INTERNAL; goto fail;
-            }
-            SF_RESERVE_FILL_PAIR(r, sf_binary_writer_reserve_varint(bw, name), goto fail);
+    /*  Offset-table emission: pre-fill the block with 0xFE pattern bytes
+     *  (matches the writer's reservation pattern semantically), record
+     *  string offsets into a local array while writing the bodies, then
+     *  back-patch the whole table in one step_in / step_out pair. */
+    const int per_offset = wide ? 8 : 4;
+    int64_t string_table_pos = sf_binary_writer_position(bw);
+    SF_RESERVE_FILL_PAIR(r, sf_binary_writer_fill_varint(bw, "StringOffsets",
+                                                        string_table_pos), goto fail);
+
+    int64_t *offsets = NULL;
+    if (fmg->entry_count > 0) {
+        if (fmg->entry_count > SIZE_MAX / (size_t)per_offset) {
+            r = SF_ERR_OUT_OF_RANGE; goto fail;
         }
+        r = sf_binary_writer_write_pattern(bw,
+                fmg->entry_count * (size_t)per_offset, 0xFE);
+        if (r != SF_OK) goto fail;
+
+        offsets = (int64_t *)sf_xalloc(alloc,
+                fmg->entry_count * sizeof(int64_t));
+        if (!offsets) { r = SF_ERR_OOM; goto fail; }
     }
 
     r = fmg->reuse_offsets
-        ? write_strings_reuse_offsets(bw, view, fmg->entry_count,
-                                      fmg->unicode, alloc)
-        : write_strings_simple(bw, view, fmg->entry_count, fmg->unicode);
-    if (r != SF_OK) goto fail;
+        ? fmg_emit_strings_dedup(bw, view, fmg->entry_count, fmg->unicode,
+                                 alloc, offsets)
+        : fmg_emit_strings_simple(bw, view, fmg->entry_count, fmg->unicode,
+                                  alloc, offsets);
+    if (r != SF_OK) { sf_xfree(alloc, offsets); goto fail; }
+
+    /*  Back-patch the offset table in one shot. */
+    if (fmg->entry_count > 0) {
+        r = sf_binary_writer_step_in(bw, string_table_pos);
+        if (r == SF_OK) {
+            for (size_t k = 0; k < fmg->entry_count; k++) {
+                r = sf_binary_writer_write_varint(bw, offsets[k]);
+                if (r != SF_OK) break;
+            }
+            sf_result_t r2 = sf_binary_writer_step_out(bw);
+            if (r == SF_OK) r = r2;
+        }
+        sf_xfree(alloc, offsets);
+        if (r != SF_OK) goto fail;
+    }
 
     r = sf_binary_writer_fill_i32(bw, "FileSize",
                                   (int32_t)sf_binary_writer_position(bw));
@@ -557,34 +682,81 @@ fail:
     return r;
 }
 
+/*  Estimate the on-disk size from the entry view. Used to pre-grow the
+ *  memory ostream so that the doubling-growth realloc churn is avoided
+ *  for typical mid-to-large FMGs. Over-estimates are harmless (the buffer
+ *  is detached and reused at exactly the written size); under-estimates
+ *  simply trigger one or two doubling reallocs at the tail. */
+static size_t fmg_estimate_output_size(const sf_fmg_t *fmg) {
+    const bool   wide = (fmg->version == SF_FMG_VERSION_DARK_SOULS_3);
+    const size_t group_entry_size = wide ? 16u : 12u;
+    const size_t per_offset       = wide ? 8u  : 4u;
+    size_t est = 64u;                          /* header + group count etc. */
+    if (fmg->has_md5) est += 16u;
+    if (fmg->entry_count == 0) return est;
+
+    /*  Worst case: every entry is its own group. */
+    if (fmg->entry_count > SIZE_MAX / group_entry_size) return SIZE_MAX;
+    est += fmg->entry_count * group_entry_size;
+    if (fmg->entry_count > SIZE_MAX / per_offset) return SIZE_MAX;
+    est += fmg->entry_count * per_offset;
+
+    for (size_t i = 0; i < fmg->entry_count; i++) {
+        const char *text = fmg->entries[i].text_utf8;
+        if (!text) continue;
+        size_t len = strlen(text);
+        /*  Unicode FMG encodes via UTF-16 LE/BE; ASCII-heavy strings are
+         *  the common case (Western item names). 2*(len+1) is a tight
+         *  upper bound for BMP-only content. Non-BMP would balloon by ~2x
+         *  via UTF-8 → UTF-16 expansion, but is exceedingly rare in FMGs. */
+        size_t per_string = fmg->unicode ? (len + 1u) * 2u : (len + 1u);
+        if (est > SIZE_MAX - per_string) return SIZE_MAX;
+        est += per_string;
+    }
+    return est;
+}
+
 static sf_result_t fmg_serialize(const sf_fmg_t *fmg, uint8_t **out_data,
                                  size_t *out_size, const sf_allocator_t *alloc) {
     sf_ostream_t *os = NULL;
     sf_result_t r = sf_ostream_open_memory(&os, alloc);
     if (r != SF_OK) return r;
 
+    /*  Best-effort preallocate to skip ~17 doubling reallocs on multi-MB
+     *  FMGs. We ignore the return value because the writer falls back to
+     *  the default doubling growth on failure. */
+    size_t estimate = fmg_estimate_output_size(fmg);
+    if (estimate != SIZE_MAX) {
+        (void)sf_ostream_reserve(os, estimate);
+    }
+
     sf_binary_writer_t *bw = NULL;
     r = sf_binary_writer_create(&bw, os, fmg->big_endian, alloc);
     if (r != SF_OK) { sf_ostream_close(os); return r; }
 
     r = fmg_write_body(bw, fmg, alloc);
+    if (r == SF_OK) r = sf_binary_writer_finish(bw);
+    sf_binary_writer_destroy(bw);
+    if (r != SF_OK) { sf_ostream_close(os); return r; }
 
-    uint8_t *body = NULL;
-    size_t   body_size = 0;
-    if (r == SF_OK) {
-        r = sf_binary_writer_finish_bytes(bw, &body, &body_size);
-    } else {
-        sf_binary_writer_destroy(bw);
-    }
+    /*  Zero-copy take of the ostream's internal buffer — no second
+     *  full-file memcpy. The ostream is left empty before close. */
+    void *body = NULL;
+    size_t body_size = 0;
+    r = sf_ostream_detach_buffer(os, &body, &body_size);
     sf_ostream_close(os);
     if (r != SF_OK) return r;
 
     if (!fmg->has_md5) {
-        *out_data = body;
+        *out_data = (uint8_t *)body;
         *out_size = body_size;
         return SF_OK;
     }
 
+    /*  MD5 prefix path (Gundam Unicorn-only, irrelevant for v1 targets).
+     *  We allocate a fresh buffer of body_size+16 and prepend the hash.
+     *  Cannot avoid this final copy because in-stream offsets in the body
+     *  are body-relative; pre-emitting the 16 bytes would shift them. */
     uint8_t hash[16];
     r = sfi_md5_hash(body, body_size, hash);
     if (r != SF_OK) { sf_xfree(alloc, body); return r; }
