@@ -10,7 +10,8 @@ include(${CMAKE_SOURCE_DIR}/cmake/deps/unity.cmake)
 # built into CMAKE_BINARY_DIR.  If a user double-clicks a test .exe from
 # Explorer the OS may still complain about a missing DLL.  We therefore:
 #   1. Copy libsouls_formats.dll into every test output directory after
-#      each build so that direct execution works without PATH changes.
+#      each build so that direct execution works without PATH changes
+#      (only when SF_BUILD_SHARED=ON and the target exists).
 #   2. Set the ctest ENVIRONMENT to prepend CMAKE_BINARY_DIR to PATH so
 #      that ctest-driven runs also find any other runtime DLLs (e.g. the
 #      Oodle DLL loaded at runtime by sf_oodle_set_search_path).
@@ -23,12 +24,15 @@ function(sf_add_test name source label)
     sf_apply_sanitizers(${name})
 
     # Copy the shared DLL alongside the test .exe so direct execution works.
-    add_custom_command(TARGET ${name} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "$<TARGET_FILE:souls_formats_shared>"
-            "${CMAKE_BINARY_DIR}/tests/${label}/$<TARGET_FILE_NAME:souls_formats_shared>"
-        COMMENT "Copying souls_formats DLL to tests/${label}/"
-    )
+    # Only added when SF_BUILD_SHARED=ON (i.e. the target actually exists).
+    if(TARGET souls_formats_shared)
+        add_custom_command(TARGET ${name} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "$<TARGET_FILE:souls_formats_shared>"
+                "${CMAKE_BINARY_DIR}/tests/${label}/$<TARGET_FILE_NAME:souls_formats_shared>"
+            COMMENT "Copying souls_formats DLL to tests/${label}/"
+        )
+    endif()
 
     add_test(NAME ${name} COMMAND ${name})
     set_tests_properties(${name} PROPERTIES

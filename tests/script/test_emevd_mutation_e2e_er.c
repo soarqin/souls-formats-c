@@ -65,7 +65,7 @@ static bool extract_emevd(void **out, size_t *out_size)
 /* ---------------------------------------------------------------------------
  * Test: clear_parameters on a live event, verify via write+re-read
  * ------------------------------------------------------------------------- */
-void test_emevd_clear_parameters_e2e(void)
+static void test_emevd_clear_parameters_e2e(void)
 {
     if (!env_ok) {
         TEST_IGNORE_MESSAGE("ER game directory not available; skipping EMEVD mutation e2e");
@@ -150,7 +150,7 @@ void test_emevd_clear_parameters_e2e(void)
 /* ---------------------------------------------------------------------------
  * Test: add_event + insert_instruction on a live EMEVD, verify via round-trip
  * ------------------------------------------------------------------------- */
-void test_emevd_add_event_and_insert_instruction_e2e(void)
+static void test_emevd_add_event_and_insert_instruction_e2e(void)
 {
     if (!env_ok) {
         TEST_IGNORE_MESSAGE("ER game directory not available; skipping");
@@ -220,7 +220,7 @@ void test_emevd_add_event_and_insert_instruction_e2e(void)
 /* ---------------------------------------------------------------------------
  * Test: find_by_id miss returns SF_ERR_NOT_FOUND
  * ------------------------------------------------------------------------- */
-void test_emevd_find_by_id_miss_e2e(void)
+static void test_emevd_find_by_id_miss_e2e(void)
 {
     if (!env_ok) {
         TEST_IGNORE_MESSAGE("ER game directory not available; skipping");

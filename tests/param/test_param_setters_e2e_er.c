@@ -131,7 +131,7 @@ static bool find_cell_of_kind(sf_param_t *param, sf_param_cell_kind_t kind,
 /* ---------------------------------------------------------------------------
  * Test: s32 setter round-trip
  * ------------------------------------------------------------------------- */
-void test_param_cell_set_s32_roundtrip(void)
+static void test_param_cell_set_s32_roundtrip(void)
 {
     sf_param_t *param = load_param_or_skip();
     if (!param) return; /* IGNORE already called */
@@ -164,7 +164,7 @@ void test_param_cell_set_s32_roundtrip(void)
 /* ---------------------------------------------------------------------------
  * Test: u32 setter round-trip
  * ------------------------------------------------------------------------- */
-void test_param_cell_set_u32_roundtrip(void)
+static void test_param_cell_set_u32_roundtrip(void)
 {
     sf_param_t *param = load_param_or_skip();
     if (!param) return;
@@ -192,7 +192,7 @@ void test_param_cell_set_u32_roundtrip(void)
 /* ---------------------------------------------------------------------------
  * Test: f32 setter round-trip
  * ------------------------------------------------------------------------- */
-void test_param_cell_set_f32_roundtrip(void)
+static void test_param_cell_set_f32_roundtrip(void)
 {
     sf_param_t *param = load_param_or_skip();
     if (!param) return;
@@ -220,7 +220,7 @@ void test_param_cell_set_f32_roundtrip(void)
 /* ---------------------------------------------------------------------------
  * Test: write_to_memory round-trip preserves setter changes
  * ------------------------------------------------------------------------- */
-void test_param_write_to_memory_preserves_setter(void)
+static void test_param_write_to_memory_preserves_setter(void)
 {
     sf_param_t *param = load_param_or_skip();
     if (!param) return;
@@ -281,7 +281,7 @@ void test_param_write_to_memory_preserves_setter(void)
 /* ---------------------------------------------------------------------------
  * Test: type mismatch returns SF_ERR_INVALID_ARG
  * ------------------------------------------------------------------------- */
-void test_param_cell_set_type_mismatch(void)
+static void test_param_cell_set_type_mismatch(void)
 {
     sf_param_t *param = load_param_or_skip();
     if (!param) return;
