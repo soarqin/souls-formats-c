@@ -160,6 +160,7 @@ SF_API sf_param_row_t *sf_param_find_row_by_id_mut(sf_param_t *param, int64_t id
 SF_API sf_result_t sf_param_add_row_by_id(sf_param_t *param, int32_t id,
                                           const char *name_optional,
                                           sf_param_row_t **out_row);
+SF_API sf_result_t sf_param_sort_rows_by_id(sf_param_t *param);
 
 SF_API int32_t sf_param_row_get_id(const sf_param_row_t *row);
 SF_API const char *sf_param_row_get_name(const sf_param_row_t *row);
@@ -170,6 +171,7 @@ SF_API const sf_param_cell_t *sf_param_row_find_cell(const sf_param_row_t *row,
 SF_API sf_param_cell_t *sf_param_row_get_cell_mut(sf_param_row_t *row, size_t index);
 SF_API sf_param_cell_t *sf_param_row_find_cell_mut(sf_param_row_t *row,
                                                    const char *internal_name);
+SF_API sf_result_t sf_param_row_copy(sf_param_row_t *dst, const sf_param_row_t *src);
 
 SF_API sf_param_cell_value_t sf_param_cell_get_value(const sf_param_cell_t *cell);
 SF_API uint8_t sf_param_cell_get_u8(const sf_param_cell_t *cell);
@@ -190,10 +192,13 @@ SF_API bool sf_param_cell_get_bool(const sf_param_cell_t *cell);
 SF_API sf_result_t sf_param_cell_set_s64(sf_param_cell_t *cell, int64_t  value);
 SF_API sf_result_t sf_param_cell_set_u64(sf_param_cell_t *cell, uint64_t value);
 SF_API sf_result_t sf_param_cell_set_f32(sf_param_cell_t *cell, float    value);
+SF_API sf_result_t sf_param_cell_set_angle32(sf_param_cell_t *cell, float value);
 SF_API sf_result_t sf_param_cell_set_f64(sf_param_cell_t *cell, double   value);
 SF_API sf_result_t sf_param_cell_set_bool(sf_param_cell_t *cell, bool    value);
 SF_API sf_result_t sf_param_cell_set_byte(sf_param_cell_t *cell, uint8_t value);
 SF_API sf_result_t sf_param_cell_set_fixstr(sf_param_cell_t *cell, const char *value, size_t value_len);
+SF_API sf_result_t sf_param_cell_set_fixstr_w(sf_param_cell_t *cell, const wchar_t *value, size_t value_len);
+SF_API sf_result_t sf_param_cell_set_bytes(sf_param_cell_t *cell, const uint8_t *data, size_t size);
 
 SF_API sf_result_t sf_param_cell_set_s8(sf_param_cell_t *cell, int8_t value);
 SF_API sf_result_t sf_param_cell_set_u8(sf_param_cell_t *cell, uint8_t value);
@@ -201,6 +206,8 @@ SF_API sf_result_t sf_param_cell_set_s16(sf_param_cell_t *cell, int16_t value);
 SF_API sf_result_t sf_param_cell_set_u16(sf_param_cell_t *cell, uint16_t value);
 SF_API sf_result_t sf_param_cell_set_s32(sf_param_cell_t *cell, int32_t value);
 SF_API sf_result_t sf_param_cell_set_u32(sf_param_cell_t *cell, uint32_t value);
+
+SF_API sf_result_t sf_param_cell_copy(sf_param_cell_t *dst, const sf_param_cell_t *src);
 
 #undef SF_PARAM_STATIC_ASSERT
 

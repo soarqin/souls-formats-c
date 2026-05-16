@@ -890,6 +890,22 @@ SF_API sf_result_t sf_param_add_row_by_id(sf_param_t *param, int32_t id,
     return SF_OK;
 }
 
+static int param_row_cmp(const void *a, const void *b) {
+    const sf_param_row_t *row_a = (const sf_param_row_t *)a;
+    const sf_param_row_t *row_b = (const sf_param_row_t *)b;
+    if (row_a->id < row_b->id) return -1;
+    if (row_a->id > row_b->id) return 1;
+    return 0;
+}
+
+SF_API sf_result_t sf_param_sort_rows_by_id(sf_param_t *param) {
+    SF_CHECK_ARG(param != NULL);
+    if (param->row_count <= 1) return SF_OK;
+
+    qsort(param->rows, param->row_count, sizeof(*param->rows), param_row_cmp);
+    return SF_OK;
+}
+
 int32_t sf_param_row_get_id(const sf_param_row_t *row) {
     return row ? row->id : 0;
 }
@@ -924,6 +940,17 @@ sf_param_cell_t *sf_param_row_get_cell_mut(sf_param_row_t *row, size_t index) {
 sf_param_cell_t *sf_param_row_find_cell_mut(sf_param_row_t *row,
                                             const char *internal_name) {
     return (sf_param_cell_t *)sf_param_row_find_cell(row, internal_name);
+}
+
+SF_API sf_result_t sf_param_row_copy(sf_param_row_t *dst, const sf_param_row_t *src) {
+    SF_CHECK_ARG(dst != NULL && src != NULL);
+    if (dst == src) return SF_OK;
+    if (dst->cell_count != src->cell_count || dst->data_size != src->data_size) return SF_ERR_INVALID_ARG;
+    memcpy(dst->data, src->data, src->data_size);
+    for (size_t i = 0; i < dst->cell_count; i++) {
+        (void)sf_param_cell_copy(&dst->cells[i], &src->cells[i]);
+    }
+    return SF_OK;
 }
 
 sf_param_cell_value_t sf_param_cell_get_value(const sf_param_cell_t *cell) {
@@ -1060,6 +1087,21 @@ sf_result_t sf_param_cell_set_f32(sf_param_cell_t *cell, float value) {
     return SF_OK;
 }
 
+SF_API sf_result_t sf_param_cell_set_angle32(sf_param_cell_t *cell, float value) {
+    if (!cell) {
+        sfi_set_last_error_detail("sf_param_cell_set_angle32 requires a non-NULL cell");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_ANGLE32) return reject_cell_kind(cell, "angle32");
+    uint32_t raw = 0;
+    memcpy(&raw, &value, sizeof(raw));
+    sf_result_t r = write_cell_backing(cell, raw, 4);
+    if (r != SF_OK) return r;
+    cell->value.v.angle32 = value;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
 sf_result_t sf_param_cell_set_f64(sf_param_cell_t *cell, double value) {
     if (!cell) {
         sfi_set_last_error_detail("sf_param_cell_set_f64 requires a non-NULL cell");
@@ -1128,6 +1170,86 @@ sf_result_t sf_param_cell_set_fixstr(sf_param_cell_t *cell, const char *value, s
     copy[value_len] = '\0';
     sf_xfree(cell_alloc(cell), (void *)cell->value.v.str_utf8);
     cell->value.v.str_utf8 = copy;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
+SF_API sf_result_t sf_param_cell_set_fixstr_w(sf_param_cell_t *cell, const wchar_t *value, size_t value_len) {
+    if (!cell || (!value && value_len != 0)) {
+        sfi_set_last_error_detail("sf_param_cell_set_fixstr_w requires valid cell/value arguments");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_FIXSTR_W) return reject_cell_kind(cell, "fixstr_w");
+    size_t capacity = cell_declared_size(cell);
+    if (capacity == 0) {
+        sfi_set_last_error_detail("fixstr_w cell has zero capacity");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (value_len > capacity) {
+        sfi_set_last_error_detail("value length %zu > cell capacity %zu", value_len, capacity);
+        return SF_ERR_OUT_OF_RANGE;
+    }
+    sf_result_t r = check_cell_backing(cell, capacity * 2);
+    if (r != SF_OK) return r;
+    uint8_t *p = cell->parent_row->data + cell->byte_offset;
+    memset(p, 0, capacity * 2);
+    for (size_t i = 0; i < value_len; i++) {
+        uint16_t ch = (uint16_t)value[i];
+        p[i * 2] = (uint8_t)ch;
+        p[i * 2 + 1] = (uint8_t)(ch >> 8);
+    }
+    char *copy = (char *)sf_xalloc(cell_alloc(cell), (value_len * 4) + 1u);
+    if (!copy) return SF_ERR_OOM;
+    size_t copy_index = 0;
+    for (size_t i = 0; i < value_len; i++) {
+        uint32_t codepoint = (uint32_t)value[i];
+        if (codepoint <= 0x7F) {
+            copy[copy_index++] = (char)codepoint;
+        } else if (codepoint <= 0x7FF) {
+            copy[copy_index++] = (char)(0xC0 | ((codepoint >> 6) & 0x1F));
+            copy[copy_index++] = (char)(0x80 | (codepoint & 0x3F));
+        } else {
+            copy[copy_index++] = (char)(0xE0 | ((codepoint >> 12) & 0x0F));
+            copy[copy_index++] = (char)(0x80 | ((codepoint >> 6) & 0x3F));
+            copy[copy_index++] = (char)(0x80 | (codepoint & 0x3F));
+        }
+    }
+    copy[copy_index] = '\0';
+    sf_xfree(cell_alloc(cell), (void *)cell->value.v.str_utf8);
+    cell->value.v.str_utf8 = copy;
+    sfi_clear_last_error_detail();
+    return SF_OK;
+}
+
+SF_API sf_result_t sf_param_cell_set_bytes(sf_param_cell_t *cell, const uint8_t *data, size_t size) {
+    if (!cell || (size > 0 && !data)) {
+        sfi_set_last_error_detail("sf_param_cell_set_bytes requires valid cell/data arguments");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (cell->value.kind != SF_PARAM_CELL_KIND_U8_ARRAY &&
+        cell->value.kind != SF_PARAM_CELL_KIND_DUMMY8_ARRAY) {
+        return reject_cell_kind(cell, "bytes");
+    }
+    size_t capacity = cell_declared_size(cell);
+    if (capacity == 0) {
+        sfi_set_last_error_detail("byte array cell has zero capacity");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (size > capacity) {
+        sfi_set_last_error_detail("data size %zu > cell capacity %zu", size, capacity);
+        return SF_ERR_OUT_OF_RANGE;
+    }
+    sf_result_t r = check_cell_backing(cell, size);
+    if (r != SF_OK) return r;
+    uint8_t *p = cell->parent_row->data + cell->byte_offset;
+    memset(p, 0, capacity);
+    if (size > 0) memcpy(p, data, size);
+    uint8_t *copy = (uint8_t *)sf_xalloc(cell_alloc(cell), size);
+    if (!copy && size > 0) return SF_ERR_OOM;
+    if (size > 0) memcpy(copy, data, size);
+    sf_xfree(cell_alloc(cell), (void *)cell->value.v.bytes.data);
+    cell->value.v.bytes.data = copy;
+    cell->value.v.bytes.size = size;
     sfi_clear_last_error_detail();
     return SF_OK;
 }
@@ -1337,4 +1459,57 @@ sf_result_t sf_param_cell_set_u32(sf_param_cell_t *cell, uint32_t value) {
     if (r != SF_OK) return r;
     cell->value.v.u32 = value;
     return SF_OK;
+}
+
+SF_API sf_result_t sf_param_cell_copy(sf_param_cell_t *dst, const sf_param_cell_t *src) {
+    if (!dst || !src) {
+        sfi_set_last_error_detail("sf_param_cell_copy requires non-NULL dst and src");
+        return SF_ERR_INVALID_ARG;
+    }
+    if (dst->value.kind != src->value.kind) {
+        sfi_set_last_error_detail("cannot copy cell of kind %s to cell of kind %s",
+                                  cell_kind_name(src->value.kind),
+                                  cell_kind_name(dst->value.kind));
+        return SF_ERR_INVALID_ARG;
+    }
+    switch (src->value.kind) {
+    case SF_PARAM_CELL_KIND_U8:
+    case SF_PARAM_CELL_KIND_DUMMY8_BIT:
+        return sf_param_cell_set_u8(dst, src->value.v.u8);
+    case SF_PARAM_CELL_KIND_S8:
+        return sf_param_cell_set_s8(dst, src->value.v.s8);
+    case SF_PARAM_CELL_KIND_U16:
+        return sf_param_cell_set_u16(dst, src->value.v.u16);
+    case SF_PARAM_CELL_KIND_S16:
+        return sf_param_cell_set_s16(dst, src->value.v.s16);
+    case SF_PARAM_CELL_KIND_U32:
+        return sf_param_cell_set_u32(dst, src->value.v.u32);
+    case SF_PARAM_CELL_KIND_S32:
+        return sf_param_cell_set_s32(dst, src->value.v.s32);
+    case SF_PARAM_CELL_KIND_U64:
+        return sf_param_cell_set_u64(dst, src->value.v.u64);
+    case SF_PARAM_CELL_KIND_S64:
+        return sf_param_cell_set_s64(dst, src->value.v.s64);
+    case SF_PARAM_CELL_KIND_B32:
+        return sf_param_cell_set_bool(dst, src->value.v.b32 != 0);
+    case SF_PARAM_CELL_KIND_F32:
+        return sf_param_cell_set_f32(dst, src->value.v.f32);
+    case SF_PARAM_CELL_KIND_ANGLE32:
+        return sf_param_cell_set_angle32(dst, src->value.v.angle32);
+    case SF_PARAM_CELL_KIND_F64:
+        return sf_param_cell_set_f64(dst, src->value.v.f64);
+    case SF_PARAM_CELL_KIND_DUMMY8_ARRAY:
+    case SF_PARAM_CELL_KIND_U8_ARRAY:
+        return sf_param_cell_set_bytes(dst, src->value.v.bytes.data, src->value.v.bytes.size);
+    case SF_PARAM_CELL_KIND_FIXSTR:
+        return sf_param_cell_set_fixstr(dst, src->value.v.str_utf8,
+                                       strlen(src->value.v.str_utf8));
+    case SF_PARAM_CELL_KIND_FIXSTR_W:
+        return sf_param_cell_set_fixstr(dst, src->value.v.str_utf8,
+                                       strlen(src->value.v.str_utf8));
+    default:
+        sfi_set_last_error_detail("copying cells of kind %s is not supported",
+                                  cell_kind_name(src->value.kind));
+        return SF_ERR_UNSUPPORTED;
+    }
 }
