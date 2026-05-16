@@ -162,8 +162,42 @@ static void test_param_add_row_by_id_round_trips(void) {
     sf_paramdef_destroy(def);
 }
 
+/* Regression test: adding a row with name_optional=NULL must round-trip with an
+   empty name, not garbage bytes from the strings section. */
+static void test_param_add_row_null_name_round_trips(void) {
+    sf_paramdef_t *def = NULL;
+    sf_param_t *param = load_item_lot_map_or_skip(&def);
+
+    sf_param_row_t *row = NULL;
+    TEST_ASSERT_EQUAL_INT(SF_OK, sf_param_add_row_by_id(param, 88888, NULL, &row));
+    TEST_ASSERT_NOT_NULL(row);
+    TEST_ASSERT_EQUAL_INT32(88888, sf_param_row_get_id(row));
+    TEST_ASSERT_EQUAL_STRING("", sf_param_row_get_name(row));
+
+    uint8_t *bytes = NULL;
+    size_t size = 0;
+    TEST_ASSERT_EQUAL_INT(SF_OK, sf_param_write_to_memory(param, &bytes, &size, NULL));
+    TEST_ASSERT_NOT_NULL(bytes);
+    TEST_ASSERT_GREATER_THAN_size_t(0, size);
+
+    sf_param_t *round = NULL;
+    TEST_ASSERT_EQUAL_INT(SF_OK, sf_param_read_from_memory(&round, bytes, size, NULL));
+    sf_free(NULL, bytes);
+    TEST_ASSERT_NOT_NULL(round);
+
+    const sf_param_row_t *round_row = sf_param_find_row_by_id(round, 88888);
+    TEST_ASSERT_NOT_NULL(round_row);
+    /* Name must be empty string, not garbage from the strings section */
+    TEST_ASSERT_EQUAL_STRING("", sf_param_row_get_name(round_row));
+
+    sf_param_destroy(round);
+    sf_param_destroy(param);
+    sf_paramdef_destroy(def);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_param_add_row_by_id_round_trips);
+    RUN_TEST(test_param_add_row_null_name_round_trips);
     return UNITY_END();
 }

@@ -525,7 +525,7 @@ static sf_result_t write_rows(sf_binary_writer_t *bw, const sf_param_t *param) {
 static int64_t find_previous_name_offset(const sf_param_t *param, size_t row_index,
                                          const int64_t *offsets) {
     const char *name = param->rows[row_index].name ? param->rows[row_index].name : "";
-    if (name[0] == '\0') return offsets[0];
+    if (name[0] == '\0') return -1;
     for (size_t i = 0; i < row_index; i++) {
         const char *other = param->rows[i].name ? param->rows[i].name : "";
         if (strcmp(name, other) == 0) return offsets[i + 1];
@@ -545,16 +545,22 @@ static sf_result_t write_row_names(sf_binary_writer_t *bw, const sf_param_t *par
 
     for (size_t i = 0; i < param->row_count; i++) {
         int64_t name_offset = find_previous_name_offset(param, i, offsets);
-        if (name_offset == 0) {
-            name_offset = sf_binary_writer_position(bw);
-            const char *name = param->rows[i].name ? param->rows[i].name : "";
-            r = has_flag2(param->format2e, SF_PARAM_FORMAT_FLAGS2_UNICODE_ROW_NAMES)
-                ? sf_binary_writer_write_utf16(bw, name, true)
-                : sf_binary_writer_write_shift_jis(bw, name, true);
-            if (r != SF_OK) goto cleanup;
+        if (name_offset == -1) {
+            /* NULL/empty name: write offset 0 so readers skip it */
+            offsets[i + 1] = 0;
+            r = fill_name_offset(bw, param, i, 0);
+        } else {
+            if (name_offset == 0) {
+                name_offset = sf_binary_writer_position(bw);
+                const char *name = param->rows[i].name ? param->rows[i].name : "";
+                r = has_flag2(param->format2e, SF_PARAM_FORMAT_FLAGS2_UNICODE_ROW_NAMES)
+                    ? sf_binary_writer_write_utf16(bw, name, true)
+                    : sf_binary_writer_write_shift_jis(bw, name, true);
+                if (r != SF_OK) goto cleanup;
+            }
+            offsets[i + 1] = name_offset;
+            r = fill_name_offset(bw, param, i, name_offset);
         }
-        offsets[i + 1] = name_offset;
-        r = fill_name_offset(bw, param, i, name_offset);
         if (r != SF_OK) goto cleanup;
     }
 
