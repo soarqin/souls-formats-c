@@ -540,8 +540,7 @@ static sf_result_t write_row_names(sf_binary_writer_t *bw, const sf_param_t *par
     memset(offsets, 0, (param->row_count + 1) * sizeof(*offsets));
     offsets[0] = strings_offset;
 
-    sf_result_t r = sf_binary_writer_write_i16(bw, 0);
-    if (r != SF_OK) goto cleanup;
+    sf_result_t r = SF_OK;
 
     for (size_t i = 0; i < param->row_count; i++) {
         int64_t name_offset = find_previous_name_offset(param, i, offsets);
@@ -553,11 +552,17 @@ static sf_result_t write_row_names(sf_binary_writer_t *bw, const sf_param_t *par
                 : sf_binary_writer_write_shift_jis(bw, name, true);
             if (r != SF_OK) goto cleanup;
         }
-        offsets[i + 1] = name_offset;
-        r = fill_name_offset(bw, param, i, name_offset);
+        /* name_offset < 0 means the row has no name; write 0 (upstream convention:
+         * nameOffset == 0 in the row header means "no name"). */
+        int64_t stored_offset = (name_offset < 0) ? 0 : name_offset;
+        offsets[i + 1] = stored_offset;
+        r = fill_name_offset(bw, param, i, stored_offset);
         if (r != SF_OK) goto cleanup;
     }
 
+    /* Upstream ends the strings section with a single null UTF-16 unit (2 bytes).
+     * No leading sentinel is written before the names — that was a divergence from
+     * upstream that shifted actualStringsOffset and could corrupt single-row RowSize. */
     r = sf_binary_writer_write_i16(bw, 0);
 
 cleanup:
