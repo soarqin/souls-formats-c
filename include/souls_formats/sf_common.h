@@ -8,7 +8,7 @@
 #define SOULS_FORMATS_SF_COMMON_H
 
 #include <stddef.h>
-#include <stdint.h>
+#include <stdint.h> /* IWYU pragma: export */
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,9 +19,9 @@ extern "C" {
  *===========================================================================*/
 
 #define SF_VERSION_MAJOR 0
-#define SF_VERSION_MINOR 8
+#define SF_VERSION_MINOR 9
 #define SF_VERSION_PATCH 0
-#define SF_VERSION_STRING "0.8.0"
+#define SF_VERSION_STRING "0.9.0"
 
 /*===========================================================================
  * ABI export macro

@@ -648,6 +648,7 @@ static sf_result_t wrap_dcx_payload(const uint8_t *in, size_t in_size,
     SF_CHECK_ARG(info);
 
     if (info->type == SF_DCX_TYPE_DCX_KRAK) {
+        SF_RETURN_IF(sf_oodle_load() != SF_OK, SF_ERR_OODLE_NOT_FOUND);
         int64_t bound = sfi_oodle_bound(in_size);
         SF_RETURN_IF(bound <= 0, SF_ERR_DECOMPRESS);
         uint8_t *buf = (uint8_t *)sf_xalloc(alloc, 0x4Cu + (size_t)bound);
