@@ -136,13 +136,14 @@ static sf_result_t import_rsa_public_key(BCRYPT_ALG_HANDLE alg,
     size_t blob_size = sizeof(BCRYPT_RSAKEY_BLOB) + e_len + n_len;
     uint8_t *blob = (uint8_t *)sf_xalloc(alloc, blob_size);
     if (!blob) return SF_ERR_OOM;
-    BCRYPT_RSAKEY_BLOB *hdr = (BCRYPT_RSAKEY_BLOB *)blob;
-    hdr->Magic       = BCRYPT_RSAPUBLIC_MAGIC;
-    hdr->BitLength   = (ULONG)(n_len * 8u);
-    hdr->cbPublicExp = (ULONG)e_len;
-    hdr->cbModulus   = (ULONG)n_len;
-    hdr->cbPrime1    = 0;
-    hdr->cbPrime2    = 0;
+    BCRYPT_RSAKEY_BLOB hdr_val;
+    hdr_val.Magic       = BCRYPT_RSAPUBLIC_MAGIC;
+    hdr_val.BitLength   = (ULONG)(n_len * 8u);
+    hdr_val.cbPublicExp = (ULONG)e_len;
+    hdr_val.cbModulus   = (ULONG)n_len;
+    hdr_val.cbPrime1    = 0;
+    hdr_val.cbPrime2    = 0;
+    memcpy(blob, &hdr_val, sizeof(hdr_val));
     memcpy(blob + sizeof(BCRYPT_RSAKEY_BLOB), e, e_len);
     memcpy(blob + sizeof(BCRYPT_RSAKEY_BLOB) + e_len, n, n_len);
 

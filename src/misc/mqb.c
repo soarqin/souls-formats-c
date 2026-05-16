@@ -919,10 +919,10 @@ static sf_result_t read_parameter(rdr_t *r, const sf_allocator_t *alloc, sf_mqb_
     value_offset = r->pos;
     if (res == SF_OK) {
         switch (p->type) {
-        case SF_MQB_PARAM_TYPE_BOOL: { uint8_t v; res = read_u8(r, &v); p->value.b = v != 0; break; }
-        case SF_MQB_PARAM_TYPE_SBYTE: { uint8_t v; res = read_u8(r, &v); p->value.s8 = (int8_t)v; break; }
+        case SF_MQB_PARAM_TYPE_BOOL: { uint8_t v = 0; res = read_u8(r, &v); p->value.b = v != 0; break; }
+        case SF_MQB_PARAM_TYPE_SBYTE: { uint8_t v = 0; res = read_u8(r, &v); p->value.s8 = (int8_t)v; break; }
         case SF_MQB_PARAM_TYPE_BYTE: res = read_u8(r, &p->value.u8); break;
-        case SF_MQB_PARAM_TYPE_SHORT: { uint16_t v; res = read_u16(r, &v); p->value.s16 = (int16_t)v; break; }
+        case SF_MQB_PARAM_TYPE_SHORT: { uint16_t v = 0; res = read_u16(r, &v); p->value.s16 = (int16_t)v; break; }
         case SF_MQB_PARAM_TYPE_INT: res = read_i32(r, &p->value.s32); break;
         case SF_MQB_PARAM_TYPE_UINT: res = read_u32(r, &p->value.u32); break;
         case SF_MQB_PARAM_TYPE_FLOAT: res = read_f32(r, &p->value.f32); break;

@@ -312,8 +312,8 @@ done:
 
 static sf_result_t luainfo_write_goal(sf_binary_writer_t *bw, bool long_format,
                                       size_t index, const sf_luainfo_goal_t *g) {
-    char name_label[40];
-    char interrupt_label[40];
+    char name_label[64];
+    char interrupt_label[64];
     snprintf(name_label,      sizeof(name_label),      "NameOffset%zu", index);
     snprintf(interrupt_label, sizeof(interrupt_label), "LogicInterruptNameOffset%zu", index);
 
@@ -337,8 +337,8 @@ static sf_result_t luainfo_write_goal(sf_binary_writer_t *bw, bool long_format,
 static sf_result_t luainfo_write_goal_strings(sf_binary_writer_t *bw,
                                               bool long_format, size_t index,
                                               const sf_luainfo_goal_t *g) {
-    char name_label[40];
-    char interrupt_label[40];
+    char name_label[64];
+    char interrupt_label[64];
     snprintf(name_label,      sizeof(name_label),      "NameOffset%zu", index);
     snprintf(interrupt_label, sizeof(interrupt_label), "LogicInterruptNameOffset%zu", index);
 
