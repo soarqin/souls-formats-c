@@ -545,22 +545,16 @@ static sf_result_t write_row_names(sf_binary_writer_t *bw, const sf_param_t *par
 
     for (size_t i = 0; i < param->row_count; i++) {
         int64_t name_offset = find_previous_name_offset(param, i, offsets);
-        if (name_offset == -1) {
-            /* NULL/empty name: write offset 0 so readers skip it */
-            offsets[i + 1] = 0;
-            r = fill_name_offset(bw, param, i, 0);
-        } else {
-            if (name_offset == 0) {
-                name_offset = sf_binary_writer_position(bw);
-                const char *name = param->rows[i].name ? param->rows[i].name : "";
-                r = has_flag2(param->format2e, SF_PARAM_FORMAT_FLAGS2_UNICODE_ROW_NAMES)
-                    ? sf_binary_writer_write_utf16(bw, name, true)
-                    : sf_binary_writer_write_shift_jis(bw, name, true);
-                if (r != SF_OK) goto cleanup;
-            }
-            offsets[i + 1] = name_offset;
-            r = fill_name_offset(bw, param, i, name_offset);
+        if (name_offset == 0) {
+            name_offset = sf_binary_writer_position(bw);
+            const char *name = param->rows[i].name ? param->rows[i].name : "";
+            r = has_flag2(param->format2e, SF_PARAM_FORMAT_FLAGS2_UNICODE_ROW_NAMES)
+                ? sf_binary_writer_write_utf16(bw, name, true)
+                : sf_binary_writer_write_shift_jis(bw, name, true);
+            if (r != SF_OK) goto cleanup;
         }
+        offsets[i + 1] = name_offset;
+        r = fill_name_offset(bw, param, i, name_offset);
         if (r != SF_OK) goto cleanup;
     }
 
@@ -809,7 +803,16 @@ SF_API sf_result_t sf_param_add_row_by_id(sf_param_t *param, int32_t id,
     *out_row = NULL;
     if (!param->applied_paramdef) return SF_ERR_INVALID_STATE;
 
-    int32_t row_size_i32 = sf_paramdef_get_row_size(param->applied_paramdef);
+    /* Use the param's detected (file-derived) row size when available so that
+     * the new row's data_size matches existing rows.  Fall back to the paramdef
+     * row size only when the param has no rows yet (detected_size == -1). */
+    int32_t row_size_i32;
+    if (param->detected_size > 0) {
+        if (param->detected_size > INT32_MAX) return SF_ERR_OUT_OF_RANGE;
+        row_size_i32 = (int32_t)param->detected_size;
+    } else {
+        row_size_i32 = sf_paramdef_get_row_size(param->applied_paramdef);
+    }
     if (row_size_i32 <= 0) return SF_ERR_INVALID_STATE;
     size_t row_size = (size_t)row_size_i32;
 

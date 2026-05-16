@@ -195,9 +195,37 @@ static void test_param_add_row_null_name_round_trips(void) {
     sf_paramdef_destroy(def);
 }
 
+/* Regression test: a row added via sf_param_add_row_by_id must have the same
+   cell_count as existing rows, and sf_param_row_copy (which checks data_size
+   equality) must succeed between an existing row and the new row. */
+static void test_param_add_row_matches_existing_layout(void) {
+    sf_paramdef_t *def = NULL;
+    sf_param_t *param = load_item_lot_map_or_skip(&def);
+
+    /* Capture layout of an existing row before adding. */
+    const sf_param_row_t *existing = sf_param_get_row(param, 0);
+    TEST_ASSERT_NOT_NULL_MESSAGE(existing, "param has no rows to compare against");
+    size_t existing_cell_count = sf_param_row_get_cell_count(existing);
+    TEST_ASSERT_GREATER_THAN_size_t(0, existing_cell_count);
+
+    sf_param_row_t *new_row = NULL;
+    TEST_ASSERT_EQUAL_INT(SF_OK, sf_param_add_row_by_id(param, 77777, "layout_check", &new_row));
+    TEST_ASSERT_NOT_NULL(new_row);
+
+    /* cell_count must match existing rows. */
+    TEST_ASSERT_EQUAL_size_t(existing_cell_count, sf_param_row_get_cell_count(new_row));
+
+    /* sf_param_row_copy checks data_size equality; it must succeed. */
+    TEST_ASSERT_EQUAL_INT(SF_OK, sf_param_row_copy(new_row, existing));
+
+    sf_param_destroy(param);
+    sf_paramdef_destroy(def);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_param_add_row_by_id_round_trips);
     RUN_TEST(test_param_add_row_null_name_round_trips);
+    RUN_TEST(test_param_add_row_matches_existing_layout);
     return UNITY_END();
 }
